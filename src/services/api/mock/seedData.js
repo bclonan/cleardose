@@ -1,3 +1,4 @@
+// Fictional API fixtures only. Never replace with production or patient data.
 export const categories = [
   "All medications",
   "Heart health",

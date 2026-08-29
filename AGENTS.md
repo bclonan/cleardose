@@ -14,9 +14,9 @@ Build and extend **ClearDose — Transparent prescriptions, agent-ready.** as a 
 ## Architecture rules
 
 - Pages orchestrate presentation only. They may call Pinia actions and read DTOs; they must not read `localStorage`, import seed data, or contain persistence logic.
-- Pinia is the reactive application boundary. All mutations flow `component/tool → Pinia action → ClearDoseFacade → repository adapter → DAO`.
+- Pinia is the reactive application boundary. All mutations flow `component/tool → Pinia action → ClearDoseFacade → repository adapter → API service → DAO`.
 - The facade is framework-independent and is the only high-level API consumed by stores or integrations.
-- Repositories implement domain-specific data access. The DAO owns serialization and browser storage. DTO mappers sanitize data crossing into the application layer.
+- Raw server-like behavior and fictional fixtures belong only in `src/services/api`. Repositories adapt that API, the DAO owns serialization, and DTO mappers sanitize data crossing into the application layer.
 - Reusable components accept the shared props in `src/presentation/agentReadyProps.js` and use `useAgentReadyComponent` so adapters and component-scoped tools can be composed without rewriting the component.
 - Register reusable components in `src/app/componentRegistry.js`; default WebMCP tools belong in `src/infrastructure/webmcp/tools/createDefaultTools.js`.
 
@@ -28,6 +28,14 @@ Build and extend **ClearDose — Transparent prescriptions, agent-ready.** as a 
 - Read-only tools must set `readOnlyHint: true`. Mutating tools must clearly describe the local state change and call the same Pinia action used by the UI.
 - Registration must be lifecycle-safe through `AbortSignal`; component-scoped tools unregister on unmount.
 - Do not create agent tools that place an order, simulate payment, or disclose customer data without an explicit interaction/approval design.
+- Imperative and declarative tools must share namespaced contracts without making form completion dependent on experimental browser support.
+
+## Accessibility rules
+
+- Maintain the WCAG 2.2 AAA engineering target documented in `docs/ACCESSIBILITY.md`; never make a formal conformance claim without a human audit.
+- Preserve semantic landmarks, skip navigation, route titles, visible focus, enhanced contrast, 44-pixel controls, transcripts, reduced-motion behavior, and forced-colors support.
+- Voice guidance is optional progressive enhancement. Every spoken instruction needs an equivalent persistent transcript and keyboard controls.
+- Every user-data field needs a stable label, `name`, appropriate `type`, and correct `autocomplete` token. Do not disable autofill without a specific safety reason.
 
 ## Change checklist
 

@@ -4,9 +4,10 @@ import { createClearDoseBrowserAdapter } from "../infrastructure/adapters/create
 import { BrowserWebMcpAdapter } from "../infrastructure/webmcp/BrowserWebMcpAdapter";
 import { WebMcpToolRegistry } from "../infrastructure/webmcp/WebMcpToolRegistry";
 import { createDefaultTools } from "../infrastructure/webmcp/tools/createDefaultTools";
+import { SectionHighlightService } from "../services/ui/SectionHighlightService";
 import { usePharmacyStore } from "../stores/pharmacyStore";
 import { clearDoseComponents, registerClearDoseComponents } from "./componentRegistry";
-import { clearDoseComponentRegistryKey, clearDoseFacadeKey, clearDoseToolRegistryKey } from "./injectionKeys";
+import { clearDoseComponentRegistryKey, clearDoseFacadeKey, clearDoseHighlightServiceKey, clearDoseToolRegistryKey } from "./injectionKeys";
 
 export function createClearDosePlugin(options = {}) {
   const pinia = options.pinia ?? createPinia();
@@ -17,17 +18,20 @@ export function createClearDosePlugin(options = {}) {
     adapter: webMcpAdapter,
     namespace: options.webMcp?.namespace ?? "cleardose",
   });
+  const highlightService = options.highlightService ?? new SectionHighlightService(options.highlight);
   const components = clearDoseComponents;
 
   return {
     pinia,
     facade,
     toolRegistry,
+    highlightService,
     install(app) {
       if (!options.pinia) app.use(pinia);
       app.provide(clearDoseFacadeKey, facade);
       app.provide(clearDoseToolRegistryKey, toolRegistry);
       app.provide(clearDoseComponentRegistryKey, components);
+      app.provide(clearDoseHighlightServiceKey, highlightService);
       registerClearDoseComponents(app, { prefix: options.componentPrefix ?? "Cd" });
 
       const store = usePharmacyStore(pinia);
@@ -35,7 +39,7 @@ export function createClearDosePlugin(options = {}) {
       store.refresh();
 
       if (options.webMcp?.enabled !== false) {
-        void toolRegistry.registerDefinitions(createDefaultTools({ store }));
+        void toolRegistry.registerDefinitions(createDefaultTools({ store, highlightService }));
       }
     },
   };

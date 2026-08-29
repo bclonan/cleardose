@@ -23,12 +23,16 @@ createApp(App).use(pinia).use(clearDose).mount("#app");
 
 ## Registered components
 
-`CdAccountNav`, `CdAgentReadyHost`, `CdMedicationCard`, `CdStatusBadge`, and `CdWebMcpStatus` are registered globally. Every reusable component accepts:
+`CdAccountNav`, `CdAgentControlCenter`, `CdAgentReadyForm`, `CdAgentReadyHost`, `CdComparisonPanel`, `CdMedicationCard`, `CdStatusBadge`, and `CdWebMcpStatus` are registered globally. Every reusable component accepts:
 
 | Prop | Type | Purpose |
 |---|---|---|
 | `adapter` | object | Override display/routing behavior for that component |
 | `mcpTools` | array | Register additional tools while the component is mounted |
+| `imperativeTools` | array | Explicit alias for component-scoped imperative tool definitions |
+| `declarativeTool` | object | Standard-form metadata: `name`, `description`, and `autoSubmit` |
+| `mcp` | object | Compose `{ tools, declarative }` in one prop |
+| `mcpMode` | string | `auto`, `imperative`, `declarative`, or `both` |
 | `mcpContext` | object | Compose safe component context into tool execution |
 | `registerMcp` | boolean | Disable component-level registration when needed |
 
@@ -43,12 +47,16 @@ createApp(App).use(pinia).use(clearDose).mount("#app");
 
 A component tool receives `(input, context)`. `context` contains the facade plus the supplied `mcpContext`. Component registrations are namespaced and automatically aborted when the component unmounts.
 
+`CdAgentReadyForm` emits standards-based `toolname`, `tooldescription`, `toolautosubmit`, and slotted `toolparamdescription` attributes while remaining a normal accessible form when WebMCP is absent.
+
 ## Default tools
 
 | Tool | Mutation | Purpose |
 |---|---:|---|
 | `cleardose_search_medications` | No | Search name, brand, category; sort and limit results |
 | `cleardose_get_medication` | No | Return one medication and all mock price variants |
+| `cleardose_compare_medications` | No | Compare two exact variants without making a clinical recommendation |
+| `cleardose_highlight_section` | No | Move visible focus to a stable page section or action shared by the human and agent |
 | `cleardose_get_cart` | No | Read items and transparent totals |
 | `cleardose_add_to_cart` | Yes | Add an exact variant through the same Pinia action as the UI |
 
@@ -56,4 +64,4 @@ A component tool receives `(input, context)`. `context` contains the facade plus
 
 Add a definition to `createDefaultTools.js`, use a bounded JSON Schema, set annotations accurately, and invoke a store action. The registry prefixes names, records status, and provides an `AbortSignal` so tools can be unregistered cleanly.
 
-The implementation follows the W3C Community Group draft and uses `document.modelContext.registerTool()`. See the [current WebMCP draft](https://webmachinelearning.github.io/webmcp/) and [Chrome's WebMCP documentation](https://developer.chrome.com/docs/ai/webmcp).
+The implementation follows the W3C Community Group draft and uses `document.modelContext.registerTool()`. See the [current WebMCP draft](https://webmachinelearning.github.io/webmcp/), [Chrome's WebMCP user journeys](https://developer.chrome.com/docs/ai/webmcp/use-cases), and [autofill guidance](https://web.dev/learn/forms/autofill).

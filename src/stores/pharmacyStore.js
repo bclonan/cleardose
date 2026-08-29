@@ -41,6 +41,7 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
   function searchMedications(filters) { return facade.value.searchMedications(filters); }
   function medicationById(id) { return facade.value.medicationById(id); }
   function medicationBySlug(slug) { return facade.value.medicationBySlug(slug); }
+  function compareMedications(input) { return facade.value.compareMedications(input); }
   function addToCart(medicationId, variantId) { return afterMutation(facade.value.addToCart(medicationId, variantId)); }
   function removeFromCart(variantId) { facade.value.removeFromCart(variantId); refresh(); }
   function setCartUnits(variantId, units) { facade.value.setCartUnits(variantId, units); refresh(); }
@@ -69,6 +70,7 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
     searchMedications,
     medicationById,
     medicationBySlug,
+    compareMedications,
     addToCart,
     removeFromCart,
     setCartUnits,

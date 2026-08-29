@@ -1,4 +1,5 @@
-import { categories, medications, seededCustomer, seededOrders, seededPrescriptions } from "../../data/mockDb";
+import { seededCustomer, seededOrders, seededPrescriptions } from "../../services/api/mock/seedData";
+import { createMockPharmacyApi } from "../../services/api/createMockPharmacyApi";
 import { BrowserStateDao, MemoryStorageAdapter } from "../persistence/BrowserStateDao";
 import { CartRepositoryAdapter } from "../repositories/CartRepositoryAdapter";
 import { CatalogRepositoryAdapter } from "../repositories/CatalogRepositoryAdapter";
@@ -19,13 +20,15 @@ export function createClearDoseBrowserAdapter({ storage, storageKey = "cleardose
       prescriptions: structuredClone(seededPrescriptions),
     }),
   });
+  const api = createMockPharmacyApi({ dao });
 
   return Object.freeze({
+    api,
     dao,
-    catalog: new CatalogRepositoryAdapter({ medications, categories }),
-    customers: new CustomerRepositoryAdapter(dao),
-    cart: new CartRepositoryAdapter(dao),
-    orders: new OrderRepositoryAdapter(dao),
-    prescriptions: new PrescriptionRepositoryAdapter(dao),
+    catalog: new CatalogRepositoryAdapter(api),
+    customers: new CustomerRepositoryAdapter(api),
+    cart: new CartRepositoryAdapter(api),
+    orders: new OrderRepositoryAdapter(api),
+    prescriptions: new PrescriptionRepositoryAdapter(api),
   });
 }

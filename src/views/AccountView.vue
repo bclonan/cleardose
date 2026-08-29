@@ -97,16 +97,16 @@ function saveProfile() {
 
         <section id="profile" class="account-section profile-section">
           <div class="account-section-heading"><div><span class="eyebrow">Profile</span><h2>Delivery information</h2></div><button v-if="!editing" class="text-link button-reset" type="button" @click="editing = true"><Pencil :size="16" /> Edit</button></div>
-          <Transition name="fade"><div v-if="saved" class="inline-success"><Check :size="17" /> Profile saved in this browser.</div></Transition>
+          <Transition name="fade"><div v-if="saved" class="inline-success" role="status" aria-live="polite"><Check :size="17" /> Profile saved in this browser.</div></Transition>
           <div v-if="!editing" class="profile-display">
             <span class="list-icon"><MapPin :size="21" /></span>
             <div><strong>{{ store.currentCustomer.firstName }} {{ store.currentCustomer.lastName }}</strong><span>{{ store.currentCustomer.address.line1 }} {{ store.currentCustomer.address.line2 }}</span><span>{{ store.currentCustomer.address.city }}, {{ store.currentCustomer.address.state }} {{ store.currentCustomer.address.zip }}</span><span>{{ store.currentCustomer.phone }}</span></div>
           </div>
-          <form v-else class="stacked-form profile-form" @submit.prevent="saveProfile">
-            <label>Mobile phone<input v-model="profile.phone" /></label>
-            <label>Street address<input v-model="profile.line1" required /></label>
-            <label>Apartment or suite<input v-model="profile.line2" /></label>
-            <div class="form-row three-columns"><label>City<input v-model="profile.city" required /></label><label>State<input v-model="profile.state" maxlength="2" required /></label><label>ZIP<input v-model="profile.zip" required /></label></div>
+          <form v-else class="stacked-form profile-form" autocomplete="on" @submit.prevent="saveProfile">
+            <label for="profile-phone">Mobile phone<input id="profile-phone" v-model="profile.phone" name="tel" type="tel" inputmode="tel" autocomplete="tel" /></label>
+            <label for="profile-address-line1">Street address<input id="profile-address-line1" v-model="profile.line1" name="address-line1" autocomplete="shipping address-line1" required /></label>
+            <label for="profile-address-line2">Apartment or suite<input id="profile-address-line2" v-model="profile.line2" name="address-line2" autocomplete="shipping address-line2" /></label>
+            <div class="form-row three-columns"><label for="profile-city">City<input id="profile-city" v-model="profile.city" name="address-level2" autocomplete="shipping address-level2" required /></label><label for="profile-state">State<input id="profile-state" v-model="profile.state" name="address-level1" autocomplete="shipping address-level1" maxlength="2" required /></label><label for="profile-zip">ZIP<input id="profile-zip" v-model="profile.zip" name="postal-code" autocomplete="shipping postal-code" inputmode="numeric" required /></label></div>
             <div class="form-actions"><button class="button button-dark" type="submit">Save changes</button><button class="button button-ghost" type="button" @click="editing = false">Cancel</button></div>
           </form>
         </section>

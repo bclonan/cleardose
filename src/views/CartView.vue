@@ -27,7 +27,7 @@ const store = usePharmacyStore();
           </div>
           <label class="quantity-control">
             <span>Qty</span>
-            <select :value="item.units" @change="store.setCartUnits(item.variantId, $event.target.value)">
+            <select :value="item.units" :aria-label="`Quantity for ${item.name}`" @change="store.setCartUnits(item.variantId, $event.target.value)">
               <option :value="1">1</option>
               <option :value="2">2</option>
               <option :value="3">3</option>
@@ -45,7 +45,7 @@ const store = usePharmacyStore();
         </div>
       </section>
 
-      <aside class="order-summary">
+      <aside class="order-summary" data-agent-section="cart-summary">
         <h2>Order summary</h2>
         <div><span>Medications ({{ store.cartCount }})</span><strong>{{ formatMoney(store.cartSubtotal) }}</strong></div>
         <div><span>Standard shipping</span><strong>{{ formatMoney(store.shipping) }}</strong></div>

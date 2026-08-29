@@ -5,6 +5,9 @@
 - As a visitor, I can understand ClearDose's fictional/sandbox status before entering data.
 - As a visitor, I can search generic names, brand names, and categories so I can find a medication.
 - As a visitor, I can sort medications by name, lowest mock price, or largest illustrative savings.
+- As a visitor, I can compare two exact medication variants side by side without being told they are clinical substitutes.
+- As a visitor, I can enable optional voice guidance and retain an equivalent visible transcript.
+- As a keyboard or assistive-technology user, I can navigate landmarks, forms, the comparison, and the tool dialog without a pointer.
 - As a shopper, I can inspect strengths, forms, quantities, retail comparisons, and price components before adding an item.
 - As a shopper, I can add a variant, change quantity up to the demo limit, remove it, and see totals update.
 - As a shopper, I can keep my cart while signing in or creating a fictional account.
@@ -23,6 +26,8 @@
 
 - As a browser agent, I can discover and search the mock catalog with bounded inputs.
 - As a browser agent, I can inspect one medication's variants and transparent prices.
+- As a browser agent, I can compare two exact medication variants with a clear non-clinical disclaimer.
+- As a browser agent, I can highlight a stable section and move visible keyboard focus so the patient and agent discuss the same content.
 - As a browser agent, I can read the cart without changing state.
 - As a browser agent, I can add an exact variant to the mock cart and see the human UI update through the same Pinia action.
 - As a browser agent in a browser without WebMCP, I do not break the human experience.
@@ -32,6 +37,8 @@
 - As a developer, I can install one ClearDose plugin to register Pinia wiring, all shared components, adapters, and default tools.
 - As a developer, I can replace persistence or WebMCP transport through constructor options.
 - As a developer, I can pass `adapter`, `mcpTools`, `mcpContext`, and `registerMcp` to compose behavior on reusable components.
+- As a developer, I can choose imperative, declarative, or combined WebMCP composition through component props.
+- As a developer, I can replace the mock API without moving fixture, persistence, or request logic into pages.
 - As a developer, I can add a tool definition without importing it into pages.
 - As a developer, I can verify facade and WebMCP contracts with automated tests.
 
@@ -39,4 +46,5 @@
 
 - No flow sends a network request, processes money, contacts a provider, or fulfills medication.
 - Passwords remain inside the mock persistence record and never enter DTOs or tool output.
-- Every mutation reaches persistence through the facade/repository/DAO path.
+- Every mutation reaches persistence through the facade/repository/API/DAO path.
+- Voice, highlighting, declarative tools, and WebMCP registration are progressive enhancements with complete human fallbacks.

@@ -40,9 +40,9 @@ function clearFilters() {
         <span class="eyebrow">Mock catalog</span>
         <h1>Find your medication.</h1>
         <p>Search by generic name, brand name, or health category. Every price shown is illustrative.</p>
-        <form class="catalog-search" role="search" @submit.prevent="syncSearch">
+        <form class="catalog-search" role="search" data-agent-section="medication-search" toolname="filter_medications_catalog" tooldescription="Filter the fictional ClearDose medication catalog by search text." toolautosubmit @submit.prevent="syncSearch">
           <Search :size="23" />
-          <input v-model="search" aria-label="Search the medication catalog" placeholder="Search medications or conditions" @input="syncSearch" />
+          <input v-model="search" name="query" aria-label="Search the medication catalog" autocomplete="off" toolparamdescription="Medication, brand, or health category search text" placeholder="Search medications or conditions" @input="syncSearch" />
           <button v-if="search" type="button" aria-label="Clear search" @click="search = ''; syncSearch()"><X :size="19" /></button>
           <button class="button button-orange" type="submit">Search</button>
         </form>
@@ -51,7 +51,7 @@ function clearFilters() {
 
     <section class="page-width catalog-body">
       <div class="category-scroller" aria-label="Medication categories">
-        <button v-for="item in categories" :key="item" type="button" :class="{ active: category === item }" @click="category = item">{{ item }}</button>
+        <button v-for="item in categories" :key="item" type="button" :aria-pressed="category === item" :class="{ active: category === item }" @click="category = item">{{ item }}</button>
       </div>
       <div class="catalog-toolbar">
         <div>
@@ -61,7 +61,7 @@ function clearFilters() {
         <label class="sort-control">
           <SlidersHorizontal :size="17" />
           <span>Sort by</span>
-          <select v-model="sort">
+          <select v-model="sort" name="sort" aria-label="Sort medication results">
             <option value="name">Name</option>
             <option value="price">Lowest price</option>
             <option value="savings">Biggest savings</option>

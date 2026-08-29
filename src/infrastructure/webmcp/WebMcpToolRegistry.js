@@ -20,7 +20,15 @@ export class WebMcpToolRegistry {
       status: errors ? "error" : registered ? "ready" : available ? "unsupported" : "idle",
       available,
       registered,
-      tools: records.map(({ name, status, error }) => ({ name, status, error: error ?? null })),
+      tools: records.map(({ name, title, description, inputSchema, annotations, status, error }) => ({
+        name,
+        title: title ?? name,
+        description: description ?? "",
+        inputSchema: inputSchema ?? { type: "object", properties: {} },
+        annotations: annotations ?? {},
+        status,
+        error: error ?? null,
+      })),
     });
   }
 
@@ -42,9 +50,11 @@ export class WebMcpToolRegistry {
     for (const definition of definitions) {
       const name = this.qualify(definition.name, namespace);
       this.registrations.get(name)?.unregister?.();
-      const registration = await this.adapter.register({ ...definition, name });
-      this.registrations.set(name, registration);
-      registered.push(registration);
+      const qualifiedDefinition = { ...definition, name };
+      const registration = await this.adapter.register(qualifiedDefinition);
+      const record = { ...registration, ...qualifiedDefinition, execute: undefined };
+      this.registrations.set(name, record);
+      registered.push(record);
       this.notify();
     }
     return registered;

@@ -47,12 +47,12 @@ function submitSearch() {
           <h1>Know the medication.<br /><em>Know the price.</em><br />Know what happens next.</h1>
           <p class="hero-lede">ClearDose turns prescription shopping into one understandable path, with visible prices, explicit clinical handoffs, and actions ready for either the patient or their agent.</p>
 
-          <form class="hero-search" role="search" @submit.prevent="submitSearch">
+          <form class="hero-search" role="search" data-agent-section="medication-search" toolname="search_medications_home" tooldescription="Search the fictional ClearDose catalog and open matching medication results." toolautosubmit @submit.prevent="submitSearch">
             <Search :size="22" aria-hidden="true" />
-            <input v-model="search" placeholder="Try “Lisinopril” or “cholesterol”" aria-label="Find a medication" autocomplete="off" />
+            <input v-model="search" name="query" role="combobox" aria-autocomplete="list" aria-controls="home-search-suggestions" :aria-expanded="suggestions.length > 0" placeholder="Try “Lisinopril” or “cholesterol”" aria-label="Find a medication" autocomplete="off" toolparamdescription="Generic medication, brand, condition, or category search text" />
             <button type="submit">Find my medication <ArrowRight :size="18" /></button>
-            <div v-if="suggestions.length" class="search-suggestions">
-              <RouterLink v-for="item in suggestions" :key="item.id" :to="`/medications/${item.slug}`">
+            <div v-if="suggestions.length" id="home-search-suggestions" class="search-suggestions" role="listbox" aria-label="Medication suggestions">
+              <RouterLink v-for="item in suggestions" :key="item.id" role="option" :to="`/medications/${item.slug}`">
                 <span><strong>{{ item.name }}</strong><small>Generic for {{ item.genericFor }}</small></span>
                 <ArrowRight :size="17" />
               </RouterLink>
@@ -68,7 +68,7 @@ function submitSearch() {
         <div class="price-story" aria-label="Example medication savings">
           <div class="price-story-header">
             <span>See the difference</span>
-            <select v-model="comparisonId" aria-label="Select example medication">
+            <select v-model="comparisonId" name="example-medication" aria-label="Select example medication">
               <option v-for="medication in medications.slice(0, 6)" :key="medication.id" :value="medication.id">{{ medication.name }}</option>
             </select>
           </div>

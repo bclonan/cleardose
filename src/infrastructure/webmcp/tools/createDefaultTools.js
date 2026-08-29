@@ -1,6 +1,6 @@
 import { toolError, toolResponse } from "../toolResponse";
 
-export function createDefaultTools({ store }) {
+export function createDefaultTools({ store, highlightService }) {
   return [
     {
       name: "search_medications",
@@ -39,6 +39,51 @@ export function createDefaultTools({ store }) {
         const medication = medicationId ? store.medicationById(medicationId) : store.medicationBySlug(slug);
         if (!medication) return toolError("Medication not found.", { medicationId, slug });
         return toolResponse({ ok: true, medication }, `Returned ${medication.name} with ${medication.variants.length} mock price options.`);
+      },
+    },
+    {
+      name: "compare_medications",
+      title: "Compare ClearDose medication prices",
+      description: "Compare two fictional ClearDose medication variants side by side. Returns price facts only and never recommends a clinical substitution.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          leftMedicationId: { type: "string", description: "First ClearDose medication id." },
+          rightMedicationId: { type: "string", description: "Second ClearDose medication id." },
+          leftVariantId: { type: "string", description: "Optional exact variant id for the first medication." },
+          rightVariantId: { type: "string", description: "Optional exact variant id for the second medication." },
+        },
+        required: ["leftMedicationId", "rightMedicationId"],
+        additionalProperties: false,
+      },
+      annotations: { readOnlyHint: true, untrustedContentHint: false },
+      async execute(input) {
+        const comparison = store.compareMedications(input);
+        if (!comparison) return toolError("One or both medications could not be compared.", input);
+        return toolResponse({ ok: true, comparison }, `Compared ${comparison.left.medication.name} with ${comparison.right.medication.name}.`);
+      },
+    },
+    {
+      name: "highlight_section",
+      title: "Highlight a ClearDose page section or element",
+      description: "Move focus to and visibly highlight a named section or action on the current ClearDose page so the patient and agent can discuss the same content.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          target: {
+            type: "string",
+            enum: highlightService.listTargets(),
+            description: "Stable accessible section or element identifier on the current page.",
+          },
+        },
+        required: ["target"],
+        additionalProperties: false,
+      },
+      annotations: { readOnlyHint: true, untrustedContentHint: false },
+      async execute({ target }) {
+        const result = highlightService.highlight(target);
+        if (!result.ok) return toolError(result.message, { target });
+        return toolResponse(result, result.message);
       },
     },
     {

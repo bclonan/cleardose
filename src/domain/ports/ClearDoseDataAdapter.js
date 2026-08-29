@@ -1,4 +1,4 @@
-const requiredPorts = ["catalog", "customers", "cart", "orders", "prescriptions", "dao"];
+const requiredPorts = ["api", "catalog", "customers", "cart", "orders", "prescriptions", "dao"];
 
 /**
  * Runtime contract guard for a ClearDose data adapter. Keeping this framework-free

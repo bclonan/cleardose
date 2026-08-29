@@ -11,26 +11,34 @@ import OrderDetailView from "./views/OrderDetailView.vue";
 import CheckoutView from "./views/CheckoutView.vue";
 import OrderConfirmationView from "./views/OrderConfirmationView.vue";
 import ContactDoctorView from "./views/ContactDoctorView.vue";
+import CompareView from "./views/CompareView.vue";
+import DemoView from "./views/DemoView.vue";
 
 const router = createRouter({
   history: createWebHashHistory(),
   scrollBehavior: () => ({ top: 0 }),
   routes: [
-    { path: "/", name: "home", component: HomeView },
-    { path: "/medications", name: "medications", component: MedicationsView },
-    { path: "/medications/:slug", name: "medication", component: MedicationDetailView },
-    { path: "/cart", name: "cart", component: CartView },
-    { path: "/login", name: "login", component: AuthView, props: { mode: "login" } },
-    { path: "/create-account", name: "create-account", component: AuthView, props: { mode: "create" } },
-    { path: "/account", name: "account", component: AccountView },
-    { path: "/account/prescriptions", name: "prescriptions", component: PrescriptionsView },
-    { path: "/account/orders", name: "orders", component: OrdersView },
-    { path: "/account/orders/:id", name: "order-detail", component: OrderDetailView },
-    { path: "/checkout", name: "checkout", component: CheckoutView },
-    { path: "/checkout/confirmation/:id", name: "confirmation", component: OrderConfirmationView },
-    { path: "/contact-doctor", name: "contact-doctor", component: ContactDoctorView },
+    { path: "/", name: "home", component: HomeView, meta: { title: "ClearDose — Transparent prescriptions, agent-ready." } },
+    { path: "/medications", name: "medications", component: MedicationsView, meta: { title: "Medication catalog — ClearDose" } },
+    { path: "/medications/:slug", name: "medication", component: MedicationDetailView, meta: { title: "Medication details — ClearDose" } },
+    { path: "/cart", name: "cart", component: CartView, meta: { title: "Mock cart — ClearDose" } },
+    { path: "/login", name: "login", component: AuthView, props: { mode: "login" }, meta: { title: "Sign in — ClearDose" } },
+    { path: "/create-account", name: "create-account", component: AuthView, props: { mode: "create" }, meta: { title: "Create a mock account — ClearDose" } },
+    { path: "/account", name: "account", component: AccountView, meta: { title: "Patient account — ClearDose" } },
+    { path: "/account/prescriptions", name: "prescriptions", component: PrescriptionsView, meta: { title: "Prescriptions — ClearDose" } },
+    { path: "/account/orders", name: "orders", component: OrdersView, meta: { title: "Orders — ClearDose" } },
+    { path: "/account/orders/:id", name: "order-detail", component: OrderDetailView, meta: { title: "Order details — ClearDose" } },
+    { path: "/checkout", name: "checkout", component: CheckoutView, meta: { title: "Mock checkout — ClearDose" } },
+    { path: "/checkout/confirmation/:id", name: "confirmation", component: OrderConfirmationView, meta: { title: "Order confirmation — ClearDose" } },
+    { path: "/contact-doctor", name: "contact-doctor", component: ContactDoctorView, meta: { title: "Provider handoff — ClearDose" } },
+    { path: "/compare", name: "compare", component: CompareView, meta: { title: "Compare mock medication prices — ClearDose" } },
+    { path: "/demo", name: "demo", component: DemoView, meta: { title: "WebMCP hackathon demo — ClearDose" } },
     { path: "/:pathMatch(.*)*", redirect: "/" },
   ],
+});
+
+router.afterEach((to) => {
+  globalThis.document.title = to.meta.title ?? "ClearDose";
 });
 
 export default router;

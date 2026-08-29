@@ -22,7 +22,9 @@ Deliver a complete, branded Vue 3 reference storefront that demonstrates a trans
 - Sign in, create account, profile, prescriptions, orders, order details, and delivery state
 - Four-step checkout and order confirmation
 - Provider note preview and prescription-routing education
-- Pinia store, DTOs, repository adapters, browser DAO, facade, component registry, WebMCP plugin, default tools, and tests
+- Side-by-side medication price comparison and a dedicated interactive WebMCP hackathon explainer
+- Optional route-aware voice guidance, visible transcripts, tool inspector, shared page highlighting, autofill-ready forms, and a WCAG 2.2 AAA engineering target
+- Pinia store, DTOs, isolated mock API/fixtures, repository adapters, browser DAO, facade, component registry, WebMCP plugin, default tools, and tests
 
 ## Non-goals
 

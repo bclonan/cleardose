@@ -68,7 +68,7 @@ function addItem() {
           <h2>Choose your prescription</h2>
           <div class="variant-options">
             <label v-for="variant in medication.variants" :key="variant.id" :class="{ selected: selectedVariantId === variant.id }">
-              <input v-model="selectedVariantId" type="radio" :value="variant.id" />
+              <input v-model="selectedVariantId" name="medication-variant" type="radio" :value="variant.id" />
               <span><strong>{{ variant.strength }}</strong><small>{{ variant.form }} · {{ variant.quantity }} count</small></span>
               <em>{{ formatMoney(variant.price) }}</em>
               <Check v-if="selectedVariantId === variant.id" :size="17" />
@@ -76,7 +76,7 @@ function addItem() {
           </div>
         </div>
 
-        <div class="purchase-panel">
+        <div class="purchase-panel" data-agent-section="primary-price">
           <div class="purchase-price">
             <span>Your mock drug price</span>
             <strong>{{ formatMoney(selectedVariant.price) }}</strong>
@@ -86,7 +86,7 @@ function addItem() {
             <span>Typical retail {{ formatMoney(selectedVariant.retail) }}</span>
             <strong>You save {{ formatMoney(savings) }}</strong>
           </div>
-          <button class="button button-orange button-wide" type="button" @click="addItem">
+          <button class="button button-orange button-wide" type="button" data-agent-section="add-to-cart-action" @click="addItem">
             <ShoppingCart :size="19" /> Add to mock cart
           </button>
           <Transition name="fade">

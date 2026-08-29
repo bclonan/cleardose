@@ -29,6 +29,17 @@ test("facade coordinates catalog, cart, customer, and checkout adapters", async 
   assert.equal(facade.getSnapshot().state.cart.length, 0);
 });
 
+test("facade returns a non-clinical side-by-side price comparison", async () => {
+  const { createClearDoseBrowserAdapter } = await vite.ssrLoadModule("/src/infrastructure/adapters/createClearDoseBrowserAdapter.js");
+  const { MemoryStorageAdapter } = await vite.ssrLoadModule("/src/infrastructure/persistence/BrowserStateDao.js");
+  const { ClearDoseFacade } = await vite.ssrLoadModule("/src/application/facades/ClearDoseFacade.js");
+  const facade = new ClearDoseFacade(createClearDoseBrowserAdapter({ storage: new MemoryStorageAdapter(), storageKey: "compare-test" }));
+  const comparison = facade.compareMedications({ leftMedicationId: "med_atorvastatin", rightMedicationId: "med_lisinopril" });
+  assert.equal(comparison.left.medication.id, "med_atorvastatin");
+  assert.equal(comparison.right.medication.id, "med_lisinopril");
+  assert.match(comparison.disclaimer, /not presented as therapeutic alternatives/i);
+});
+
 test("customer DTO never exposes the persisted demo password", async () => {
   const { createClearDoseBrowserAdapter } = await vite.ssrLoadModule("/src/infrastructure/adapters/createClearDoseBrowserAdapter.js");
   const { MemoryStorageAdapter } = await vite.ssrLoadModule("/src/infrastructure/persistence/BrowserStateDao.js");

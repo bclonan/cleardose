@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from "vue";
+import { nextTick, ref, watch } from "vue";
 import { RouterLink, RouterView, useRoute, useRouter } from "vue-router";
 import {
   ChevronDown,
@@ -25,6 +25,7 @@ watch(
   () => {
     mobileOpen.value = false;
     accountOpen.value = false;
+    nextTick(() => globalThis.document?.querySelector("#main-content")?.focus({ preventScroll: true }));
   },
 );
 
@@ -61,23 +62,25 @@ function signOut() {
 
         <nav class="desktop-nav" aria-label="Primary navigation">
           <RouterLink to="/medications">Medications</RouterLink>
+          <RouterLink to="/compare">Compare</RouterLink>
           <RouterLink to="/contact-doctor">Contact your doctor</RouterLink>
-          <RouterLink to="/contact-doctor#providers">For providers</RouterLink>
+          <RouterLink to="/demo">WebMCP demo</RouterLink>
         </nav>
 
         <div class="header-actions">
-          <form class="header-search" role="search" @submit.prevent="submitHeaderSearch">
+          <CdAgentControlCenter />
+          <form class="header-search" role="search" toolname="search_medications_header" tooldescription="Search the fictional ClearDose medication catalog from the site header." toolautosubmit @submit.prevent="submitHeaderSearch">
             <Search :size="17" aria-hidden="true" />
-            <input v-model="headerSearch" aria-label="Search medications" placeholder="Search medications" />
+            <input v-model="headerSearch" name="query" aria-label="Search medications" autocomplete="off" toolparamdescription="Generic medication, brand, or category search text" placeholder="Search medications" />
           </form>
 
           <div v-if="store.currentCustomer" class="account-menu-wrap">
-            <button class="icon-text-button" type="button" @click="accountOpen = !accountOpen">
+            <button class="icon-text-button" type="button" aria-haspopup="true" aria-controls="account-menu" :aria-expanded="accountOpen" @click="accountOpen = !accountOpen">
               <UserRound :size="19" />
               <span>{{ store.currentCustomer.firstName }}</span>
               <ChevronDown :size="14" />
             </button>
-            <div v-if="accountOpen" class="account-menu">
+            <div v-if="accountOpen" id="account-menu" class="account-menu">
               <RouterLink to="/account">Account overview</RouterLink>
               <RouterLink to="/account/prescriptions">Prescriptions</RouterLink>
               <RouterLink to="/account/orders">Orders</RouterLink>
@@ -93,27 +96,29 @@ function signOut() {
           <RouterLink v-if="!store.currentCustomer" class="button button-small button-dark desktop-signup" to="/create-account">
             Sign up
           </RouterLink>
-          <button class="mobile-menu-button" type="button" :aria-expanded="mobileOpen" aria-label="Toggle navigation" @click="mobileOpen = !mobileOpen">
+          <button class="mobile-menu-button" type="button" aria-controls="mobile-navigation" :aria-expanded="mobileOpen" aria-label="Toggle navigation" @click="mobileOpen = !mobileOpen">
             <X v-if="mobileOpen" :size="24" />
             <Menu v-else :size="24" />
           </button>
         </div>
       </div>
 
-      <div v-if="mobileOpen" class="mobile-nav">
-        <form class="mobile-search" role="search" @submit.prevent="submitHeaderSearch">
+      <div v-if="mobileOpen" id="mobile-navigation" class="mobile-nav">
+        <form class="mobile-search" role="search" toolname="search_medications_mobile" tooldescription="Search the fictional ClearDose medication catalog from mobile navigation." toolautosubmit @submit.prevent="submitHeaderSearch">
           <Search :size="18" />
-          <input v-model="headerSearch" aria-label="Search medications" placeholder="Search medications" />
+          <input v-model="headerSearch" name="query" aria-label="Search medications" autocomplete="off" toolparamdescription="Generic medication, brand, or category search text" placeholder="Search medications" />
         </form>
         <RouterLink to="/medications">Browse medications</RouterLink>
+        <RouterLink to="/compare">Compare prices</RouterLink>
         <RouterLink to="/contact-doctor">Contact your doctor</RouterLink>
         <RouterLink to="/contact-doctor#providers">For providers</RouterLink>
+        <RouterLink to="/demo">WebMCP demo</RouterLink>
         <RouterLink v-if="store.currentCustomer" to="/account">My account</RouterLink>
         <RouterLink v-else to="/create-account">Create account</RouterLink>
       </div>
     </header>
 
-    <main id="main-content">
+    <main id="main-content" tabindex="-1">
       <RouterView />
     </main>
 

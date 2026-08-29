@@ -88,21 +88,21 @@ function useDemoAccount() {
 
         <div v-if="!isCreate" class="form-divider"><span>or sign in manually</span></div>
 
-        <form class="stacked-form" @submit.prevent="submit">
+        <form class="stacked-form" autocomplete="on" :aria-describedby="error ? 'auth-error' : undefined" @submit.prevent="submit">
           <div v-if="isCreate" class="form-row">
-            <label>First name<input v-model="form.firstName" autocomplete="given-name" placeholder="Jamie" /></label>
-            <label>Last name<input v-model="form.lastName" autocomplete="family-name" placeholder="Rivera" /></label>
+            <label for="auth-first-name">First name<input id="auth-first-name" v-model="form.firstName" name="given-name" autocomplete="given-name" required placeholder="Jamie" /></label>
+            <label for="auth-last-name">Last name<input id="auth-last-name" v-model="form.lastName" name="family-name" autocomplete="family-name" required placeholder="Rivera" /></label>
           </div>
-          <label>Email address<input v-model="form.email" type="email" autocomplete="email" placeholder="you@example.com" /></label>
-          <label class="password-field">
+          <label for="auth-email">Email address<input id="auth-email" v-model="form.email" name="email" type="email" :autocomplete="isCreate ? 'email' : 'username'" required inputmode="email" placeholder="you@example.com" /></label>
+          <label for="auth-password" class="password-field">
             Password
-            <span><input v-model="form.password" :type="showPassword ? 'text' : 'password'" :autocomplete="isCreate ? 'new-password' : 'current-password'" placeholder="8+ characters" /><button type="button" @click="showPassword = !showPassword">{{ showPassword ? 'Hide' : 'Show' }}</button></span>
+            <span><input id="auth-password" v-model="form.password" name="password" :type="showPassword ? 'text' : 'password'" :autocomplete="isCreate ? 'new-password' : 'current-password'" required minlength="8" placeholder="8+ characters" /><button type="button" :aria-pressed="showPassword" aria-controls="auth-password" @click="showPassword = !showPassword">{{ showPassword ? 'Hide' : 'Show' }}</button></span>
           </label>
           <div v-if="isCreate" class="form-row">
-            <label>Date of birth<input v-model="form.dateOfBirth" type="date" /></label>
-            <label>Mobile phone<input v-model="form.phone" type="tel" placeholder="410-555-0100" /></label>
+            <label for="auth-birthday">Date of birth<input id="auth-birthday" v-model="form.dateOfBirth" name="bday" type="date" autocomplete="bday" required /></label>
+            <label for="auth-phone">Mobile phone<input id="auth-phone" v-model="form.phone" name="tel" type="tel" autocomplete="tel" required inputmode="tel" placeholder="410-555-0100" /></label>
           </div>
-          <div v-if="error" class="form-error" role="alert">{{ error }}</div>
+          <div v-if="error" id="auth-error" class="form-error" role="alert" aria-live="assertive">{{ error }}</div>
           <button class="button button-orange button-wide" type="submit">
             {{ isCreate ? 'Create mock account' : 'Sign in' }} <ArrowRight :size="18" />
           </button>

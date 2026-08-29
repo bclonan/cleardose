@@ -108,23 +108,23 @@ function placeOrder() {
       </template>
     </div>
 
-    <div class="page-width checkout-layout">
+    <div class="page-width checkout-layout" data-agent-section="checkout-flow">
       <section class="checkout-form-card">
         <div v-if="step === 1">
           <div class="checkout-section-heading"><span class="list-icon"><MapPin :size="21" /></span><div><span class="eyebrow">Step 1 of 4</span><h2>Where should we send it?</h2><p>Mailing address for this mock order.</p></div></div>
-          <form class="stacked-form" @submit.prevent="nextStep">
-            <label>Street address<input v-model="address.line1" autocomplete="street-address" placeholder="1400 Demo Avenue" required /></label>
-            <label>Apartment or suite <small>Optional</small><input v-model="address.line2" placeholder="Apt 3B" /></label>
-            <div class="form-row three-columns"><label>City<input v-model="address.city" autocomplete="address-level2" required /></label><label>State<input v-model="address.state" autocomplete="address-level1" maxlength="2" required /></label><label>ZIP code<input v-model="address.zip" autocomplete="postal-code" required /></label></div>
+          <form class="stacked-form" autocomplete="on" @submit.prevent="nextStep">
+            <label for="checkout-address-line1">Street address<input id="checkout-address-line1" v-model="address.line1" name="address-line1" autocomplete="shipping address-line1" placeholder="1400 Demo Avenue" required /></label>
+            <label for="checkout-address-line2">Apartment or suite <small>Optional</small><input id="checkout-address-line2" v-model="address.line2" name="address-line2" autocomplete="shipping address-line2" placeholder="Apt 3B" /></label>
+            <div class="form-row three-columns"><label for="checkout-city">City<input id="checkout-city" v-model="address.city" name="address-level2" autocomplete="shipping address-level2" required /></label><label for="checkout-state">State<input id="checkout-state" v-model="address.state" name="address-level1" autocomplete="shipping address-level1" maxlength="2" required /></label><label for="checkout-zip">ZIP code<input id="checkout-zip" v-model="address.zip" name="postal-code" autocomplete="shipping postal-code" inputmode="numeric" required /></label></div>
           </form>
         </div>
 
         <div v-else-if="step === 2">
           <div class="checkout-section-heading"><span class="list-icon"><Stethoscope :size="21" /></span><div><span class="eyebrow">Step 2 of 4</span><h2>How will we receive the prescription?</h2><p>Choose the path that best matches the patient.</p></div></div>
           <div class="choice-card-list">
-            <label :class="{ selected: prescriptionMethod === 'on-file' }"><input v-model="prescriptionMethod" type="radio" value="on-file" /><span><strong>Use a prescription already on file</strong><small>Best for Jamie's ready prescriptions in this seeded account.</small></span><Check v-if="prescriptionMethod === 'on-file'" :size="18" /></label>
-            <label :class="{ selected: prescriptionMethod === 'provider' }"><input v-model="prescriptionMethod" type="radio" value="provider" /><span><strong>My provider will send it</strong><small>The order waits until the pharmacy matches an electronic prescription.</small></span><Check v-if="prescriptionMethod === 'provider'" :size="18" /></label>
-            <label :class="{ selected: prescriptionMethod === 'transfer' }"><input v-model="prescriptionMethod" type="radio" value="transfer" /><span><strong>Transfer from another pharmacy</strong><small>A mock transfer request will appear on the confirmation screen.</small></span><Check v-if="prescriptionMethod === 'transfer'" :size="18" /></label>
+            <label :class="{ selected: prescriptionMethod === 'on-file' }"><input v-model="prescriptionMethod" name="prescription-method" type="radio" value="on-file" /><span><strong>Use a prescription already on file</strong><small>Best for Jamie's ready prescriptions in this seeded account.</small></span><Check v-if="prescriptionMethod === 'on-file'" :size="18" /></label>
+            <label :class="{ selected: prescriptionMethod === 'provider' }"><input v-model="prescriptionMethod" name="prescription-method" type="radio" value="provider" /><span><strong>My provider will send it</strong><small>The order waits until the pharmacy matches an electronic prescription.</small></span><Check v-if="prescriptionMethod === 'provider'" :size="18" /></label>
+            <label :class="{ selected: prescriptionMethod === 'transfer' }"><input v-model="prescriptionMethod" name="prescription-method" type="radio" value="transfer" /><span><strong>Transfer from another pharmacy</strong><small>A mock transfer request will appear on the confirmation screen.</small></span><Check v-if="prescriptionMethod === 'transfer'" :size="18" /></label>
           </div>
           <div class="information-callout compact-callout"><ShieldCheck :size="21" /><div><strong>Nothing is fulfilled without verification.</strong><p>This prototype separates the shopping commitment from the clinical prescription check.</p></div></div>
         </div>
@@ -132,12 +132,12 @@ function placeOrder() {
         <div v-else-if="step === 3">
           <div class="checkout-section-heading"><span class="list-icon"><CreditCard :size="21" /></span><div><span class="eyebrow">Step 3 of 4</span><h2>Choose a mock payment path.</h2><p>These controls only change local demo state.</p></div></div>
           <div class="choice-card-list payment-choices">
-            <label :class="{ selected: paymentMethod === 'demo-card' }"><input v-model="paymentMethod" type="radio" value="demo-card" /><span><strong>Demo Visa ···· 4242</strong><small>Expires 12/30 · Never processed</small></span><CreditCard :size="21" /></label>
-            <label :class="{ selected: paymentMethod === 'benefit' }"><input v-model="paymentMethod" type="radio" value="benefit" /><span><strong>Mock pharmacy benefit</strong><small>Demonstrates BIN, PCN, group, and member inputs.</small></span><ShieldCheck :size="21" /></label>
+            <label :class="{ selected: paymentMethod === 'demo-card' }"><input v-model="paymentMethod" name="payment-method" type="radio" value="demo-card" /><span><strong>Demo Visa ···· 4242</strong><small>Expires 12/30 · Never processed</small></span><CreditCard :size="21" /></label>
+            <label :class="{ selected: paymentMethod === 'benefit' }"><input v-model="paymentMethod" name="payment-method" type="radio" value="benefit" /><span><strong>Mock pharmacy benefit</strong><small>Demonstrates BIN, PCN, group, and member inputs.</small></span><ShieldCheck :size="21" /></label>
           </div>
           <div v-if="paymentMethod === 'benefit'" class="benefit-fields">
-            <div class="form-row"><label>BIN<input v-model="benefit.bin" placeholder="000000" /></label><label>PCN<input v-model="benefit.pcn" placeholder="DEMO" /></label></div>
-            <div class="form-row"><label>Group ID<input v-model="benefit.group" placeholder="SAMPLE01" /></label><label>Member ID<input v-model="benefit.member" placeholder="MEMBER123" /></label></div>
+            <div class="form-row"><label for="benefit-bin">BIN<input id="benefit-bin" v-model="benefit.bin" name="benefit-bin" autocomplete="off" inputmode="numeric" placeholder="000000" /></label><label for="benefit-pcn">PCN<input id="benefit-pcn" v-model="benefit.pcn" name="benefit-pcn" autocomplete="off" placeholder="DEMO" /></label></div>
+            <div class="form-row"><label for="benefit-group">Group ID<input id="benefit-group" v-model="benefit.group" name="benefit-group" autocomplete="off" placeholder="SAMPLE01" /></label><label for="benefit-member">Member ID<input id="benefit-member" v-model="benefit.member" name="benefit-member" autocomplete="off" placeholder="MEMBER123" /></label></div>
           </div>
           <div class="demo-payment-warning"><LockKeyhole :size="18" /> Do not enter real card, insurance, or member information.</div>
         </div>
@@ -150,7 +150,7 @@ function placeOrder() {
           <label class="review-consent"><input type="checkbox" checked disabled /><span><strong>Demo acknowledgement</strong><small>This creates a local order only. No pharmacy or payment network is contacted.</small></span></label>
         </div>
 
-        <div v-if="error" class="form-error" role="alert">{{ error }}</div>
+        <div v-if="error" class="form-error" role="alert" aria-live="assertive">{{ error }}</div>
         <div class="checkout-actions">
           <button v-if="step > 1" class="button button-ghost" type="button" @click="previousStep"><ArrowLeft :size="18" /> Back</button>
           <span v-else></span>
@@ -159,7 +159,7 @@ function placeOrder() {
         </div>
       </section>
 
-      <aside class="order-summary checkout-summary">
+      <aside class="order-summary checkout-summary" data-agent-section="cart-summary">
         <h2>Your order</h2>
         <div v-for="item in store.state.cart" :key="item.variantId" class="checkout-summary-item"><div><strong>{{ item.name }}</strong><span>{{ item.strength }} · {{ item.quantity }} count</span></div><strong>{{ formatMoney(item.price * item.units) }}</strong></div>
         <div class="summary-divider"></div><div><span>Medications</span><strong>{{ formatMoney(store.cartSubtotal) }}</strong></div><div><span>Shipping</span><strong>{{ formatMoney(store.shipping) }}</strong></div><div class="summary-total"><span>Mock total</span><strong>{{ formatMoney(store.cartTotal) }}</strong></div>

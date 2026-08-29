@@ -1,6 +1,6 @@
 <script setup>
 import { reactive, ref } from "vue";
-import { Building2, Check, ClipboardCopy, FileText, Mail, Phone, Send, Stethoscope } from "@lucide/vue";
+import { Building2, Check, ClipboardCopy, FileText, Mail, Stethoscope } from "@lucide/vue";
 import { usePharmacyStore } from "../composables/usePharmacyStore";
 
 const store = usePharmacyStore();
@@ -44,7 +44,7 @@ async function copyDetails() {
       </div>
     </section>
 
-    <section class="page-width doctor-flow-grid">
+    <section class="page-width doctor-flow-grid" data-agent-section="provider-handoff">
       <div class="doctor-instructions">
         <span class="eyebrow">For patients</span><h2>Three ways to move forward.</h2>
         <article><span>1</span><div><h3>Ask your provider to e-prescribe</h3><p>Share the pharmacy name and sample NCPDP identifier shown above.</p></div></article>
@@ -55,10 +55,10 @@ async function copyDetails() {
 
       <div class="doctor-form-card">
         <div v-if="!created"><span class="eyebrow">Create a sample request</span><h2>Prepare a provider note.</h2><p>This generates an on-screen preview only. It does not email, fax, or contact anyone.</p>
-          <form class="stacked-form" @submit.prevent="createNote">
-            <div class="form-row"><label>Patient name<input v-model="form.patientName" required placeholder="Jamie Rivera" /></label><label>Patient email<input v-model="form.patientEmail" type="email" required placeholder="demo@patient.test" /></label></div>
-            <div class="form-row"><label>Provider name<input v-model="form.providerName" required placeholder="Dr. Sample" /></label><label>Provider phone <small>Optional</small><input v-model="form.providerPhone" placeholder="410-555-0100" /></label></div>
-            <label>Medication<input v-model="form.medication" required placeholder="Atorvastatin 20mg" /></label>
+          <form class="stacked-form" autocomplete="on" toolname="prepare_provider_note" tooldescription="Fill a fictional provider routing note for patient review. Do not submit or send it automatically." @submit.prevent="createNote">
+            <div class="form-row"><label for="note-patient-name">Patient name<input id="note-patient-name" v-model="form.patientName" name="patient-name" autocomplete="section-patient name" toolparamdescription="Fictional patient full name" required placeholder="Jamie Rivera" /></label><label for="note-patient-email">Patient email<input id="note-patient-email" v-model="form.patientEmail" name="patient-email" type="email" inputmode="email" autocomplete="section-patient email" toolparamdescription="Fictional patient account email" required placeholder="demo@patient.test" /></label></div>
+            <div class="form-row"><label for="note-provider-name">Provider name<input id="note-provider-name" v-model="form.providerName" name="provider-name" autocomplete="section-provider name" toolparamdescription="Fictional prescriber name" required placeholder="Dr. Sample" /></label><label for="note-provider-phone">Provider phone <small>Optional</small><input id="note-provider-phone" v-model="form.providerPhone" name="provider-phone" type="tel" inputmode="tel" autocomplete="section-provider tel" toolparamdescription="Fictional prescriber phone number" placeholder="410-555-0100" /></label></div>
+            <label for="note-medication">Medication<input id="note-medication" v-model="form.medication" name="medication" autocomplete="off" toolparamdescription="Medication name and strength for the fictional routing note" required placeholder="Atorvastatin 20mg" /></label>
             <button class="button button-orange button-wide" type="submit"><FileText :size="18" /> Create note preview</button>
           </form>
         </div>
