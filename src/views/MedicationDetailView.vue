@@ -49,7 +49,7 @@ function addItem() {
         <span class="generic-badge">Generic medication</span>
         <div class="product-identity-visual" aria-hidden="true">
           <span class="product-identity-icon"><Pill :size="54" /></span>
-          <span class="mini-brand">cost plus · flow demo</span>
+          <span class="mini-brand">ClearDose · agent-ready</span>
           <strong>{{ medication.name }}</strong>
           <small>{{ selectedVariant.strength }} · {{ selectedVariant.form }}</small>
           <span class="product-demo-stamp">DEMO PRODUCT</span>

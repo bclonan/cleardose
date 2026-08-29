@@ -1,5 +1,5 @@
 {
-  "name": "costplus-flow-demo",
+  "name": "cleardose-demo",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -64,5 +64,5 @@
     "wrangler": "4.92.0"
   },
   "type": "module",
-  "displayName": "Cost Plus Drugs Flow Demo"
+  "displayName": "ClearDose"
 }

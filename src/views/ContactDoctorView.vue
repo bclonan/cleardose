@@ -21,7 +21,7 @@ function createNote() {
 
 async function copyDetails() {
   try {
-    await navigator.clipboard.writeText("DEMO PHARMACY — NCPDP 0000000 — Fax 000-000-0000 — Do not send a real prescription");
+    await navigator.clipboard.writeText("CLEARDOSE PHARMACY SANDBOX — NCPDP 0000000 — Fax 000-000-0000 — Do not send a real prescription");
     copied.value = true;
     window.setTimeout(() => { copied.value = false; }, 1800);
   } catch {
@@ -36,8 +36,8 @@ async function copyDetails() {
       <div class="page-width doctor-hero-grid">
         <div><span class="eyebrow"><Stethoscope :size="17" /> Patient + provider handoff</span><h1>Getting a prescription here should be the easy part.</h1><p>Use this fictional flow to see how patient details, provider instructions, and the next action can stay in one understandable place.</p></div>
         <div class="pharmacy-details-card" id="providers">
-          <span class="generic-badge">Sample details only</span><h2>Demo Mail Pharmacy</h2>
-          <dl><div><dt>Pharmacy name</dt><dd>Cost Plus Flow Demo</dd></div><div><dt>NCPDP ID</dt><dd>0000000</dd></div><div><dt>Fax</dt><dd>000-000-0000</dd></div><div><dt>Patient match</dt><dd>Email + date of birth</dd></div></dl>
+          <span class="generic-badge">Sample details only</span><h2>ClearDose Pharmacy Sandbox</h2>
+          <dl><div><dt>Pharmacy name</dt><dd>ClearDose Pharmacy Sandbox</dd></div><div><dt>NCPDP ID</dt><dd>0000000</dd></div><div><dt>Fax</dt><dd>000-000-0000</dd></div><div><dt>Patient match</dt><dd>Email + date of birth</dd></div></dl>
           <button class="button button-dark button-wide" type="button" @click="copyDetails"><Check v-if="copied" :size="18" /><ClipboardCopy v-else :size="18" />{{ copied ? 'Copied demo details' : 'Copy sample pharmacy details' }}</button>
           <small>Never send a real prescription to these fictional identifiers.</small>
         </div>
@@ -64,7 +64,7 @@ async function copyDetails() {
         </div>
         <div v-else class="generated-note">
           <span class="generated-note-icon"><Check :size="28" /></span><span class="eyebrow">Preview ready</span><h2>Provider note created.</h2>
-          <div class="note-paper"><span>Prescription routing request</span><h3>{{ form.medication }}</h3><p><strong>Patient:</strong> {{ form.patientName }}<br /><strong>Account email:</strong> {{ form.patientEmail }}<br /><strong>Provider:</strong> {{ form.providerName }} {{ form.providerPhone }}</p><hr /><p>Please send an electronic prescription to <strong>Cost Plus Flow Demo</strong>, sample NCPDP <strong>0000000</strong>.</p><small>UNOFFICIAL DEMO — DO NOT SEND</small></div>
+          <div class="note-paper"><span>Prescription routing request</span><h3>{{ form.medication }}</h3><p><strong>Patient:</strong> {{ form.patientName }}<br /><strong>Account email:</strong> {{ form.patientEmail }}<br /><strong>Provider:</strong> {{ form.providerName }} {{ form.providerPhone }}</p><hr /><p>Please send an electronic prescription to <strong>ClearDose Pharmacy Sandbox</strong>, sample NCPDP <strong>0000000</strong>.</p><small>CLEARDOSE SANDBOX — DO NOT SEND</small></div>
           <div class="generated-note-actions"><button class="button button-dark" type="button"><Mail :size="18" /> Simulate email</button><button class="button button-ghost" type="button" @click="created = false">Edit details</button></div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { computed, reactive, watch } from "vue";
 import { medications, seededCustomer, seededOrders, seededPrescriptions } from "../data/mockDb";
 
-const STORAGE_KEY = "cpd-flow-demo-v1";
+const STORAGE_KEY = "cleardose-demo-v1";
 
 function initialState() {
   return {
@@ -126,7 +126,7 @@ function logout() {
 
 function placeOrder({ address, prescriptionMethod, paymentMethod }) {
   if (!currentCustomer.value || !state.cart.length) return null;
-  const id = `CPD-${String(Date.now()).slice(-5)}`;
+  const id = `CLR-${String(Date.now()).slice(-5)}`;
   const order = {
     id,
     customerId: currentCustomer.value.id,

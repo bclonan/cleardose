@@ -42,9 +42,9 @@ function submitSearch() {
       <div class="hero-orb hero-orb-two" aria-hidden="true"></div>
       <div class="page-width hero-grid">
         <div class="hero-copy">
-          <span class="eyebrow"><ShieldCheck :size="17" /> Pharmacy shopping, made legible</span>
-          <h1>No middlemen.<br /><em>No price games.</em><br />Just a fair drug price.</h1>
-          <p class="hero-lede">Search a realistic mock catalog, see the complete price, and walk through a patient-friendly prescription order from start to finish.</p>
+          <span class="eyebrow"><ShieldCheck :size="17" /> ClearDose · Transparent prescriptions, agent-ready.</span>
+          <h1>Know the medication.<br /><em>Know the price.</em><br />Know what happens next.</h1>
+          <p class="hero-lede">ClearDose turns prescription shopping into one understandable path, with visible prices, explicit clinical handoffs, and actions ready for either the patient or their agent.</p>
 
           <form class="hero-search" role="search" @submit.prevent="submitSearch">
             <Search :size="22" aria-hidden="true" />
@@ -99,7 +99,7 @@ function submitSearch() {
     <section class="value-strip">
       <div class="page-width value-strip-inner">
         <div><strong>1,000+</strong><span>medications represented by the real model</span></div>
-        <div><strong>15%</strong><span>transparent markup concept</span></div>
+        <div><strong>100%</strong><span>visible price components</span></div>
         <div><strong>$5</strong><span>mock pharmacy labor fee</span></div>
         <div><strong>50 states</strong><span>mail-delivery experience</span></div>
       </div>
@@ -150,11 +150,11 @@ function submitSearch() {
 
     <section class="mission-panel page-width" id="mission">
       <div>
-        <span class="eyebrow">The idea behind the model</span>
-        <h2>Everyone deserves safe and affordable medication.</h2>
+        <span class="eyebrow">The ClearDose promise</span>
+        <h2>The prescription journey should explain itself.</h2>
       </div>
       <div>
-        <p>This independent prototype mirrors the clarity of a cost-plus pharmacy: patients see what they are buying, what it costs, and exactly what must happen next.</p>
+        <p>ClearDose keeps the patient, their agent, and the pharmacy aligned around the same visible state: what is being ordered, what it costs, what is approved, and exactly what happens next.</p>
         <RouterLink class="button button-dark" to="/create-account">Try the customer flow <ArrowRight :size="18" /></RouterLink>
       </div>
     </section>

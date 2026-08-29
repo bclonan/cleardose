@@ -1,6 +1,8 @@
-# Cost Plus Drugs Flow Demo
+# ClearDose
 
-An unofficial Vue 3 ecommerce-flow prototype inspired by the patient experience at Cost Plus Drugs. It is a static sandbox: medication prices, customers, prescriptions, pharmacy identifiers, payments, and orders are all fictional or illustrative.
+**Transparent prescriptions, agent-ready.**
+
+ClearDose is a Vue 3 prescription ecommerce-flow prototype designed around clear prices, visible next steps, and a shared patient-and-agent journey. It is a static sandbox: medication prices, customers, prescriptions, pharmacy identifiers, payments, and orders are all fictional or illustrative.
 
 ## Included screens
 
@@ -49,4 +51,4 @@ The UI calls explicit store operations such as `addToCart`, `authenticate`, `cre
 
 ## Safety boundary
 
-This project is not a pharmacy, is not affiliated with Mark Cuban Cost Plus Drug Company, and must never receive real prescriptions, health data, insurance information, or payment details.
+ClearDose is a fictional interface prototype, not a pharmacy, and must never receive real prescriptions, health data, insurance information, or payment details.

@@ -174,7 +174,7 @@ export const seededPrescriptions = [
 
 export const seededOrders = [
   {
-    id: "CPD-10482",
+    id: "CLR-10482",
     customerId: "cust_demo",
     placedAt: "2026-08-12",
     status: "delivered",

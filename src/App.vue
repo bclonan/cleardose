@@ -45,17 +45,17 @@ function signOut() {
     <a class="skip-link" href="#main-content">Skip to main content</a>
     <div class="demo-banner">
       <span class="demo-pulse" aria-hidden="true"></span>
-      Unofficial product-flow demo <span aria-hidden="true">•</span> Mock data only
+      ClearDose sandbox <span aria-hidden="true">•</span> Mock data only
       <span class="demo-banner-extra" aria-hidden="true">• No real prescriptions or payments</span>
     </div>
 
     <header class="site-header">
       <div class="header-inner">
-        <RouterLink class="brand" to="/" aria-label="Cost Plus Drugs Flow Demo home">
+        <RouterLink class="brand" to="/" aria-label="ClearDose home">
           <span class="brand-symbol"><Pill :size="23" stroke-width="2.5" /></span>
           <span class="brand-copy">
-            <strong>cost plus</strong>
-            <span>DRUGS <small>FLOW DEMO</small></span>
+            <strong>ClearDose</strong>
+            <span>Transparent prescriptions, agent-ready.</span>
           </span>
         </RouterLink>
 
@@ -129,9 +129,9 @@ function signOut() {
         <div class="footer-brand">
           <div class="brand brand-footer">
             <span class="brand-symbol"><Pill :size="21" /></span>
-            <span class="brand-copy"><strong>cost plus</strong><span>DRUGS <small>FLOW DEMO</small></span></span>
+            <span class="brand-copy"><strong>ClearDose</strong><span>Transparent prescriptions, agent-ready.</span></span>
           </div>
-          <p>An independent interface prototype created for demonstration. This is not a pharmacy and is not affiliated with Mark Cuban Cost Plus Drug Company.</p>
+          <p>A fictional interface prototype for transparent prescription shopping and shared patient-agent workflows. ClearDose is not a pharmacy.</p>
         </div>
         <div>
           <h3>Patients</h3>
@@ -151,7 +151,7 @@ function signOut() {
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 Unofficial flow prototype</span>
+        <span>© 2026 ClearDose prototype</span>
         <span>Not for medical use</span>
       </div>
     </footer>
