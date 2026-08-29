@@ -1,0 +1,193 @@
+export const categories = [
+  "All medications",
+  "Heart health",
+  "Diabetes",
+  "Mental health",
+  "Thyroid",
+  "Pain & inflammation",
+  "Cancer care",
+  "Men's health",
+];
+
+export const medications = [
+  {
+    id: "med_atorvastatin",
+    slug: "atorvastatin-calcium",
+    name: "Atorvastatin Calcium",
+    genericFor: "Lipitor",
+    category: "Heart health",
+    description: "A statin used with diet and exercise to help lower cholesterol.",
+    popular: true,
+    variants: [
+      { id: "ator-10-30", form: "Tablet", strength: "10mg", quantity: 30, price: 6.1, retail: 55.5 },
+      { id: "ator-20-30", form: "Tablet", strength: "20mg", quantity: 30, price: 6.4, retail: 61.2 },
+      { id: "ator-40-90", form: "Tablet", strength: "40mg", quantity: 90, price: 10.7, retail: 145.2 },
+    ],
+  },
+  {
+    id: "med_lisinopril",
+    slug: "lisinopril",
+    name: "Lisinopril",
+    genericFor: "Prinivil",
+    category: "Heart health",
+    description: "An ACE inhibitor commonly prescribed for high blood pressure.",
+    popular: true,
+    variants: [
+      { id: "lisi-10-30", form: "Tablet", strength: "10mg", quantity: 30, price: 5.7, retail: 27.4 },
+      { id: "lisi-20-30", form: "Tablet", strength: "20mg", quantity: 30, price: 5.9, retail: 31.6 },
+      { id: "lisi-20-90", form: "Tablet", strength: "20mg", quantity: 90, price: 7.9, retail: 76.3 },
+    ],
+  },
+  {
+    id: "med_metformin",
+    slug: "metformin-hydrochloride",
+    name: "Metformin Hydrochloride",
+    genericFor: "Glucophage",
+    category: "Diabetes",
+    description: "A first-line medicine used to help control blood sugar in type 2 diabetes.",
+    popular: true,
+    variants: [
+      { id: "met-500-60", form: "Tablet", strength: "500mg", quantity: 60, price: 6.2, retail: 42.0 },
+      { id: "met-850-60", form: "Tablet", strength: "850mg", quantity: 60, price: 7.1, retail: 58.4 },
+      { id: "met-er-500-90", form: "Extended-release tablet", strength: "500mg", quantity: 90, price: 9.4, retail: 94.8 },
+    ],
+  },
+  {
+    id: "med_fluoxetine",
+    slug: "fluoxetine-hydrochloride",
+    name: "Fluoxetine Hydrochloride",
+    genericFor: "Prozac",
+    category: "Mental health",
+    description: "An SSRI prescribed for depression and several related conditions.",
+    popular: true,
+    variants: [
+      { id: "fluox-10-30", form: "Capsule", strength: "10mg", quantity: 30, price: 5.8, retail: 34.0 },
+      { id: "fluox-20-30", form: "Capsule", strength: "20mg", quantity: 30, price: 6.1, retail: 41.5 },
+      { id: "fluox-40-90", form: "Capsule", strength: "40mg", quantity: 90, price: 12.1, retail: 134.2 },
+    ],
+  },
+  {
+    id: "med_levothyroxine",
+    slug: "levothyroxine-sodium",
+    name: "Levothyroxine Sodium",
+    genericFor: "Synthroid",
+    category: "Thyroid",
+    description: "A thyroid hormone replacement medicine.",
+    popular: false,
+    variants: [
+      { id: "levo-50-30", form: "Tablet", strength: "50mcg", quantity: 30, price: 6.3, retail: 28.0 },
+      { id: "levo-75-30", form: "Tablet", strength: "75mcg", quantity: 30, price: 6.5, retail: 31.2 },
+      { id: "levo-100-90", form: "Tablet", strength: "100mcg", quantity: 90, price: 11.2, retail: 83.4 },
+    ],
+  },
+  {
+    id: "med_clopidogrel",
+    slug: "clopidogrel",
+    name: "Clopidogrel",
+    genericFor: "Plavix",
+    category: "Heart health",
+    description: "An antiplatelet medicine used to help prevent harmful blood clots.",
+    popular: true,
+    variants: [
+      { id: "clop-75-30", form: "Tablet", strength: "75mg", quantity: 30, price: 5.86, retail: 60.3 },
+      { id: "clop-75-90", form: "Tablet", strength: "75mg", quantity: 90, price: 8.72, retail: 146.8 },
+    ],
+  },
+  {
+    id: "med_hydroxyzine",
+    slug: "hydroxyzine-hcl",
+    name: "Hydroxyzine HCl",
+    genericFor: "Atarax",
+    category: "Mental health",
+    description: "An antihistamine used for itching and sometimes prescribed for anxiety.",
+    popular: false,
+    variants: [
+      { id: "hydr-10-30", form: "Tablet", strength: "10mg", quantity: 30, price: 5.59, retail: 15.3 },
+      { id: "hydr-25-30", form: "Tablet", strength: "25mg", quantity: 30, price: 5.81, retail: 23.6 },
+      { id: "hydr-50-90", form: "Tablet", strength: "50mg", quantity: 90, price: 10.4, retail: 72.1 },
+    ],
+  },
+  {
+    id: "med_anastrozole",
+    slug: "anastrozole",
+    name: "Anastrozole",
+    genericFor: "Arimidex",
+    category: "Cancer care",
+    description: "An aromatase inhibitor used as part of certain breast cancer treatments.",
+    popular: false,
+    variants: [
+      { id: "anas-1-30", form: "Tablet", strength: "1mg", quantity: 30, price: 8.5, retail: 115.0 },
+      { id: "anas-1-90", form: "Tablet", strength: "1mg", quantity: 90, price: 15.6, retail: 286.4 },
+    ],
+  },
+  {
+    id: "med_naproxen",
+    slug: "naproxen",
+    name: "Naproxen",
+    genericFor: "Naprosyn",
+    category: "Pain & inflammation",
+    description: "A nonsteroidal anti-inflammatory medicine used for pain and inflammation.",
+    popular: false,
+    variants: [
+      { id: "nap-250-30", form: "Tablet", strength: "250mg", quantity: 30, price: 6.4, retail: 32.2 },
+      { id: "nap-500-60", form: "Tablet", strength: "500mg", quantity: 60, price: 9.1, retail: 69.8 },
+    ],
+  },
+  {
+    id: "med_sildenafil",
+    slug: "sildenafil-citrate",
+    name: "Sildenafil Citrate",
+    genericFor: "Viagra",
+    category: "Men's health",
+    description: "A PDE5 inhibitor prescribed for erectile dysfunction.",
+    popular: true,
+    variants: [
+      { id: "sild-25-30", form: "Tablet", strength: "25mg", quantity: 30, price: 8.9, retail: 290.0 },
+      { id: "sild-50-30", form: "Tablet", strength: "50mg", quantity: 30, price: 9.7, retail: 318.4 },
+      { id: "sild-100-30", form: "Tablet", strength: "100mg", quantity: 30, price: 10.8, retail: 356.2 },
+    ],
+  },
+];
+
+export const seededCustomer = {
+  id: "cust_demo",
+  firstName: "Jamie",
+  lastName: "Rivera",
+  email: "demo@patient.test",
+  password: "demo1234",
+  phone: "410-555-0148",
+  dateOfBirth: "1987-06-14",
+  address: {
+    line1: "1400 Demo Avenue",
+    line2: "Apt 3B",
+    city: "Baltimore",
+    state: "MD",
+    zip: "21201",
+  },
+};
+
+export const seededPrescriptions = [
+  { id: "rx_1001", customerId: "cust_demo", medicationId: "med_atorvastatin", strength: "20mg", quantity: 30, refills: 2, status: "ready", updatedAt: "2026-08-28" },
+  { id: "rx_1002", customerId: "cust_demo", medicationId: "med_metformin", strength: "500mg", quantity: 60, refills: 4, status: "processing", updatedAt: "2026-08-29" },
+  { id: "rx_1003", customerId: "cust_demo", medicationId: "med_levothyroxine", strength: "75mcg", quantity: 30, refills: 0, status: "needs-renewal", updatedAt: "2026-08-21" },
+];
+
+export const seededOrders = [
+  {
+    id: "CPD-10482",
+    customerId: "cust_demo",
+    placedAt: "2026-08-12",
+    status: "delivered",
+    deliveredAt: "2026-08-17",
+    tracking: "DEMO-9400111899",
+    subtotal: 12.3,
+    shipping: 5,
+    tax: 0,
+    total: 17.3,
+    address: { ...seededCustomer.address },
+    items: [
+      { medicationId: "med_atorvastatin", variantId: "ator-20-30", name: "Atorvastatin Calcium", form: "Tablet", strength: "20mg", quantity: 30, price: 6.4, units: 1 },
+      { medicationId: "med_lisinopril", variantId: "lisi-10-30", name: "Lisinopril", form: "Tablet", strength: "10mg", quantity: 30, price: 5.9, units: 1 },
+    ],
+  },
+];
