@@ -71,10 +71,10 @@ function signOut() {
             <input v-model="headerSearch" aria-label="Search medications" placeholder="Search medications" />
           </form>
 
-          <div v-if="store.currentCustomer.value" class="account-menu-wrap">
+          <div v-if="store.currentCustomer" class="account-menu-wrap">
             <button class="icon-text-button" type="button" @click="accountOpen = !accountOpen">
               <UserRound :size="19" />
-              <span>{{ store.currentCustomer.value.firstName }}</span>
+              <span>{{ store.currentCustomer.firstName }}</span>
               <ChevronDown :size="14" />
             </button>
             <div v-if="accountOpen" class="account-menu">
@@ -88,9 +88,9 @@ function signOut() {
 
           <RouterLink class="cart-button" to="/cart" aria-label="View cart">
             <ShoppingCart :size="20" />
-            <span v-if="store.cartCount.value" class="cart-count">{{ store.cartCount.value }}</span>
+            <span v-if="store.cartCount" class="cart-count">{{ store.cartCount }}</span>
           </RouterLink>
-          <RouterLink v-if="!store.currentCustomer.value" class="button button-small button-dark desktop-signup" to="/create-account">
+          <RouterLink v-if="!store.currentCustomer" class="button button-small button-dark desktop-signup" to="/create-account">
             Sign up
           </RouterLink>
           <button class="mobile-menu-button" type="button" :aria-expanded="mobileOpen" aria-label="Toggle navigation" @click="mobileOpen = !mobileOpen">
@@ -108,7 +108,7 @@ function signOut() {
         <RouterLink to="/medications">Browse medications</RouterLink>
         <RouterLink to="/contact-doctor">Contact your doctor</RouterLink>
         <RouterLink to="/contact-doctor#providers">For providers</RouterLink>
-        <RouterLink v-if="store.currentCustomer.value" to="/account">My account</RouterLink>
+        <RouterLink v-if="store.currentCustomer" to="/account">My account</RouterLink>
         <RouterLink v-else to="/create-account">Create account</RouterLink>
       </div>
     </header>
@@ -152,6 +152,7 @@ function signOut() {
       </div>
       <div class="footer-bottom">
         <span>© 2026 ClearDose prototype</span>
+        <CdWebMcpStatus />
         <span>Not for medical use</span>
       </div>
     </footer>

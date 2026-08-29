@@ -7,8 +7,8 @@ const store = usePharmacyStore();
 const created = ref(false);
 const copied = ref(false);
 const form = reactive({
-  patientName: store.currentCustomer.value ? `${store.currentCustomer.value.firstName} ${store.currentCustomer.value.lastName}` : "",
-  patientEmail: store.currentCustomer.value?.email ?? "",
+  patientName: store.currentCustomer ? `${store.currentCustomer.firstName} ${store.currentCustomer.lastName}` : "",
+  patientEmail: store.currentCustomer?.email ?? "",
   providerName: "",
   providerPhone: "",
   medication: "",

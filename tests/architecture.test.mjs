@@ -1,0 +1,38 @@
+import assert from "node:assert/strict";
+import test, { after } from "node:test";
+import { fileURLToPath } from "node:url";
+import { createServer } from "vite";
+
+const root = fileURLToPath(new URL("..", import.meta.url));
+const vite = await createServer({
+  configFile: false,
+  root,
+  server: { middlewareMode: true, hmr: false },
+  optimizeDeps: { noDiscovery: true },
+});
+after(async () => vite.close());
+
+test("facade coordinates catalog, cart, customer, and checkout adapters", async () => {
+  const { createClearDoseBrowserAdapter } = await vite.ssrLoadModule("/src/infrastructure/adapters/createClearDoseBrowserAdapter.js");
+  const { MemoryStorageAdapter } = await vite.ssrLoadModule("/src/infrastructure/persistence/BrowserStateDao.js");
+  const { ClearDoseFacade } = await vite.ssrLoadModule("/src/application/facades/ClearDoseFacade.js");
+  const facade = new ClearDoseFacade(createClearDoseBrowserAdapter({ storage: new MemoryStorageAdapter(), storageKey: "test" }));
+
+  assert.equal(facade.searchMedications({ query: "lisinopril" }).length, 1);
+  assert.equal(facade.addToCart("med_lisinopril", "lisi-10-30"), true);
+  assert.equal(facade.getSnapshot().state.cart.length, 1);
+
+  const auth = facade.authenticate("demo@patient.test", "demo1234");
+  assert.equal(auth.ok, true);
+  const order = facade.placeOrder({ address: auth.customer.address, prescriptionMethod: "on-file", paymentMethod: "demo-card" });
+  assert.match(order.id, /^CLR-/);
+  assert.equal(facade.getSnapshot().state.cart.length, 0);
+});
+
+test("customer DTO never exposes the persisted demo password", async () => {
+  const { createClearDoseBrowserAdapter } = await vite.ssrLoadModule("/src/infrastructure/adapters/createClearDoseBrowserAdapter.js");
+  const { MemoryStorageAdapter } = await vite.ssrLoadModule("/src/infrastructure/persistence/BrowserStateDao.js");
+  const adapter = createClearDoseBrowserAdapter({ storage: new MemoryStorageAdapter(), storageKey: "dto-test" });
+  const result = adapter.customers.authenticate("demo@patient.test", "demo1234");
+  assert.equal("password" in result.customer, false);
+});

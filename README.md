@@ -2,53 +2,41 @@
 
 **Transparent prescriptions, agent-ready.**
 
-ClearDose is a Vue 3 prescription ecommerce-flow prototype designed around clear prices, visible next steps, and a shared patient-and-agent journey. It is a static sandbox: medication prices, customers, prescriptions, pharmacy identifiers, payments, and orders are all fictional or illustrative.
+A complete Vue 3 prescription-commerce sandbox with a fictional database, customer and checkout flows, a Pinia application store, clean DTO/DAO boundaries, replaceable repository/component adapters, and an extensible WebMCP plugin.
 
-## Included screens
-
-1. Home and medication search
-2. Filterable medication catalog
-3. Medication detail, variant picker, price comparison, and cost breakdown
-4. Cart and prescription explanation
-5. Sign in and customer registration
-6. Account overview and editable delivery profile
-7. Prescription list and readiness states
-8. Order history, order detail, and tracking timeline
-9. Four-step checkout: delivery, prescription source, payment path, and review
-10. Order confirmation and next steps
-11. Patient/provider prescription handoff and generated note preview
-
-## Demo account
-
-- Email: `demo@patient.test`
-- Password: `demo1234`
-
-The sign-in screen also has a one-click entry button. Use **Reset demo data** in the footer to restore seeded prescriptions, customer details, and order history.
-
-## Run locally
+## Run
 
 ```bash
 npm install
 npm run dev
 ```
 
-Create a production build with:
-
-```bash
-npm run build
-```
+Use `demo@patient.test` / `demo1234`, or create a fictional local account. Run `npm test` for architecture and WebMCP contracts and `npm run build` for the production bundle.
 
 ## Architecture
 
-- `src/views/` — route-level screens
-- `src/components/` — reusable storefront components
-- `src/data/mockDb.js` — seeded medication and patient records
-- `src/composables/usePharmacyStore.js` — domain actions and browser persistence
-- `src/router.js` — hash routing for reliable static hosting
-- `src/styles/main.css` — responsive visual system
+All state changes follow:
 
-The UI calls explicit store operations such as `addToCart`, `authenticate`, `createCustomer`, `placeOrder`, and `customerPrescriptions`. That boundary is intentionally suitable for a later WebMCP adapter: tools can invoke the same domain operations without scraping or simulating clicks.
+`Vue component or WebMCP tool → Pinia action → ClearDoseFacade → repository adapter → BrowserStateDao`
+
+Pages contain no persistence or seed-data access. DTOs sanitize and freeze records before they enter the store; the customer DTO deliberately omits the demo password. The composition root at `src/app/createClearDosePlugin.js` wires Pinia, adapters, facade, globally registered components, and default WebMCP tools.
+
+Host apps can import the supported extension API from `src/cleardose.js`.
+
+## WebMCP
+
+The plugin progressively registers four tools through `document.modelContext`: medication search, medication detail, cart read, and add to cart. UI and agents call the same Pinia actions, so state stays synchronized. Browsers without WebMCP continue to work normally.
+
+Reusable components accept `adapter`, `mcpTools`, `mcpContext`, and `registerMcp` props. See [docs/WEBMCP_PLUGIN.md](docs/WEBMCP_PLUGIN.md) for extension examples.
+
+## Project documentation
+
+- [Project goal](PROJECT.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [User stories](docs/USER_STORIES.md)
+- [WebMCP plugin guide](docs/WEBMCP_PLUGIN.md)
+- [Agent/contributor instructions](AGENTS.md)
 
 ## Safety boundary
 
-ClearDose is a fictional interface prototype, not a pharmacy, and must never receive real prescriptions, health data, insurance information, or payment details.
+Everything is fictional and stored only in the browser. ClearDose is not a pharmacy, does not provide medical advice, and does not transmit prescriptions, contact providers, fulfill medication, or process payments.

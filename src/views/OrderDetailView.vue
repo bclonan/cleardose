@@ -7,7 +7,7 @@ import { formatMoney, usePharmacyStore } from "../composables/usePharmacyStore";
 
 const route = useRoute();
 const store = usePharmacyStore();
-const order = computed(() => store.state.orders.find((item) => item.id === route.params.id && item.customerId === store.currentCustomer.value?.id));
+const order = computed(() => store.state.orders.find((item) => item.id === route.params.id && item.customerId === store.currentCustomer?.id));
 const stage = computed(() => ({ "waiting-for-prescription": 1, processing: 2, shipped: 3, delivered: 4 }[order.value?.status] ?? 1));
 </script>
 

@@ -47,10 +47,10 @@ const store = usePharmacyStore();
 
       <aside class="order-summary">
         <h2>Order summary</h2>
-        <div><span>Medications ({{ store.cartCount.value }})</span><strong>{{ formatMoney(store.cartSubtotal.value) }}</strong></div>
-        <div><span>Standard shipping</span><strong>{{ formatMoney(store.shipping.value) }}</strong></div>
+        <div><span>Medications ({{ store.cartCount }})</span><strong>{{ formatMoney(store.cartSubtotal) }}</strong></div>
+        <div><span>Standard shipping</span><strong>{{ formatMoney(store.shipping) }}</strong></div>
         <div><span>Estimated tax</span><strong>$0.00</strong></div>
-        <div class="summary-total"><span>Mock total</span><strong>{{ formatMoney(store.cartTotal.value) }}</strong></div>
+        <div class="summary-total"><span>Mock total</span><strong>{{ formatMoney(store.cartTotal) }}</strong></div>
         <p>Final fulfillment requires a valid prescription. This prototype never submits payment.</p>
         <RouterLink class="button button-orange button-wide" to="/checkout">Continue to checkout <ArrowRight :size="18" /></RouterLink>
         <span class="secure-caption"><ShieldCheck :size="15" /> Demo checkout · no real charge</span>

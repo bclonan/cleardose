@@ -22,7 +22,7 @@ const saved = ref(false);
 const profile = reactive({ phone: "", line1: "", line2: "", city: "", state: "", zip: "" });
 
 watch(
-  () => store.currentCustomer.value,
+  () => store.currentCustomer,
   (customer) => {
     if (!customer) return;
     Object.assign(profile, { phone: customer.phone, ...customer.address });
@@ -42,11 +42,11 @@ function saveProfile() {
 </script>
 
 <template>
-  <div v-if="store.currentCustomer.value" class="account-page">
+  <div v-if="store.currentCustomer" class="account-page">
     <div class="account-welcome">
       <div class="page-width">
         <span class="eyebrow">Patient account</span>
-        <h1>Good afternoon, {{ store.currentCustomer.value.firstName }}.</h1>
+        <h1>Good afternoon, {{ store.currentCustomer.firstName }}.</h1>
         <p>Here is what is happening with your mock prescriptions and deliveries.</p>
       </div>
     </div>
@@ -67,7 +67,7 @@ function saveProfile() {
           </RouterLink>
           <RouterLink to="/cart" class="account-stat-card">
             <span class="stat-icon stat-green"><ShoppingCart :size="22" /></span>
-            <div><small>Current cart</small><strong>{{ store.cartCount.value }}</strong><span>{{ formatMoney(store.cartTotal.value) }} mock total</span></div>
+            <div><small>Current cart</small><strong>{{ store.cartCount }}</strong><span>{{ formatMoney(store.cartTotal) }} mock total</span></div>
             <ArrowRight :size="18" />
           </RouterLink>
         </div>
@@ -100,7 +100,7 @@ function saveProfile() {
           <Transition name="fade"><div v-if="saved" class="inline-success"><Check :size="17" /> Profile saved in this browser.</div></Transition>
           <div v-if="!editing" class="profile-display">
             <span class="list-icon"><MapPin :size="21" /></span>
-            <div><strong>{{ store.currentCustomer.value.firstName }} {{ store.currentCustomer.value.lastName }}</strong><span>{{ store.currentCustomer.value.address.line1 }} {{ store.currentCustomer.value.address.line2 }}</span><span>{{ store.currentCustomer.value.address.city }}, {{ store.currentCustomer.value.address.state }} {{ store.currentCustomer.value.address.zip }}</span><span>{{ store.currentCustomer.value.phone }}</span></div>
+            <div><strong>{{ store.currentCustomer.firstName }} {{ store.currentCustomer.lastName }}</strong><span>{{ store.currentCustomer.address.line1 }} {{ store.currentCustomer.address.line2 }}</span><span>{{ store.currentCustomer.address.city }}, {{ store.currentCustomer.address.state }} {{ store.currentCustomer.address.zip }}</span><span>{{ store.currentCustomer.phone }}</span></div>
           </div>
           <form v-else class="stacked-form profile-form" @submit.prevent="saveProfile">
             <label>Mobile phone<input v-model="profile.phone" /></label>

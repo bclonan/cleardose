@@ -11,20 +11,21 @@ import {
   Stethoscope,
 } from "@lucide/vue";
 import MedicationCard from "../components/MedicationCard.vue";
-import { medications } from "../data/mockDb";
-import { formatMoney } from "../composables/usePharmacyStore";
+import { formatMoney, usePharmacyStore } from "../composables/usePharmacyStore";
 
 const router = useRouter();
+const store = usePharmacyStore();
+const medications = computed(() => store.medications);
 const search = ref("");
 const comparisonId = ref("med_atorvastatin");
-const featured = medications.filter((medication) => medication.popular).slice(0, 3);
-const comparison = computed(() => medications.find((medication) => medication.id === comparisonId.value));
+const featured = computed(() => medications.value.filter((medication) => medication.popular).slice(0, 3));
+const comparison = computed(() => medications.value.find((medication) => medication.id === comparisonId.value));
 const comparisonVariant = computed(() => comparison.value.variants[0]);
 const savingPercent = computed(() => Math.round((1 - comparisonVariant.value.price / comparisonVariant.value.retail) * 100));
 const suggestions = computed(() => {
   const term = search.value.trim().toLowerCase();
   if (term.length < 2) return [];
-  return medications
+  return medications.value
     .filter((item) => `${item.name} ${item.genericFor}`.toLowerCase().includes(term))
     .slice(0, 5);
 });

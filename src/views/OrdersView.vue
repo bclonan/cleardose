@@ -10,7 +10,7 @@ const orders = computed(() => store.customerOrders());
 </script>
 
 <template>
-  <div v-if="store.currentCustomer.value" class="account-page account-subpage">
+  <div v-if="store.currentCustomer" class="account-page account-subpage">
     <div class="account-welcome compact-welcome"><div class="page-width"><span class="eyebrow">Patient account</span><h1>Orders</h1><p>Follow every mock order from pharmacy review to delivery.</p></div></div>
     <div class="page-width account-layout">
       <AccountNav />

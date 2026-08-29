@@ -3,10 +3,12 @@ import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Search, SlidersHorizontal, X } from "@lucide/vue";
 import MedicationCard from "../components/MedicationCard.vue";
-import { categories, medications } from "../data/mockDb";
+import { usePharmacyStore } from "../composables/usePharmacyStore";
 
 const route = useRoute();
 const router = useRouter();
+const store = usePharmacyStore();
+const categories = computed(() => store.categories);
 const search = ref(String(route.query.q ?? ""));
 const category = ref("All medications");
 const sort = ref("name");
@@ -17,17 +19,7 @@ watch(
 );
 
 const filtered = computed(() => {
-  const term = search.value.trim().toLowerCase();
-  const results = medications.filter((medication) => {
-    const matchesSearch = !term || `${medication.name} ${medication.genericFor} ${medication.category}`.toLowerCase().includes(term);
-    const matchesCategory = category.value === "All medications" || medication.category === category.value;
-    return matchesSearch && matchesCategory;
-  });
-  return [...results].sort((a, b) => {
-    if (sort.value === "price") return a.variants[0].price - b.variants[0].price;
-    if (sort.value === "savings") return (b.variants[0].retail - b.variants[0].price) - (a.variants[0].retail - a.variants[0].price);
-    return a.name.localeCompare(b.name);
-  });
+  return store.searchMedications({ query: search.value, category: category.value, sort: sort.value });
 });
 
 function syncSearch() {

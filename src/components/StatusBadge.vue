@@ -1,15 +1,12 @@
 <script setup>
 import { computed } from "vue";
+import { useAgentReadyComponent } from "../composables/useAgentReadyComponent";
+import { statusBadgeAdapter } from "../presentation/adapters/componentAdapters";
+import { agentReadyProps } from "../presentation/agentReadyProps";
 
-const props = defineProps({ status: { type: String, required: true } });
-const label = computed(() => ({
-  ready: "Ready to order",
-  processing: "Pharmacy review",
-  "needs-renewal": "Renewal needed",
-  delivered: "Delivered",
-  shipped: "Shipped",
-  "waiting-for-prescription": "Waiting for prescription",
-}[props.status] ?? props.status));
+const props = defineProps({ ...agentReadyProps, status: { type: String, required: true } });
+const { adapter } = useAgentReadyComponent(props, { name: "status_badge", defaultAdapter: statusBadgeAdapter });
+const label = computed(() => adapter.value.label(props.status));
 </script>
 
 <template>

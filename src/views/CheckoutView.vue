@@ -20,11 +20,11 @@ const store = usePharmacyStore();
 const step = ref(1);
 const error = ref("");
 const address = reactive({
-  line1: store.currentCustomer.value?.address.line1 ?? "",
-  line2: store.currentCustomer.value?.address.line2 ?? "",
-  city: store.currentCustomer.value?.address.city ?? "",
-  state: store.currentCustomer.value?.address.state ?? "",
-  zip: store.currentCustomer.value?.address.zip ?? "",
+  line1: store.currentCustomer?.address.line1 ?? "",
+  line2: store.currentCustomer?.address.line2 ?? "",
+  city: store.currentCustomer?.address.city ?? "",
+  state: store.currentCustomer?.address.state ?? "",
+  zip: store.currentCustomer?.address.zip ?? "",
 });
 const prescriptionMethod = ref("on-file");
 const paymentMethod = ref("demo-card");
@@ -80,7 +80,7 @@ function placeOrder() {
 </script>
 
 <template>
-  <div v-if="!store.currentCustomer.value" class="protected-state page-width checkout-gate">
+  <div v-if="!store.currentCustomer" class="protected-state page-width checkout-gate">
     <span class="empty-icon"><LockKeyhole :size="31" /></span>
     <span class="eyebrow">Checkout saved</span>
     <h1>Sign in before checkout.</h1>
@@ -162,7 +162,7 @@ function placeOrder() {
       <aside class="order-summary checkout-summary">
         <h2>Your order</h2>
         <div v-for="item in store.state.cart" :key="item.variantId" class="checkout-summary-item"><div><strong>{{ item.name }}</strong><span>{{ item.strength }} · {{ item.quantity }} count</span></div><strong>{{ formatMoney(item.price * item.units) }}</strong></div>
-        <div class="summary-divider"></div><div><span>Medications</span><strong>{{ formatMoney(store.cartSubtotal.value) }}</strong></div><div><span>Shipping</span><strong>{{ formatMoney(store.shipping.value) }}</strong></div><div class="summary-total"><span>Mock total</span><strong>{{ formatMoney(store.cartTotal.value) }}</strong></div>
+        <div class="summary-divider"></div><div><span>Medications</span><strong>{{ formatMoney(store.cartSubtotal) }}</strong></div><div><span>Shipping</span><strong>{{ formatMoney(store.shipping) }}</strong></div><div class="summary-total"><span>Mock total</span><strong>{{ formatMoney(store.cartTotal) }}</strong></div>
         <span class="secure-caption"><LockKeyhole :size="15" /> No real payment is collected</span>
       </aside>
     </div>

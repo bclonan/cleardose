@@ -26,7 +26,7 @@ const order = computed(() => store.state.orders.find((item) => item.id === route
         <article><span class="process-number">02</span><ClipboardList :size="28" /><h3>Pharmacy review</h3><p>Once matched, the order advances to a visible verification state.</p></article>
         <article><span class="process-number">03</span><PackageCheck :size="28" /><h3>Pack and deliver</h3><p>A tracking number and delivery milestones appear in the patient account.</p></article>
       </div>
-      <div class="confirmation-email-note"><Mail :size="21" /><div><strong>Demo email queued for {{ store.currentCustomer.value?.email }}</strong><p>No message is actually sent. This is the success state a real integration could trigger.</p></div></div>
+      <div class="confirmation-email-note"><Mail :size="21" /><div><strong>Demo email queued for {{ store.currentCustomer?.email }}</strong><p>No message is actually sent. This is the success state a real integration could trigger.</p></div></div>
     </section>
   </div>
   <div v-else class="protected-state page-width"><h1>Order confirmation not found.</h1><RouterLink class="button button-dark" to="/account/orders">View orders</RouterLink></div>

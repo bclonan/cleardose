@@ -564,7 +564,8 @@ input::placeholder { color: #8d9795; }
 .footer-grid a, .footer-link-button { margin-block: 5px; padding: 0; border: 0; background: transparent; color: rgba(255,255,255,.72); font-size: .78rem; text-align: left; }
 .footer-grid a:hover, .footer-link-button:hover { color: white; }
 .footer-grid > div:last-child p { color: rgba(255,255,255,.54); font-size: .74rem; line-height: 1.6; }
-.footer-bottom { min-height: 58px; display: flex; align-items: center; justify-content: space-between; width: min(1180px, calc(100% - 48px)); margin: auto; border-top: 1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.35); font-size: .68rem; }
+.footer-bottom { min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; width: min(1180px, calc(100% - 48px)); margin: auto; border-top: 1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.35); font-size: .68rem; }
+.webmcp-status { display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,.62); letter-spacing: .02em; }
 
 @media (max-width: 1100px) {
   .desktop-nav { display: none; }

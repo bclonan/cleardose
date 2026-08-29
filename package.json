@@ -10,7 +10,8 @@
     "dev": "vite",
     "build": "bash scripts/sites-env.sh -- vite build",
     "start": "vite preview",
-    "test": "npm run build",
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "test:build": "npm run build",
     "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate"
   },
@@ -30,6 +31,7 @@
     "lucide-react": "^1.31.0",
     "next": "16.2.6",
     "next-themes": "^0.4.6",
+    "pinia": "^4.0.3",
     "radix-ui": "^1.6.7",
     "react": "19.2.6",
     "react-day-picker": "^10.0.1",

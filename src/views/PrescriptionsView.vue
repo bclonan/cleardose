@@ -19,7 +19,7 @@ function addPrescription(rx) {
 </script>
 
 <template>
-  <div v-if="store.currentCustomer.value" class="account-page account-subpage">
+  <div v-if="store.currentCustomer" class="account-page account-subpage">
     <div class="account-welcome compact-welcome"><div class="page-width"><span class="eyebrow">Patient account</span><h1>Prescriptions</h1><p>See which medications can move forward and which still need action.</p></div></div>
     <div class="page-width account-layout">
       <AccountNav />
