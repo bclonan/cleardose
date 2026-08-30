@@ -12,6 +12,11 @@
 - As a visitor, I can build a local procurement plan that compares fictional offers without reserving inventory or placing an order.
 - As a visitor, I can compare two exact medication variants side by side without being told they are clinical substitutes.
 - As a visitor, I can enable optional voice guidance and retain an equivalent visible transcript.
+- As a visitor, I can open a floating prompt guide, search every registered tool, copy examples, and optionally filter them with voice input.
+- As a visitor, I can run a patient workflow beside a live state viewer or open the patient surface in another tab.
+- As a visitor, I can inspect multiple concurrent flows, exact event ids, state history, and context at the selected step.
+- As a visitor, I can prepare a bounded agent handoff and receive a printable doctor-question card that remains a human-review draft.
+- As a visitor, I can run deterministic invalid-form, unavailable-stock, and stale-price scenarios and see the failure state instead of a silent success.
 - As a keyboard or assistive-technology user, I can navigate landmarks, forms, the comparison, and the tool dialog without a pointer.
 - As a shopper, I can inspect strengths, forms, quantities, retail comparisons, and price components before adding an item.
 - As a shopper, I can add a variant, change quantity up to the demo limit, remove it, and see totals update.
@@ -36,6 +41,8 @@
 - As a browser agent, I can highlight a stable section and move visible keyboard focus so the patient and agent discuss the same content.
 - As a browser agent, I can read the cart without changing state.
 - As a browser agent, I can add an exact variant to the mock cart and see the human UI update through the same Pinia action.
+- As a browser agent, I can inspect local workflow state without changing it.
+- As a browser agent, I can receive a bounded site instruction and exact response schema, then submit a neutral question-card draft in a second tool call.
 - As a browser agent in a browser without WebMCP, I do not break the human experience.
 
 ## Developer
@@ -48,6 +55,8 @@
 - As a developer, I can add a tool definition without importing it into pages.
 - As a developer, I can verify facade and WebMCP contracts with automated tests.
 - As a developer, I can regenerate a static schema and run direct, chained, mutation, and refusal eval journeys with Chrome Labs' experimental eval CLI.
+- As a developer, I can add a two-call exchange from one reusable factory and a template-literal domain contract.
+- As a developer, I can replace the workflow DAO, inspect memory fallback status, and test every context snapshot without a browser.
 
 ## Acceptance boundaries
 
@@ -56,3 +65,4 @@
 - Every mutation reaches persistence through the facade/repository/API/DAO path.
 - Voice, highlighting, declarative tools, and WebMCP registration are progressive enhancements with complete human fallbacks.
 - Missing interaction fixtures never produce a “safe” conclusion, and no UDI workflow presents related records as therapeutic equivalents.
+- Generated question cards accept agent-authored questions only; fictional prices are attached from the local UDI and every card requires patient review.

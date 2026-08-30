@@ -23,7 +23,7 @@ createApp(App).use(pinia).use(clearDose).mount("#app");
 
 ## Registered components
 
-`CdAccountNav`, `CdAgentControlCenter`, `CdAgentReadyForm`, `CdAgentReadyHost`, `CdComparisonPanel`, `CdMedicationCard`, `CdStatusBadge`, and `CdWebMcpStatus` are registered globally. Every reusable component accepts:
+`CdAccountNav`, `CdAgentControlCenter`, `CdAgentReadyForm`, `CdAgentReadyHost`, `CdComparisonPanel`, `CdMedicationCard`, `CdStatusBadge`, `CdWebMcpStatus`, `CdWorkflowLiveViewer`, `CdDoctorQuestionCard`, and `CdPromptGuide` are registered globally. Every reusable component accepts:
 
 | Prop | Type | Purpose |
 |---|---|---|
@@ -61,6 +61,9 @@ Declarative form names describe visible UI effects such as `populate_visible_pri
 | `cleardose_find_related_drugs` | No | Return broad related records for clinician discussion, never equivalence |
 | `cleardose_review_demo_interaction_flags` | No | Review intentionally incomplete synthetic fixtures and require professional verification |
 | `cleardose_build_procurement_plan` | No | Select fictional offers for a local plan without reserving or ordering |
+| `cleardose_inspect_workflow_runtime` | No | Read concurrent flows, recent event ids, state/context snapshots, cards, and local database status |
+| `cleardose_prepare_doctor_question_card_request` | Yes, local | Create a bounded site-to-agent exchange with an instruction and exact response schema |
+| `cleardose_submit_doctor_question_card_draft` | Yes, local | Validate structured questions and render a patient-reviewable local card |
 | `cleardose_highlight_section` | No | Move visible focus to a stable page section or action shared by the human and agent |
 | `cleardose_get_cart` | No | Read items and transparent totals |
 | `cleardose_add_to_cart` | Yes | Add an exact UDI package through the same Pinia action as the UI |
@@ -73,6 +76,25 @@ Declarative form names describe visible UI effects such as `populate_visible_pri
 - Read-only and untrusted-content annotations are explicit. Cross-origin exposure remains disabled unless a host supplies an exact `exposedTo` allowlist.
 - Results contain the minimum structured context needed for a next call. Errors return `INVALID_INPUT` or `TOOL_FAILURE` plus a `retryable` signal.
 - Interaction and related-record outputs include domain boundaries in structured content instead of depending only on UI disclaimers.
+- Every imperative execution is wrapped by the workflow runtime. The wrapper records queued, running, complete/error, input, and compact structured result states without changing the tool's return contract.
+
+## Add a structured ping-pong exchange
+
+`createStructuredExchangeToolPair()` turns one exchange definition into non-overlapping prepare and submit tools. Keep the domain template and response schema in `src/services/api/workflows`, then pass bounded handlers from the default tool catalog:
+
+```js
+const [prepareTool, submitTool] = createStructuredExchangeToolPair({
+  id: "visit_summary",
+  prepareSchema,
+  responseSchema,
+  prepare: safePrepareHandler,
+  submit: safeSubmitHandler,
+  prepareAnnotations: { readOnlyHint: false, untrustedContentHint: true },
+  submitAnnotations: { readOnlyHint: false, untrustedContentHint: false },
+});
+```
+
+The prepare result should include `exchangeId`, bounded context, a template-literal instruction, `expectedResponse.toolName`, and a closed `expectedResponse.schema`. The submit handler must revalidate the payload and persist only reviewable local state. Never let agent-authored text override trusted UDI facts.
 
 ## Add a tool
 

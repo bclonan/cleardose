@@ -1,4 +1,6 @@
 import { toolError, toolResponse } from "../toolResponse.js";
+import { createStructuredExchangeToolPair } from "../templates/createStructuredExchangeToolPair.js";
+import { doctorQuestionCardResponseSchema } from "../../../services/api/workflows/doctorQuestionCardExchange.js";
 
 class ToolInputError extends Error {
   constructor(message, details = {}) {
@@ -38,6 +40,11 @@ function stringArray(input, key, { minimum = 1, maximum = 10 } = {}) {
   return value.map((item) => item.trim());
 }
 
+function optionalStringArray(input, key, options = {}) {
+  if (input?.[key] == null) return [];
+  return stringArray(input, key, { minimum: 0, ...options });
+}
+
 function safe(execute, allowedKeys = []) {
   return async (input = {}) => {
     try {
@@ -62,8 +69,8 @@ function safe(execute, allowedKeys = []) {
 const readOnlyAnnotations = Object.freeze({ readOnlyHint: true, untrustedContentHint: false });
 const localMutationAnnotations = Object.freeze({ readOnlyHint: false, untrustedContentHint: false });
 
-export function createDefaultTools({ store, highlightService }) {
-  return [
+export function createDefaultTools({ store, highlightService, workflowRuntime }) {
+  const tools = [
     {
       name: "search_drug_index",
       title: "Search the Universal Drug Index",
@@ -299,4 +306,75 @@ export function createDefaultTools({ store, highlightService }) {
       }, ["drugId", "variantId"]),
     },
   ];
+
+  tools.splice(6, 0, {
+    name: "inspect_workflow_runtime",
+    title: "Inspect local workflow runtime",
+    description: "Read recent ClearDose workflow instances, transitions, bounded context snapshots, generated cards, and the local DuckDB-Wasm status. Use this to explain what the site and agent have completed without changing state.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        flowId: { type: "string", description: "Optional exact flow id. Omit it to inspect concurrent recent flows." },
+        limit: { type: "integer", description: "Maximum recent events to return.", minimum: 1, maximum: 100, default: 40 },
+      },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: true, untrustedContentHint: true },
+    execute: safe(async (input) => {
+      const flowId = stringValue(input, "flowId", { maxLength: 100 });
+      const limit = integerValue(input, "limit", { fallback: 40, maximum: 100 });
+      const runtime = store.inspectWorkflow({ flowId, limit });
+      if (flowId && !runtime.flows.length) throw new ToolInputError(`Unknown workflow id: ${flowId}.`, { field: "flowId" });
+      return toolResponse({ ok: true, runtime }, `Returned ${runtime.flows.length} workflow instance${runtime.flows.length === 1 ? "" : "s"} and ${runtime.events.length} event${runtime.events.length === 1 ? "" : "s"}.`);
+    }, ["flowId", "limit"]),
+  });
+
+  const exchangeTools = createStructuredExchangeToolPair({
+    id: "doctor_question_card",
+    prepareTitle: "Prepare a doctor question card handoff",
+    prepareDescription: "Resolve one UDI record, up to three related discussion-only records, and optional patient concerns into a bounded site-to-agent handoff. The result contains an instruction and exact response schema for a second tool call; it does not create clinical guidance.",
+    prepareSchema: {
+      type: "object",
+      properties: {
+        drugId: { type: "string", description: "Exact primary ClearDose UDI drug id." },
+        relatedDrugIds: { type: "array", description: "Zero to three discussion-only ids returned by find_related_drugs. Omit to use up to two indexed suggestions.", minItems: 0, maxItems: 3, items: { type: "string" } },
+        concerns: { type: "array", description: "Zero to six short patient concerns to transform into neutral questions, not instructions or diagnoses.", minItems: 0, maxItems: 6, items: { type: "string", maxLength: 160 } },
+      },
+      required: ["drugId"],
+      additionalProperties: false,
+    },
+    responseTitle: "Submit a doctor question card draft",
+    responseDescription: "Submit the structured response for an existing ClearDose question-card exchange. This stores a local draft for human review and derives all displayed fictional price facts from the UDI rather than agent text.",
+    responseSchema: doctorQuestionCardResponseSchema,
+    prepareAnnotations: { readOnlyHint: false, untrustedContentHint: true },
+    submitAnnotations: localMutationAnnotations,
+    prepare: safe(async (input) => {
+      const drugId = stringValue(input, "drugId", { required: true, maxLength: 100 });
+      const relatedDrugIds = optionalStringArray(input, "relatedDrugIds", { maximum: 3 });
+      const concerns = optionalStringArray(input, "concerns", { maximum: 6 });
+      const exchange = await store.prepareDoctorQuestionCard({ drugId, relatedDrugIds, concerns });
+      return toolResponse({
+        ok: true,
+        exchangeId: exchange.id,
+        flowId: exchange.flowId,
+        context: exchange.requestContext,
+        instruction: exchange.instruction,
+        expectedResponse: { toolName: "cleardose_submit_doctor_question_card_draft", schema: exchange.expectedResponseSchema },
+      }, "Prepared a bounded question-card handoff. Follow the returned instruction and response schema to submit the draft.");
+    }, ["drugId", "relatedDrugIds", "concerns"]),
+    submit: safe(async (input) => {
+      const exchangeId = stringValue(input, "exchangeId", { required: true, maxLength: 100 });
+      const title = stringValue(input, "title", { required: true, maxLength: 90 });
+      const questions = stringArray(input, "questions", { minimum: 2, maximum: 8 });
+      const card = await store.submitDoctorQuestionCard({ exchangeId, title, questions });
+      return toolResponse({ ok: true, card, visibleState: "human_review" }, `Stored a ${card.questions.length}-question local draft for patient review.`);
+    }, ["exchangeId", "title", "questions"]),
+  });
+  tools.splice(7, 0, ...exchangeTools);
+
+  if (!workflowRuntime) return tools;
+  return tools.map((tool) => ({
+    ...tool,
+    execute: (input) => workflowRuntime.runTool(tool.name, input, () => tool.execute(input)),
+  }));
 }

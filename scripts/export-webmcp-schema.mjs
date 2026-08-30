@@ -10,6 +10,7 @@ const tools = createDefaultTools({
       "medication-search", "comparison-results", "demo-side-by-side", "how-webmcp-works",
       "tool-catalog", "cart-summary", "checkout-flow", "provider-handoff", "primary-price",
       "add-to-cart-action", "agent-tools-control", "udi-search", "udi-results", "udi-lab",
+      "workflow-runtime", "question-card", "failure-lab",
     ],
   },
 }).map(({ name, title, description, inputSchema, annotations }) => ({

@@ -47,13 +47,41 @@ test("default catalog exposes non-overlapping UDI, review, procurement, and cart
     "find_related_drugs",
     "review_demo_interaction_flags",
     "build_procurement_plan",
+    "inspect_workflow_runtime",
+    "prepare_doctor_question_card_request",
+    "submit_doctor_question_card_draft",
     "highlight_section",
     "get_cart",
     "add_to_cart",
   ]);
   assert.equal(tools.find((tool) => tool.name === "compare_drug_prices").annotations.readOnlyHint, true);
   assert.equal(tools.find((tool) => tool.name === "add_to_cart").annotations.readOnlyHint, false);
+  assert.equal(tools.find((tool) => tool.name === "inspect_workflow_runtime").annotations.untrustedContentHint, true);
+  assert.equal(tools.find((tool) => tool.name === "prepare_doctor_question_card_request").inputSchema.additionalProperties, false);
   assert.ok(tools.every((tool) => tool.inputSchema.additionalProperties === false));
+});
+
+test("structured question-card tool pair transfers an exact response schema", async () => {
+  const { createDefaultTools } = await vite.ssrLoadModule("/src/infrastructure/webmcp/tools/createDefaultTools.js");
+  const prepared = {
+    id: "exchange_test",
+    flowId: "flow_test",
+    requestContext: { primaryDrug: { id: "med_lisinopril", name: "Lisinopril" } },
+    instruction: "Return the draft with the declared schema.",
+    expectedResponseSchema: { type: "object", required: ["exchangeId", "title", "questions"], additionalProperties: false },
+  };
+  const store = {
+    prepareDoctorQuestionCard: async () => prepared,
+    submitDoctorQuestionCard: async (input) => ({ id: "card_test", status: "human_review", questions: input.questions }),
+  };
+  const tools = createDefaultTools({ store, highlightService: { listTargets: () => [], highlight: () => ({ ok: true }) } });
+  const prepareResult = await tools.find((tool) => tool.name === "prepare_doctor_question_card_request").execute({ drugId: "med_lisinopril" });
+  assert.equal(prepareResult.structuredContent.expectedResponse.toolName, "cleardose_submit_doctor_question_card_draft");
+  assert.deepEqual(prepareResult.structuredContent.expectedResponse.schema.required, ["exchangeId", "title", "questions"]);
+
+  const invalid = await tools.find((tool) => tool.name === "submit_doctor_question_card_draft").execute({ exchangeId: "exchange_test", title: "Questions", questions: [] });
+  assert.equal(invalid.isError, true);
+  assert.equal(invalid.structuredContent.code, "INVALID_INPUT");
 });
 
 test("tool runtime validation returns structured non-retryable errors", async () => {

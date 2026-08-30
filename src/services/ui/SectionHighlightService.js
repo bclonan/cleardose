@@ -13,6 +13,9 @@ const DEFAULT_TARGETS = Object.freeze([
   "udi-search",
   "udi-results",
   "udi-lab",
+  "workflow-runtime",
+  "question-card",
+  "failure-lab",
 ]);
 
 export class SectionHighlightService {

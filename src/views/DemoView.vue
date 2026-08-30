@@ -94,7 +94,7 @@ function highlightComparison() {
         <article><span>03</span><h3>Incomplete-data honesty</h3><p>Synthetic interaction flags always expose coverage limits and require professional verification.</p><code>review_demo_interaction_flags</code></article>
         <article><span>04</span><h3>Local procurement</h3><p>Agents can optimize fictional offers without reserving inventory, validating a prescription, or ordering.</p><code>build_procurement_plan</code></article>
       </div>
-      <RouterLink class="button button-dark" to="/udi">Explore the Universal Drug Index <ArrowRight :size="18" /></RouterLink>
+      <div class="demo-domain-actions"><RouterLink class="button button-dark" to="/udi">Explore the Universal Drug Index <ArrowRight :size="18" /></RouterLink><RouterLink class="button button-ghost" to="/flow-lab">Open the live flow lab <ArrowRight :size="18" /></RouterLink></div>
     </section>
 
     <section class="demo-tool-catalog" data-agent-section="tool-catalog" aria-labelledby="catalog-title">
@@ -113,7 +113,7 @@ function highlightComparison() {
 
     <section class="page-width demo-finale">
       <div><span class="eyebrow">Built to evaluate</span><h2>Every tool contract ships with a testable journey.</h2><p>Deterministic unit tests cover service behavior, while Chrome-compatible eval fixtures measure tool selection, parameters, multi-step order, and appropriate refusal.</p></div>
-      <RouterLink class="button button-dark" to="/udi">Open the UDI lab <ArrowRight :size="18" /></RouterLink>
+      <RouterLink class="button button-dark" to="/flow-lab">Open the live workflow lab <ArrowRight :size="18" /></RouterLink>
     </section>
     <p class="sr-only" aria-live="polite">{{ announcement }}</p>
   </div>

@@ -6,6 +6,7 @@ const readJson = async (relativePath) => JSON.parse(await readFile(fileURLToPath
 const schema = await readJson("../evals/schema.json");
 const tools = schema.tools;
 const evals = await readJson("../evals/cleardose.evals.json");
+const smokeEvals = await readJson("../evals/cleardose.smoke.json");
 const names = new Set();
 
 assert.ok(Array.isArray(tools) && tools.length > 0, "Schema must export at least one tool.");
@@ -32,4 +33,7 @@ for (const evalCase of evals) {
   }
 }
 
-console.log(`Validated ${tools.length} tool contracts and ${evals.length} evaluation journeys.`);
+assert.ok(smokeEvals.length > 0, "Smoke eval export must contain positive-call journeys.");
+assert.ok(smokeEvals.every((evalCase) => Array.isArray(evalCase.expectedCall) && evalCase.expectedCall.length > 0), "Smoke evals cannot contain no-call refusal journeys.");
+
+console.log(`Validated ${tools.length} tool contracts, ${evals.length} evaluation journeys, and ${smokeEvals.length} smoke journeys.`);

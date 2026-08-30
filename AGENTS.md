@@ -18,6 +18,9 @@ Build and extend **ClearDose — Transparent prescriptions, agent-ready.** as a 
 - The facade is framework-independent and is the only high-level API consumed by stores or integrations.
 - Raw server-like behavior and fictional fixtures belong only in `src/services/api`. Repositories adapt that API, the DAO owns serialization, and DTO mappers sanitize data crossing into the application layer.
 - Keep normalized drug identity, deterministic fictional offers, related-record groups, synthetic interaction fixtures, and procurement planning centralized in `src/services/api/udi`. Do not duplicate UDI rules in pages, Pinia, or WebMCP definitions.
+- Keep workflow definitions, negative fixtures, and structured-exchange contracts in `src/services/api`; runtime coordination belongs in `src/services/workflows`, and persistence belongs in `src/infrastructure/persistence`.
+- Every observed transition must have a unique event id, an explicit source, a valid definition state, and a bounded context snapshot. Never record passwords, real health information, or unrestricted page content.
+- DuckDB-Wasm/OPFS is the primary event store. Preserve the explicit memory fallback and cross-tab `BroadcastChannel` path; a database failure must not break the patient UI.
 - Reusable components accept the shared props in `src/presentation/agentReadyProps.js` and use `useAgentReadyComponent` so adapters and component-scoped tools can be composed without rewriting the component.
 - Register reusable components in `src/app/componentRegistry.js`; default WebMCP tools belong in `src/infrastructure/webmcp/tools/createDefaultTools.js`.
 
@@ -32,6 +35,7 @@ Build and extend **ClearDose — Transparent prescriptions, agent-ready.** as a 
 - Read-only tools must set `readOnlyHint: true`. Mutating tools must clearly describe the local state change and call the same Pinia action used by the UI.
 - Registration must be lifecycle-safe through `AbortSignal`; component-scoped tools unregister on unmount.
 - Do not create agent tools that place an order, simulate payment, or disclose customer data without an explicit interaction/approval design.
+- Structured exchanges must return an exact response tool name and closed JSON Schema. The site must validate the second call, derive display facts from trusted local data, and leave generated content in human review.
 - Interaction-review tools must expose incomplete coverage and require professional verification. Related-record tools must never claim equivalence or recommend substitution.
 - Imperative and declarative tools must share namespaced contracts without making form completion dependent on experimental browser support.
 
@@ -51,6 +55,7 @@ Build and extend **ClearDose — Transparent prescriptions, agent-ready.** as a 
 5. Add tests for facade behavior, sanitized DTOs, schemas, runtime validation, fallback behavior, and registration cleanup.
 6. Update `evals/cleardose.evals.json`, run `npm run evals:contracts`, and add refusal cases for unsafe requests.
 7. Update `docs/USER_STORIES.md` and `docs/WEBMCP_PLUGIN.md` when behavior changes.
+8. For workflow changes, add state/context tests, negative scenarios, and update `docs/LOCAL_WORKFLOW_RUNTIME.md`.
 
 ## Commands
 

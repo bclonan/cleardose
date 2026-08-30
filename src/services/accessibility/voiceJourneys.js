@@ -47,6 +47,15 @@ const journeys = {
     intro: "See why structured tools are clearer than asking an agent to infer controls from the page.",
     steps: ["Run the side-by-side agent example.", "Inspect the registered tool contracts.", "Try comparison and shared highlighting."],
   },
+  "flow-lab": {
+    title: "Local workflow observatory",
+    intro: "Run a fictional patient or agent action beside a live view of its local state, events, and bounded context.",
+    steps: [
+      "Prepare the question-card handoff or run a negative scenario in the left pane.",
+      "Choose a concurrent flow, event, and context snapshot in the right pane.",
+      "Review or print generated questions, or open the Universal Drug Index in a second tab.",
+    ],
+  },
   default: {
     title: "ClearDose page guidance",
     intro: "Use headings, landmarks, and the visible next action to continue through this fictional patient journey.",

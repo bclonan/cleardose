@@ -50,3 +50,19 @@ export const comparisonPanelAdapter = Object.freeze({
   defaultRight(medications) { return medications.find((item) => item.id === "med_lisinopril")?.id ?? medications[1]?.id ?? medications[0]?.id ?? ""; },
   variantFor(medication, variantId) { return medication?.variants.find((item) => item.id === variantId) ?? medication?.variants[0]; },
 });
+
+export const workflowLiveViewerAdapter = Object.freeze({
+  stateLabel(value) { return String(value).replaceAll("_", " "); },
+  eventLabel(value) { return String(value).replaceAll("_", " "); },
+  timeLabel(value) { return new Intl.DateTimeFormat("en", { hour: "numeric", minute: "2-digit", second: "2-digit" }).format(new Date(value)); },
+});
+
+export const doctorQuestionCardAdapter = Object.freeze({
+  print() { globalThis.print?.(); },
+  async copy(text) { await globalThis.navigator?.clipboard?.writeText?.(text); },
+});
+
+export const promptGuideAdapter = Object.freeze({
+  recognitionConstructor() { return globalThis.SpeechRecognition ?? globalThis.webkitSpeechRecognition ?? null; },
+  async copy(text) { await globalThis.navigator?.clipboard?.writeText?.(text); },
+});

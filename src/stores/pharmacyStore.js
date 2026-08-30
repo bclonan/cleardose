@@ -17,7 +17,18 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
   const state = reactive(emptyState());
   const initialized = ref(false);
   const facade = shallowRef(null);
+  const workflowRuntime = shallowRef(null);
   const webMcp = reactive({ supported: false, status: "idle", available: 0, registered: 0, tools: [] });
+  const workflow = reactive({
+    database: { engine: "duckdb-wasm", persistence: "initializing", state: "idle", drugCount: 0 },
+    definitions: [],
+    scenarios: [],
+    flows: [],
+    events: [],
+    exchanges: [],
+    cards: [],
+  });
+  const selectedFlowId = ref("");
 
   const currentCustomer = computed(() => state.currentCustomer);
   const medications = computed(() => state.medications);
@@ -27,9 +38,16 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
   const shipping = computed(() => (state.cart.length ? 5 : 0));
   const cartTotal = computed(() => cartSubtotal.value + shipping.value);
 
-  function configure({ facade: nextFacade, toolRegistry }) {
+  function configure({ facade: nextFacade, toolRegistry, workflowRuntime: nextWorkflowRuntime }) {
     facade.value = markRaw(nextFacade);
     toolRegistry?.subscribe((snapshot) => Object.assign(webMcp, snapshot));
+    if (nextWorkflowRuntime) {
+      workflowRuntime.value = markRaw(nextWorkflowRuntime);
+      nextWorkflowRuntime.subscribe((snapshot) => {
+        Object.assign(workflow, snapshot);
+        if (!selectedFlowId.value && snapshot.flows[0]) selectedFlowId.value = snapshot.flows[0].id;
+      });
+    }
   }
 
   function refresh() {
@@ -61,11 +79,67 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
   function resetDemo() { facade.value.resetDemo(); refresh(); }
   function customerOrders() { return state.orders.filter((order) => order.customerId === state.currentCustomerId); }
   function customerPrescriptions() { return state.prescriptions.filter((item) => item.customerId === state.currentCustomerId); }
+  function selectWorkflow(flowId) { selectedFlowId.value = String(flowId || ""); }
+  function inspectWorkflow(input) { return workflowRuntime.value?.inspect(input) ?? { database: workflow.database, flows: [], events: [], cards: [] }; }
+
+  async function startWorkflow(input) {
+    if (!workflowRuntime.value) throw new Error("Workflow runtime is not configured.");
+    const flow = await workflowRuntime.value.startFlow(input);
+    selectedFlowId.value = flow.id;
+    return flow;
+  }
+
+  async function transitionWorkflow(flowId, input) {
+    if (!workflowRuntime.value) throw new Error("Workflow runtime is not configured.");
+    return workflowRuntime.value.transition(flowId, input);
+  }
+
+  async function prepareDoctorQuestionCard({ drugId, relatedDrugIds = [], concerns = [] }) {
+    if (!workflowRuntime.value) throw new Error("Workflow runtime is not configured.");
+    const primaryDrug = facade.value.drugIndexEntry(drugId);
+    if (!primaryDrug) throw new TypeError(`Unknown UDI drug id: ${drugId}.`);
+    const suggested = facade.value.findRelatedDrugs({ drugId, limit: 6 }).related;
+    const selectedIds = relatedDrugIds.length ? new Set(relatedDrugIds) : new Set(suggested.slice(0, 2).map((drug) => drug.id));
+    const relatedDrugs = suggested.filter((drug) => selectedIds.has(drug.id)).slice(0, 3);
+    if (relatedDrugIds.some((id) => !relatedDrugs.some((drug) => drug.id === id))) {
+      throw new TypeError("Every relatedDrugId must be a discussion-only record returned for the primary drug.");
+    }
+    const exchange = await workflowRuntime.value.prepareDoctorQuestionCard({ primaryDrug, relatedDrugs, concerns });
+    selectedFlowId.value = exchange.flowId;
+    return exchange;
+  }
+
+  async function submitDoctorQuestionCard(input) {
+    if (!workflowRuntime.value) throw new Error("Workflow runtime is not configured.");
+    const card = await workflowRuntime.value.submitDoctorQuestionCard(input);
+    selectedFlowId.value = card.flowId;
+    return card;
+  }
+
+  async function markQuestionCardReviewed(cardId) {
+    if (!workflowRuntime.value) throw new Error("Workflow runtime is not configured.");
+    return workflowRuntime.value.markCardReviewed(cardId);
+  }
+
+  async function clearWorkflowLab() {
+    if (!workflowRuntime.value) return;
+    await workflowRuntime.value.clear();
+    selectedFlowId.value = "";
+  }
+
+  async function runWorkflowScenario(scenarioId) {
+    if (!workflowRuntime.value) throw new Error("Workflow runtime is not configured.");
+    const flow = await workflowRuntime.value.runNegativeScenario(scenarioId);
+    selectedFlowId.value = flow.id;
+    return flow;
+  }
 
   return {
     state,
     initialized,
     webMcp,
+    workflow,
+    selectedFlowId,
     currentCustomer,
     medications,
     categories,
@@ -96,6 +170,15 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
     resetDemo,
     customerOrders,
     customerPrescriptions,
+    selectWorkflow,
+    inspectWorkflow,
+    startWorkflow,
+    transitionWorkflow,
+    prepareDoctorQuestionCard,
+    submitDoctorQuestionCard,
+    markQuestionCardReviewed,
+    clearWorkflowLab,
+    runWorkflowScenario,
   };
 });
 
