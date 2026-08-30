@@ -5,7 +5,7 @@
 
 ## Goal
 
-Deliver a complete, branded Vue 3 reference storefront that demonstrates a transparent prescription-shopping journey with a fictional database, customer account, prescriptions, orders, checkout, and provider handoff. The same business capabilities must be safely callable from human UI and browser agents through one adapter/facade architecture.
+Deliver a complete, branded Vue 3 reference storefront that demonstrates a transparent prescription journey backed by a local Universal Drug Index, fictional prices, customer account, prescriptions, orders, checkout, and provider handoff. The same business capabilities must be safely callable from human UI and browser agents through one understandable facade/service path.
 
 ## Product principles
 
@@ -14,6 +14,7 @@ Deliver a complete, branded Vue 3 reference storefront that demonstrates a trans
 3. **Replaceable edges:** browser storage, data repositories, UI adapters, and WebMCP transport can be swapped independently.
 4. **Safe sandbox:** all data and transactions are fictional, local, resettable, and explicitly not for medical use.
 5. **Extension-first:** adding a component tool or backend adapter should require composition, not page rewrites.
+6. **Clinical humility:** related records are not substitutes, missing interaction flags do not mean safe, and every clinical question escalates to a licensed professional.
 
 ## Included experience
 
@@ -23,8 +24,9 @@ Deliver a complete, branded Vue 3 reference storefront that demonstrates a trans
 - Four-step checkout and order confirmation
 - Provider note preview and prescription-routing education
 - Side-by-side medication price comparison and a dedicated interactive WebMCP hackathon explainer
+- A 52-record deterministic UDI that expands to 156 packages and 468 fictional offers, with related-record, synthetic interaction-review, and local procurement examples
 - Optional route-aware voice guidance, visible transcripts, tool inspector, shared page highlighting, autofill-ready forms, and a WCAG 2.2 AAA engineering target
-- Pinia store, DTOs, isolated mock API/fixtures, repository adapters, browser DAO, facade, component registry, WebMCP plugin, default tools, and tests
+- Pinia store, DTOs, isolated mock API/fixtures, browser DAO, facade, component registry, nine WebMCP tools, deterministic tests, and Chrome-compatible eval fixtures
 
 ## Non-goals
 

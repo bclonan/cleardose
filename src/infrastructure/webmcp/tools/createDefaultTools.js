@@ -1,127 +1,302 @@
-import { toolError, toolResponse } from "../toolResponse";
+import { toolError, toolResponse } from "../toolResponse.js";
+
+class ToolInputError extends Error {
+  constructor(message, details = {}) {
+    super(message);
+    this.name = "ToolInputError";
+    this.details = details;
+  }
+}
+
+function stringValue(input, key, { required = false, maxLength = 120 } = {}) {
+  const value = input?.[key];
+  if (value == null || value === "") {
+    if (required) throw new ToolInputError(`${key} is required.`, { field: key });
+    return "";
+  }
+  if (typeof value !== "string") throw new ToolInputError(`${key} must be a string.`, { field: key });
+  const normalized = value.trim();
+  if (required && !normalized) throw new ToolInputError(`${key} is required.`, { field: key });
+  if (normalized.length > maxLength) throw new ToolInputError(`${key} must be ${maxLength} characters or fewer.`, { field: key });
+  return normalized;
+}
+
+function integerValue(input, key, { fallback, minimum = 1, maximum = 100 } = {}) {
+  const value = input?.[key];
+  if (value == null || value === "") return fallback;
+  if (!Number.isInteger(value) || value < minimum || value > maximum) {
+    throw new ToolInputError(`${key} must be an integer from ${minimum} to ${maximum}.`, { field: key });
+  }
+  return value;
+}
+
+function stringArray(input, key, { minimum = 1, maximum = 10 } = {}) {
+  const value = input?.[key];
+  if (!Array.isArray(value) || value.length < minimum || value.length > maximum || value.some((item) => typeof item !== "string" || !item.trim())) {
+    throw new ToolInputError(`${key} must contain ${minimum} to ${maximum} non-empty strings.`, { field: key });
+  }
+  return value.map((item) => item.trim());
+}
+
+function safe(execute, allowedKeys = []) {
+  return async (input = {}) => {
+    try {
+      const normalizedInput = input ?? {};
+      if (!normalizedInput || typeof normalizedInput !== "object" || Array.isArray(normalizedInput)) {
+        throw new ToolInputError("Tool input must be an object.");
+      }
+      const unknownKeys = Object.keys(normalizedInput).filter((key) => !allowedKeys.includes(key));
+      if (unknownKeys.length) throw new ToolInputError(`Unknown input field: ${unknownKeys[0]}.`, { field: unknownKeys[0] });
+      return await execute(normalizedInput);
+    } catch (error) {
+      const invalidInput = error instanceof ToolInputError || error instanceof TypeError;
+      return toolError(error instanceof Error ? error.message : "The tool could not complete.", {
+        code: invalidInput ? "INVALID_INPUT" : "TOOL_FAILURE",
+        retryable: false,
+        ...(error instanceof ToolInputError ? error.details : {}),
+      });
+    }
+  };
+}
+
+const readOnlyAnnotations = Object.freeze({ readOnlyHint: true, untrustedContentHint: false });
+const localMutationAnnotations = Object.freeze({ readOnlyHint: false, untrustedContentHint: false });
 
 export function createDefaultTools({ store, highlightService }) {
   return [
     {
-      name: "search_medications",
-      title: "Search ClearDose medications",
-      description: "Search the fictional ClearDose catalog by generic name, brand name, or category and return transparent mock prices.",
+      name: "search_drug_index",
+      title: "Search the Universal Drug Index",
+      description: "Search ClearDose's local fictional Universal Drug Index by generic name, brand, category, drug class, or UDI id. Use this when the user needs candidate records or exact drug ids for another tool.",
       inputSchema: {
         type: "object",
         properties: {
-          query: { type: "string", description: "Medication, brand, or category search text.", maxLength: 100 },
-          category: { type: "string", description: "Optional exact ClearDose category." },
-          sort: { type: "string", enum: ["name", "price", "savings"], default: "name" },
-          limit: { type: "integer", minimum: 1, maximum: 20, default: 10 },
+          query: { type: "string", description: "Raw search text such as lisinopril, Lipitor, Statin, or udi:cleardose:lisinopril." },
+          category: { type: "string", description: "Optional exact category returned by a prior search." },
+          drugClass: { type: "string", description: "Optional exact drug class returned by a prior search." },
+          limit: { type: "integer", description: "Maximum compact records to return.", minimum: 1, maximum: 50, default: 12 },
         },
         additionalProperties: false,
       },
-      annotations: { readOnlyHint: true, untrustedContentHint: false },
-      async execute({ query = "", category = "All medications", sort = "name", limit = 10 } = {}) {
-        const medications = store.searchMedications({ query, category, sort }).slice(0, limit);
-        return toolResponse({ ok: true, count: medications.length, medications }, `Found ${medications.length} ClearDose medication${medications.length === 1 ? "" : "s"}.`);
-      },
+      annotations: readOnlyAnnotations,
+      execute: safe(async (input) => {
+        const query = stringValue(input, "query", { maxLength: 120 });
+        const category = stringValue(input, "category", { maxLength: 80 }) || "All medications";
+        const drugClass = stringValue(input, "drugClass", { maxLength: 80 });
+        const limit = integerValue(input, "limit", { fallback: 12, maximum: 50 });
+        const drugs = store.searchDrugIndex({ query, category, drugClass, limit });
+        return toolResponse({ ok: true, count: drugs.length, drugs }, `Found ${drugs.length} matching UDI record${drugs.length === 1 ? "" : "s"}.`);
+      }, ["query", "category", "drugClass", "limit"]),
     },
     {
-      name: "get_medication",
-      title: "Get ClearDose medication details",
-      description: "Return variants, mock price, typical retail price, and savings for one fictional ClearDose medication.",
+      name: "get_drug_index_entry",
+      title: "Get one Universal Drug Index entry",
+      description: "Return normalized identity, class, package variants, and fictional price offers for one exact ClearDose UDI drug id. Use after search_drug_index identifies the record.",
       inputSchema: {
         type: "object",
         properties: {
-          medicationId: { type: "string", description: "ClearDose medication id such as med_lisinopril." },
-          slug: { type: "string", description: "ClearDose URL slug such as lisinopril." },
+          drugId: { type: "string", description: "Exact ClearDose UDI drug id such as med_lisinopril." },
         },
+        required: ["drugId"],
         additionalProperties: false,
       },
-      annotations: { readOnlyHint: true, untrustedContentHint: false },
-      async execute({ medicationId, slug } = {}) {
-        const medication = medicationId ? store.medicationById(medicationId) : store.medicationBySlug(slug);
-        if (!medication) return toolError("Medication not found.", { medicationId, slug });
-        return toolResponse({ ok: true, medication }, `Returned ${medication.name} with ${medication.variants.length} mock price options.`);
-      },
+      annotations: readOnlyAnnotations,
+      execute: safe(async (input) => {
+        const drugId = stringValue(input, "drugId", { required: true, maxLength: 100 });
+        const drug = store.drugIndexEntry(drugId);
+        if (!drug) throw new ToolInputError(`Unknown UDI drug id: ${drugId}.`, { field: "drugId" });
+        return toolResponse({ ok: true, drug }, `Returned ${drug.name} with ${drug.variants.length} fictional package variants.`);
+      }, ["drugId"]),
     },
     {
-      name: "compare_medications",
-      title: "Compare ClearDose medication prices",
-      description: "Compare two fictional ClearDose medication variants side by side. Returns price facts only and never recommends a clinical substitution.",
+      name: "compare_drug_prices",
+      title: "Compare fictional drug price offers",
+      description: "Compare package and delivered-price offers for one to four exact UDI drug ids. Use for price facts only; different drugs are not treated as therapeutic substitutes.",
       inputSchema: {
         type: "object",
         properties: {
-          leftMedicationId: { type: "string", description: "First ClearDose medication id." },
-          rightMedicationId: { type: "string", description: "Second ClearDose medication id." },
-          leftVariantId: { type: "string", description: "Optional exact variant id for the first medication." },
-          rightVariantId: { type: "string", description: "Optional exact variant id for the second medication." },
+          drugIds: {
+            type: "array",
+            description: "One to four exact ids returned by search_drug_index.",
+            minItems: 1,
+            maxItems: 4,
+            items: { type: "string" },
+          },
+          strength: { type: "string", description: "Optional exact strength, such as 10mg. If unavailable, the tool returns the closest indexed package and names it explicitly." },
+          quantity: { type: "integer", description: "Optional package quantity. If unavailable, the tool returns the closest indexed package and names it explicitly.", minimum: 1, maximum: 365 },
         },
-        required: ["leftMedicationId", "rightMedicationId"],
+        required: ["drugIds"],
         additionalProperties: false,
       },
-      annotations: { readOnlyHint: true, untrustedContentHint: false },
-      async execute(input) {
-        const comparison = store.compareMedications(input);
-        if (!comparison) return toolError("One or both medications could not be compared.", input);
-        return toolResponse({ ok: true, comparison }, `Compared ${comparison.left.medication.name} with ${comparison.right.medication.name}.`);
+      annotations: readOnlyAnnotations,
+      execute: safe(async (input) => {
+        const drugIds = stringArray(input, "drugIds", { minimum: 1, maximum: 4 });
+        const strength = stringValue(input, "strength", { maxLength: 40 });
+        const quantity = integerValue(input, "quantity", { fallback: undefined, maximum: 365 });
+        const comparison = store.compareDrugPrices({ drugIds, strength, quantity });
+        return toolResponse({ ok: true, comparison }, `Compared fictional price offers for ${comparison.selections.length} UDI record${comparison.selections.length === 1 ? "" : "s"}.`);
+      }, ["drugIds", "strength", "quantity"]),
+    },
+    {
+      name: "find_related_drugs",
+      title: "Find related drug index entries",
+      description: "Find other UDI entries in the same broad demo comparison group as one exact drug id. Use the discussion-only matches to prepare questions for a clinician; every result explicitly states that it is not a therapeutic-equivalence or substitution recommendation.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          drugId: { type: "string", description: "Exact ClearDose UDI drug id returned by search_drug_index." },
+          limit: { type: "integer", description: "Maximum related records to return.", minimum: 1, maximum: 12, default: 6 },
+        },
+        required: ["drugId"],
+        additionalProperties: false,
       },
+      annotations: readOnlyAnnotations,
+      execute: safe(async (input) => {
+        const drugId = stringValue(input, "drugId", { required: true, maxLength: 100 });
+        const limit = integerValue(input, "limit", { fallback: 6, maximum: 12 });
+        const result = store.findRelatedDrugs({ drugId, limit });
+        return toolResponse({ ok: true, ...result }, `Found ${result.related.length} related demo index entr${result.related.length === 1 ? "y" : "ies"}.`);
+      }, ["drugId", "limit"]),
+    },
+    {
+      name: "review_demo_interaction_flags",
+      title: "Review synthetic medication interaction flags",
+      description: "Review two to ten exact UDI drug ids against ClearDose's intentionally incomplete synthetic interaction fixtures. Every result exposes coverage gaps and requires verification by a licensed pharmacist.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          drugIds: {
+            type: "array",
+            description: "Two to ten exact ClearDose UDI ids representing the medication list to review.",
+            minItems: 2,
+            maxItems: 10,
+            items: { type: "string" },
+          },
+        },
+        required: ["drugIds"],
+        additionalProperties: false,
+      },
+      annotations: readOnlyAnnotations,
+      execute: safe(async (input) => {
+        const drugIds = stringArray(input, "drugIds", { minimum: 2, maximum: 10 });
+        const review = store.reviewInteractionFlags({ drugIds });
+        return toolResponse({ ok: true, review }, `Returned ${review.flags.length} synthetic review flag${review.flags.length === 1 ? "" : "s"}; professional verification is required.`);
+      }, ["drugIds"]),
+    },
+    {
+      name: "build_procurement_plan",
+      title: "Build a local fictional procurement plan",
+      description: "Build a local-only plan for one to twelve requested UDI medications using fictional package offers. The result is planning-only and leaves prescription validation, inventory reservation, and ordering to human-controlled workflows.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          items: {
+            type: "array",
+            description: "Requested UDI records and optional exact package preferences.",
+            minItems: 1,
+            maxItems: 12,
+            items: {
+              type: "object",
+              properties: {
+                drugId: { type: "string", description: "Exact UDI drug id returned by search_drug_index." },
+                strength: { type: "string", description: "Optional exact indexed strength." },
+                quantity: { type: "integer", description: "Optional exact indexed package quantity.", minimum: 1, maximum: 365 },
+              },
+              required: ["drugId"],
+              additionalProperties: false,
+            },
+          },
+          strategy: {
+            type: "string",
+            description: "How to select fictional offers: lowest delivered total, fewest channels, or a simple cost-and-speed balance.",
+            enum: ["lowest_total", "fewest_shipments", "balanced"],
+            default: "lowest_total",
+          },
+        },
+        required: ["items"],
+        additionalProperties: false,
+      },
+      annotations: readOnlyAnnotations,
+      execute: safe(async (input) => {
+        if (!Array.isArray(input.items) || input.items.length < 1 || input.items.length > 12) {
+          throw new ToolInputError("items must contain between one and twelve requested medications.", { field: "items" });
+        }
+        const items = input.items.map((item, index) => {
+          if (!item || typeof item !== "object" || Array.isArray(item)) throw new ToolInputError(`items[${index}] must be an object.`, { field: `items[${index}]` });
+          const unknownKeys = Object.keys(item).filter((key) => !["drugId", "strength", "quantity"].includes(key));
+          if (unknownKeys.length) throw new ToolInputError(`Unknown field items[${index}].${unknownKeys[0]}.`, { field: `items[${index}].${unknownKeys[0]}` });
+          return {
+            drugId: stringValue(item, "drugId", { required: true, maxLength: 100 }),
+            strength: stringValue(item, "strength", { maxLength: 40 }),
+            quantity: integerValue(item, "quantity", { fallback: undefined, maximum: 365 }),
+          };
+        });
+        const strategy = stringValue(input, "strategy", { maxLength: 30 }) || "lowest_total";
+        const plan = store.buildProcurementPlan({ items, strategy });
+        return toolResponse({ ok: true, plan }, `Built a local fictional procurement plan for ${plan.items.length} item${plan.items.length === 1 ? "" : "s"}; no order was placed.`);
+      }, ["items", "strategy"]),
     },
     {
       name: "highlight_section",
-      title: "Highlight a ClearDose page section or element",
-      description: "Move focus to and visibly highlight a named section or action on the current ClearDose page so the patient and agent can discuss the same content.",
+      title: "Highlight a visible ClearDose section",
+      description: "Move keyboard focus to and visibly highlight one stable section on the current ClearDose page so the user and agent can discuss the same content.",
       inputSchema: {
         type: "object",
         properties: {
           target: {
             type: "string",
             enum: highlightService.listTargets(),
-            description: "Stable accessible section or element identifier on the current page.",
+            description: "Stable section identifier. If the section is not on the current page, the tool returns a clear non-retryable error.",
           },
         },
         required: ["target"],
         additionalProperties: false,
       },
-      annotations: { readOnlyHint: true, untrustedContentHint: false },
-      async execute({ target }) {
+      annotations: readOnlyAnnotations,
+      execute: safe(async (input) => {
+        const target = stringValue(input, "target", { required: true, maxLength: 80 });
+        if (!highlightService.listTargets().includes(target)) throw new ToolInputError(`Unknown highlight target: ${target}.`, { field: "target" });
         const result = highlightService.highlight(target);
-        if (!result.ok) return toolError(result.message, { target });
+        if (!result.ok) throw new ToolInputError(result.message, { field: "target", target });
         return toolResponse(result, result.message);
-      },
+      }, ["target"]),
     },
     {
       name: "get_cart",
-      title: "Read the ClearDose cart",
-      description: "Read the current fictional ClearDose cart and transparent mock totals without changing it.",
+      title: "Read the local ClearDose cart",
+      description: "Read the current fictional ClearDose cart with item-level and total prices. This tool does not change state or expose customer profile data.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
-      annotations: { readOnlyHint: true, untrustedContentHint: false },
-      async execute() {
-        return toolResponse({
-          ok: true,
-          items: store.state.cart,
-          itemCount: store.cartCount,
-          subtotal: store.cartSubtotal,
-          shipping: store.shipping,
-          total: store.cartTotal,
-        }, `The ClearDose cart contains ${store.cartCount} item${store.cartCount === 1 ? "" : "s"}.`);
-      },
+      annotations: readOnlyAnnotations,
+      execute: safe(async () => toolResponse({
+        ok: true,
+        items: store.state.cart,
+        itemCount: store.cartCount,
+        subtotal: store.cartSubtotal,
+        shipping: store.shipping,
+        total: store.cartTotal,
+      }, `The local ClearDose cart contains ${store.cartCount} item${store.cartCount === 1 ? "" : "s"}.`), []),
     },
     {
       name: "add_to_cart",
-      title: "Add a ClearDose medication to cart",
-      description: "Add one fictional medication variant to the current ClearDose mock cart. This changes only local demo state.",
+      title: "Add one indexed package to the local cart",
+      description: "Add one exact fictional UDI medication package to the local ClearDose cart. Use get_drug_index_entry first to obtain the exact drugId and variantId. This changes only resettable browser demo state.",
       inputSchema: {
         type: "object",
         properties: {
-          medicationId: { type: "string", description: "ClearDose medication id." },
-          variantId: { type: "string", description: "Exact variant id returned by a catalog tool." },
+          drugId: { type: "string", description: "Exact UDI drug id returned by get_drug_index_entry." },
+          variantId: { type: "string", description: "Exact package variant id returned by get_drug_index_entry." },
         },
-        required: ["medicationId", "variantId"],
+        required: ["drugId", "variantId"],
         additionalProperties: false,
       },
-      annotations: { readOnlyHint: false, untrustedContentHint: false },
-      async execute({ medicationId, variantId }) {
-        const added = store.addToCart(medicationId, variantId);
-        if (!added) return toolError("Medication or variant not found.", { medicationId, variantId });
-        return toolResponse({ ok: true, itemCount: store.cartCount, total: store.cartTotal }, "Added the medication to the ClearDose mock cart.");
-      },
+      annotations: localMutationAnnotations,
+      execute: safe(async (input) => {
+        const drugId = stringValue(input, "drugId", { required: true, maxLength: 100 });
+        const variantId = stringValue(input, "variantId", { required: true, maxLength: 140 });
+        const added = store.addToCart(drugId, variantId);
+        if (!added) throw new ToolInputError("The UDI drug or package variant was not found.", { field: "variantId" });
+        return toolResponse({ ok: true, itemCount: store.cartCount, total: store.cartTotal }, "Added the indexed package to the local fictional cart.");
+      }, ["drugId", "variantId"]),
     },
   ];
 }

@@ -6,11 +6,15 @@ All simulated server behavior is isolated under `src/services/api`:
 src/services/api/
 ├── createMockPharmacyApi.js
 ├── index.js
+├── udi/
+│   ├── drugConcepts.js
+│   ├── demoInteractionRules.js
+│   └── UniversalDrugIndex.js
 └── mock/
     ├── MockPharmacyApi.js
     └── seedData.js
 ```
 
-`seedData.js` contains fictional fixtures only. `MockPharmacyApi` owns raw catalog, customer, cart, prescription, and order request behavior. Repository adapters call that service and convert raw results into immutable DTOs. The browser DAO only serializes mock state.
+`seedData.js` contains fictional customer/order/prescription state only. The UDI folder owns the drug concepts, deterministic package/offer generator, related-record grouping, intentionally incomplete interaction fixtures, and local procurement logic. `MockPharmacyApi` exposes those reads alongside customer, cart, prescription, and order behavior. Repository adapters convert catalog records into immutable DTOs; the browser DAO only serializes mutable mock state.
 
 To replace the mock server, implement the same API methods with HTTP calls and pass the resulting data adapter to `createClearDosePlugin({ dataAdapter })`. Route pages and components do not import fixtures or persistence.

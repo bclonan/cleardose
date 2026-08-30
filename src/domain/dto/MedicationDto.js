@@ -10,8 +10,15 @@ export function toMedicationDto(record) {
     name: String(record.name),
     genericFor: String(record.genericFor ?? ""),
     category: String(record.category ?? "Uncategorized"),
+    drugClass: String(record.drugClass ?? ""),
+    comparisonGroup: String(record.comparisonGroup ?? ""),
     description: String(record.description ?? ""),
     popular: Boolean(record.popular),
+    identifiers: {
+      udi: String(record.identifiers?.udi ?? ""),
+      rxCui: record.identifiers?.rxCui ? String(record.identifiers.rxCui) : null,
+      ndc: record.identifiers?.ndc ? String(record.identifiers.ndc) : null,
+    },
     variants: clone(record.variants ?? []).map((variant) => ({
       id: String(variant.id),
       form: String(variant.form),
@@ -19,6 +26,17 @@ export function toMedicationDto(record) {
       quantity: Number(variant.quantity),
       price: Number(variant.price),
       retail: Number(variant.retail),
+      offers: clone(variant.offers ?? []).map((offer) => ({
+        id: String(offer.id),
+        channelId: String(offer.channelId),
+        channel: String(offer.channel),
+        packagePrice: Number(offer.packagePrice),
+        shipping: Number(offer.shipping),
+        total: Number(offer.total),
+        unitPrice: Number(offer.unitPrice),
+        availability: String(offer.availability),
+        etaDays: Number(offer.etaDays),
+      })),
     })),
   });
 }

@@ -34,8 +34,8 @@ const comparison = computed(() => store.compareMedications({
 }));
 
 const declarativeTool = {
-  name: "compare_medication_prices_form",
-  description: "Choose two fictional ClearDose medications and variants to compare their mock prices side by side.",
+  name: "populate_visible_price_comparison",
+  description: "Populate the visible side-by-side comparison controls so the user can review two fictional medication packages on this page.",
   autoSubmit: true,
 };
 

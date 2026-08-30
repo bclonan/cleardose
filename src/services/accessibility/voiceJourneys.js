@@ -23,6 +23,15 @@ const journeys = {
     intro: "Compare two fictional medications side by side. This is a price demonstration, not a substitution recommendation.",
     steps: ["Choose the first medication.", "Choose the second medication.", "Review price, retail, and illustrative savings facts."],
   },
+  udi: {
+    title: "Universal Drug Index",
+    intro: "Explore normalized fictional records, package offers, related-record groups, synthetic interaction review, and local procurement planning.",
+    steps: [
+      "Search by generic name, brand, category, class, or demo UDI.",
+      "Select a record to inspect package offers and explicit missing identifiers.",
+      "Try a related-record, interaction-review, or local procurement example while keeping the safety boundary visible.",
+    ],
+  },
   cart: {
     title: "Mock cart",
     intro: "Review selected variants, quantity, shipping, and total before checkout.",

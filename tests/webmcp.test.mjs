@@ -34,21 +34,38 @@ test("WebMCP registry qualifies and registers tools through document.modelContex
   assert.equal(registrations[0].options.signal.aborted, true);
 });
 
-test("default catalog includes comparison and shared highlight tools", async () => {
+test("default catalog exposes non-overlapping UDI, review, procurement, and cart tools", async () => {
   const { createDefaultTools } = await vite.ssrLoadModule("/src/infrastructure/webmcp/tools/createDefaultTools.js");
   const tools = createDefaultTools({
     store: {},
     highlightService: { listTargets: () => ["comparison-results"], highlight: () => ({ ok: true }) },
   });
   assert.deepEqual(tools.map((tool) => tool.name), [
-    "search_medications",
-    "get_medication",
-    "compare_medications",
+    "search_drug_index",
+    "get_drug_index_entry",
+    "compare_drug_prices",
+    "find_related_drugs",
+    "review_demo_interaction_flags",
+    "build_procurement_plan",
     "highlight_section",
     "get_cart",
     "add_to_cart",
   ]);
-  assert.equal(tools.find((tool) => tool.name === "compare_medications").annotations.readOnlyHint, true);
+  assert.equal(tools.find((tool) => tool.name === "compare_drug_prices").annotations.readOnlyHint, true);
+  assert.equal(tools.find((tool) => tool.name === "add_to_cart").annotations.readOnlyHint, false);
+  assert.ok(tools.every((tool) => tool.inputSchema.additionalProperties === false));
+});
+
+test("tool runtime validation returns structured non-retryable errors", async () => {
+  const { createDefaultTools } = await vite.ssrLoadModule("/src/infrastructure/webmcp/tools/createDefaultTools.js");
+  const tools = createDefaultTools({
+    store: {},
+    highlightService: { listTargets: () => ["udi-results"], highlight: () => ({ ok: true }) },
+  });
+  const result = await tools.find((tool) => tool.name === "compare_drug_prices").execute({ drugIds: [] });
+  assert.equal(result.isError, true);
+  assert.equal(result.structuredContent.code, "INVALID_INPUT");
+  assert.equal(result.structuredContent.retryable, false);
 });
 
 test("WebMCP is progressive enhancement when the browser API is unavailable", async () => {

@@ -7,6 +7,7 @@ flowchart TD
   Store --> Facade[ClearDose facade]
   Facade --> Repos[Repository adapters]
   Repos --> API[Mock pharmacy API]
+  API --> UDI[Universal Drug Index]
   API --> DAO[Browser state DAO]
   DAO --> Storage[LocalStorage or memory]
   Facade --> DTO[Sanitized DTOs]
@@ -24,6 +25,7 @@ flowchart TD
 | Domain transfer | `src/domain/dto` | Validate, clone, freeze, and sanitize data crossing layers |
 | Repository adapters | `src/infrastructure/repositories` | Catalog, customer, cart, prescription, and order persistence behavior |
 | API services | `src/services/api` | Isolated mock server behavior and fictional seed fixtures |
+| Universal Drug Index | `src/services/api/udi` | Normalized identity, generated packages/offers, broad related groups, synthetic review flags, local procurement planning |
 | DAO | `src/infrastructure/persistence` | Serialize/reset the complete mock state |
 | Accessibility services | `src/services/accessibility` | Route guidance and replaceable speech-synthesis adapter |
 | UI services | `src/services/ui` | Shared focus, scroll, and section highlighting for people and agents |
@@ -32,7 +34,7 @@ flowchart TD
 
 ## Mutation path
 
-UI components and WebMCP tools both invoke Pinia actions. The action delegates to the facade, the facade coordinates repository adapters, and adapters call the isolated API service. The DAO persists one state transaction, then Pinia refreshes from sanitized DTOs.
+UI components and WebMCP tools both invoke Pinia actions. The action delegates to the facade. Catalog reads and domain workflows query the centralized UDI through the mock API; cart, customer, and order mutations continue through repository adapters and the browser DAO. Pinia refreshes mutable state from sanitized DTOs after a mutation.
 
 ## Swapping implementations
 

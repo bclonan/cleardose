@@ -10,6 +10,9 @@ const DEFAULT_TARGETS = Object.freeze([
   "primary-price",
   "add-to-cart-action",
   "agent-tools-control",
+  "udi-search",
+  "udi-results",
+  "udi-lab",
 ]);
 
 export class SectionHighlightService {

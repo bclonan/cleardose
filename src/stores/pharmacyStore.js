@@ -6,6 +6,8 @@ const emptyState = () => ({
   currentCustomer: null,
   medications: [],
   categories: [],
+  drugClasses: [],
+  drugIndexSummary: null,
   cart: [],
   orders: [],
   prescriptions: [],
@@ -41,6 +43,12 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
   function searchMedications(filters) { return facade.value.searchMedications(filters); }
   function medicationById(id) { return facade.value.medicationById(id); }
   function medicationBySlug(slug) { return facade.value.medicationBySlug(slug); }
+  function searchDrugIndex(input) { return facade.value.searchDrugIndex(input); }
+  function drugIndexEntry(drugId) { return facade.value.drugIndexEntry(drugId); }
+  function compareDrugPrices(input) { return facade.value.compareDrugPrices(input); }
+  function findRelatedDrugs(input) { return facade.value.findRelatedDrugs(input); }
+  function reviewInteractionFlags(input) { return facade.value.reviewInteractionFlags(input); }
+  function buildProcurementPlan(input) { return facade.value.buildProcurementPlan(input); }
   function compareMedications(input) { return facade.value.compareMedications(input); }
   function addToCart(medicationId, variantId) { return afterMutation(facade.value.addToCart(medicationId, variantId)); }
   function removeFromCart(variantId) { facade.value.removeFromCart(variantId); refresh(); }
@@ -70,6 +78,12 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
     searchMedications,
     medicationById,
     medicationBySlug,
+    searchDrugIndex,
+    drugIndexEntry,
+    compareDrugPrices,
+    findRelatedDrugs,
+    reviewInteractionFlags,
+    buildProcurementPlan,
     compareMedications,
     addToCart,
     removeFromCart,

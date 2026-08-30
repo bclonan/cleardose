@@ -5,6 +5,11 @@
 - As a visitor, I can understand ClearDose's fictional/sandbox status before entering data.
 - As a visitor, I can search generic names, brand names, and categories so I can find a medication.
 - As a visitor, I can sort medications by name, lowest mock price, or largest illustrative savings.
+- As a visitor, I can search the local UDI by generic name, brand, class, category, or stable demo identifier.
+- As a visitor, I can inspect deterministic package variants and multiple fictional delivered-price offers.
+- As a visitor, I can find broadly related records without being told they are equivalent or safe substitutes.
+- As a visitor, I can run a clearly synthetic interaction review that never treats missing coverage as evidence of safety.
+- As a visitor, I can build a local procurement plan that compares fictional offers without reserving inventory or placing an order.
 - As a visitor, I can compare two exact medication variants side by side without being told they are clinical substitutes.
 - As a visitor, I can enable optional voice guidance and retain an equivalent visible transcript.
 - As a keyboard or assistive-technology user, I can navigate landmarks, forms, the comparison, and the tool dialog without a pointer.
@@ -24,9 +29,10 @@
 
 ## Agent user
 
-- As a browser agent, I can discover and search the mock catalog with bounded inputs.
-- As a browser agent, I can inspect one medication's variants and transparent prices.
-- As a browser agent, I can compare two exact medication variants with a clear non-clinical disclaimer.
+- As a browser agent, I can search compact UDI records and use the returned exact id in later calls.
+- As a browser agent, I can inspect one exact record's normalized identity, packages, and fictional offers.
+- As a browser agent, I can compare one to four fictional package prices with a clear non-clinical disclaimer.
+- As a browser agent, I can find broad related records, review incomplete synthetic interaction flags, and build a local plan without making a clinical or purchase decision.
 - As a browser agent, I can highlight a stable section and move visible keyboard focus so the patient and agent discuss the same content.
 - As a browser agent, I can read the cart without changing state.
 - As a browser agent, I can add an exact variant to the mock cart and see the human UI update through the same Pinia action.
@@ -41,6 +47,7 @@
 - As a developer, I can replace the mock API without moving fixture, persistence, or request logic into pages.
 - As a developer, I can add a tool definition without importing it into pages.
 - As a developer, I can verify facade and WebMCP contracts with automated tests.
+- As a developer, I can regenerate a static schema and run direct, chained, mutation, and refusal eval journeys with Chrome Labs' experimental eval CLI.
 
 ## Acceptance boundaries
 
@@ -48,3 +55,4 @@
 - Passwords remain inside the mock persistence record and never enter DTOs or tool output.
 - Every mutation reaches persistence through the facade/repository/API/DAO path.
 - Voice, highlighting, declarative tools, and WebMCP registration are progressive enhancements with complete human fallbacks.
+- Missing interaction fixtures never produce a “safe” conclusion, and no UDI workflow presents related records as therapeutic equivalents.

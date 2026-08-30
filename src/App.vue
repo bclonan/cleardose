@@ -62,6 +62,7 @@ function signOut() {
 
         <nav class="desktop-nav" aria-label="Primary navigation">
           <RouterLink to="/medications">Medications</RouterLink>
+          <RouterLink to="/udi">Drug index</RouterLink>
           <RouterLink to="/compare">Compare</RouterLink>
           <RouterLink to="/contact-doctor">Contact your doctor</RouterLink>
           <RouterLink to="/demo">WebMCP demo</RouterLink>
@@ -69,7 +70,7 @@ function signOut() {
 
         <div class="header-actions">
           <CdAgentControlCenter />
-          <form class="header-search" role="search" toolname="search_medications_header" tooldescription="Search the fictional ClearDose medication catalog from the site header." toolautosubmit @submit.prevent="submitHeaderSearch">
+          <form class="header-search" role="search" toolname="navigate_to_drug_search" tooldescription="Populate the header search and navigate the visible ClearDose interface to matching fictional drug records." toolautosubmit @submit.prevent="submitHeaderSearch">
             <Search :size="17" aria-hidden="true" />
             <input v-model="headerSearch" name="query" aria-label="Search medications" autocomplete="off" toolparamdescription="Generic medication, brand, or category search text" placeholder="Search medications" />
           </form>
@@ -104,11 +105,12 @@ function signOut() {
       </div>
 
       <div v-if="mobileOpen" id="mobile-navigation" class="mobile-nav">
-        <form class="mobile-search" role="search" toolname="search_medications_mobile" tooldescription="Search the fictional ClearDose medication catalog from mobile navigation." toolautosubmit @submit.prevent="submitHeaderSearch">
+        <form class="mobile-search" role="search" toolname="navigate_to_mobile_drug_search" tooldescription="Populate the mobile search and navigate the visible ClearDose interface to matching fictional drug records." toolautosubmit @submit.prevent="submitHeaderSearch">
           <Search :size="18" />
           <input v-model="headerSearch" name="query" aria-label="Search medications" autocomplete="off" toolparamdescription="Generic medication, brand, or category search text" placeholder="Search medications" />
         </form>
         <RouterLink to="/medications">Browse medications</RouterLink>
+        <RouterLink to="/udi">Universal Drug Index</RouterLink>
         <RouterLink to="/compare">Compare prices</RouterLink>
         <RouterLink to="/contact-doctor">Contact your doctor</RouterLink>
         <RouterLink to="/contact-doctor#providers">For providers</RouterLink>
@@ -141,6 +143,7 @@ function signOut() {
         <div>
           <h3>Patients</h3>
           <RouterLink to="/medications">Medications</RouterLink>
+          <RouterLink to="/udi">Universal Drug Index</RouterLink>
           <RouterLink to="/contact-doctor">Send a prescription</RouterLink>
           <RouterLink to="/account/orders">Order status</RouterLink>
         </div>

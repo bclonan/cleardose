@@ -11,6 +11,9 @@
     "build": "bash scripts/sites-env.sh -- vite build",
     "start": "vite preview",
     "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "evals:contracts": "node scripts/export-webmcp-schema.mjs && node scripts/validate-webmcp-evals.mjs",
+    "evals:local": "npx webmcp-evals local -t evals/schema.json -e evals/cleardose.evals.json",
+    "evals:smoke": "npx webmcp-evals smoke -u http://localhost:4173/#/demo -e evals/cleardose.evals.json -v",
     "test:build": "npm run build",
     "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate"

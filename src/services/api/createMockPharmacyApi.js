@@ -1,6 +1,9 @@
 import { MockPharmacyApi } from "./mock/MockPharmacyApi";
-import { categories, medications } from "./mock/seedData";
+import { UniversalDrugIndex } from "./udi/UniversalDrugIndex";
+import { demoInteractionRules } from "./udi/demoInteractionRules";
+import { drugConcepts } from "./udi/drugConcepts";
 
 export function createMockPharmacyApi({ dao }) {
-  return new MockPharmacyApi({ dao, medications, categories });
+  const udi = new UniversalDrugIndex({ concepts: drugConcepts, interactionRules: demoInteractionRules });
+  return new MockPharmacyApi({ dao, udi });
 }

@@ -6,6 +6,7 @@ export { usePharmacyStore, formatMoney } from "./stores/pharmacyStore";
 export { agentReadyProps } from "./presentation/agentReadyProps";
 export { createClearDoseBrowserAdapter } from "./infrastructure/adapters/createClearDoseBrowserAdapter";
 export { createMockPharmacyApi, MockPharmacyApi, mockSeed } from "./services/api";
+export { UniversalDrugIndex, drugConcepts, demoInteractionRules } from "./services/api";
 export { BrowserWebMcpAdapter } from "./infrastructure/webmcp/BrowserWebMcpAdapter";
 export { WebMcpToolRegistry } from "./infrastructure/webmcp/WebMcpToolRegistry";
 export { createDefaultTools } from "./infrastructure/webmcp/tools/createDefaultTools";

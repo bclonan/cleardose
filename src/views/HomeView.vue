@@ -47,7 +47,7 @@ function submitSearch() {
           <h1>Know the medication.<br /><em>Know the price.</em><br />Know what happens next.</h1>
           <p class="hero-lede">ClearDose turns prescription shopping into one understandable path, with visible prices, explicit clinical handoffs, and actions ready for either the patient or their agent.</p>
 
-          <form class="hero-search" role="search" data-agent-section="medication-search" toolname="search_medications_home" tooldescription="Search the fictional ClearDose catalog and open matching medication results." toolautosubmit @submit.prevent="submitSearch">
+          <form class="hero-search" role="search" data-agent-section="medication-search" toolname="navigate_to_home_drug_search" tooldescription="Populate the home search and navigate the visible ClearDose interface to matching fictional drug records." toolautosubmit @submit.prevent="submitSearch">
             <Search :size="22" aria-hidden="true" />
             <input v-model="search" name="query" role="combobox" aria-autocomplete="list" aria-controls="home-search-suggestions" :aria-expanded="suggestions.length > 0" placeholder="Try “Lisinopril” or “cholesterol”" aria-label="Find a medication" autocomplete="off" toolparamdescription="Generic medication, brand, condition, or category search text" />
             <button type="submit">Find my medication <ArrowRight :size="18" /></button>

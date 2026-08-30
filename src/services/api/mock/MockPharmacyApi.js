@@ -5,29 +5,26 @@ import { clone } from "../../../domain/shared/clone";
  * and returns raw records; repositories remain responsible for DTO mapping.
  */
 export class MockPharmacyApi {
-  constructor({ dao, medications, categories }) {
+  constructor({ dao, udi }) {
     this.dao = dao;
-    this.medications = clone(medications);
-    this.categories = [...categories];
+    this.udi = udi;
   }
 
   listMedications({ query = "", category = "All medications", sort = "name" } = {}) {
-    const term = String(query).trim().toLowerCase();
-    const results = this.medications.filter((medication) => {
-      const haystack = `${medication.name} ${medication.genericFor} ${medication.category}`.toLowerCase();
-      return (!term || haystack.includes(term))
-        && (category === "All medications" || medication.category === category);
-    });
-    return clone(results).sort((a, b) => {
-      if (sort === "price") return a.variants[0].price - b.variants[0].price;
-      if (sort === "savings") return (b.variants[0].retail - b.variants[0].price) - (a.variants[0].retail - a.variants[0].price);
-      return a.name.localeCompare(b.name);
-    });
+    return this.udi.search({ query, category, sort });
   }
 
-  getMedicationById(id) { return clone(this.medications.find((item) => item.id === id) ?? null); }
-  getMedicationBySlug(slug) { return clone(this.medications.find((item) => item.slug === slug) ?? null); }
-  listCategories() { return [...this.categories]; }
+  getMedicationById(id) { return this.udi.getById(id); }
+  getMedicationBySlug(slug) { return this.udi.getBySlug(slug); }
+  listCategories() { return this.udi.listCategories(); }
+  listDrugClasses() { return this.udi.listDrugClasses(); }
+  getDrugIndexSummary() { return this.udi.summary(); }
+  searchDrugIndex(input) { return this.udi.searchCompact(input); }
+  getDrugIndexEntry(drugId) { return this.udi.getById(drugId); }
+  compareDrugPrices(input) { return clone(this.udi.comparePrices(input)); }
+  findRelatedDrugs(input) { return clone(this.udi.findRelated(input)); }
+  reviewInteractionFlags(input) { return clone(this.udi.reviewInteractionFlags(input)); }
+  buildProcurementPlan(input) { return clone(this.udi.buildProcurementPlan(input)); }
 
   getCurrentCustomer() {
     const state = this.dao.read();
@@ -80,7 +77,7 @@ export class MockPharmacyApi {
   listCart() { return clone(this.dao.read().cart); }
 
   addCartItem(medicationId, variantId) {
-    const medication = this.medications.find((item) => item.id === medicationId);
+    const medication = this.udi.getById(medicationId);
     const variant = medication?.variants.find((item) => item.id === variantId);
     if (!medication || !variant) return false;
     return this.dao.mutate((state) => {

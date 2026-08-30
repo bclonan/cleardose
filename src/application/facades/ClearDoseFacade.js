@@ -13,6 +13,8 @@ export class ClearDoseFacade {
         currentCustomer,
         medications: this.adapter.catalog.list(),
         categories: this.adapter.catalog.listCategories(),
+        drugClasses: this.adapter.api.listDrugClasses(),
+        drugIndexSummary: this.adapter.api.getDrugIndexSummary(),
         cart: this.adapter.cart.list(),
         orders: this.adapter.orders.list(),
         prescriptions: this.adapter.prescriptions.list(),
@@ -23,6 +25,12 @@ export class ClearDoseFacade {
   searchMedications(filters) { return this.adapter.catalog.list(filters); }
   medicationById(id) { return this.adapter.catalog.findById(id); }
   medicationBySlug(slug) { return this.adapter.catalog.findBySlug(slug); }
+  searchDrugIndex(input) { return this.adapter.api.searchDrugIndex(input); }
+  drugIndexEntry(drugId) { return this.adapter.api.getDrugIndexEntry(drugId); }
+  compareDrugPrices(input) { return this.adapter.api.compareDrugPrices(input); }
+  findRelatedDrugs(input) { return this.adapter.api.findRelatedDrugs(input); }
+  reviewInteractionFlags(input) { return this.adapter.api.reviewInteractionFlags(input); }
+  buildProcurementPlan(input) { return this.adapter.api.buildProcurementPlan(input); }
 
   compareMedications({ leftMedicationId, rightMedicationId, leftVariantId, rightVariantId }) {
     const buildSide = (medicationId, variantId) => {

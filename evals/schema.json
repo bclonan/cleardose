@@ -1,0 +1,289 @@
+{
+  "tools": [
+    {
+      "name": "cleardose_search_drug_index",
+      "title": "Search the Universal Drug Index",
+      "description": "Search ClearDose's local fictional Universal Drug Index by generic name, brand, category, drug class, or UDI id. Use this when the user needs candidate records or exact drug ids for another tool.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Raw search text such as lisinopril, Lipitor, Statin, or udi:cleardose:lisinopril."
+          },
+          "category": {
+            "type": "string",
+            "description": "Optional exact category returned by a prior search."
+          },
+          "drugClass": {
+            "type": "string",
+            "description": "Optional exact drug class returned by a prior search."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum compact records to return.",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 12
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_get_drug_index_entry",
+      "title": "Get one Universal Drug Index entry",
+      "description": "Return normalized identity, class, package variants, and fictional price offers for one exact ClearDose UDI drug id. Use after search_drug_index identifies the record.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "drugId": {
+            "type": "string",
+            "description": "Exact ClearDose UDI drug id such as med_lisinopril."
+          }
+        },
+        "required": [
+          "drugId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_compare_drug_prices",
+      "title": "Compare fictional drug price offers",
+      "description": "Compare package and delivered-price offers for one to four exact UDI drug ids. Use for price facts only; different drugs are not treated as therapeutic substitutes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "drugIds": {
+            "type": "array",
+            "description": "One to four exact ids returned by search_drug_index.",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+              "type": "string"
+            }
+          },
+          "strength": {
+            "type": "string",
+            "description": "Optional exact strength, such as 10mg. If unavailable, the tool returns the closest indexed package and names it explicitly."
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Optional package quantity. If unavailable, the tool returns the closest indexed package and names it explicitly.",
+            "minimum": 1,
+            "maximum": 365
+          }
+        },
+        "required": [
+          "drugIds"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_find_related_drugs",
+      "title": "Find related drug index entries",
+      "description": "Find other UDI entries in the same broad demo comparison group as one exact drug id. Use the discussion-only matches to prepare questions for a clinician; every result explicitly states that it is not a therapeutic-equivalence or substitution recommendation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "drugId": {
+            "type": "string",
+            "description": "Exact ClearDose UDI drug id returned by search_drug_index."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum related records to return.",
+            "minimum": 1,
+            "maximum": 12,
+            "default": 6
+          }
+        },
+        "required": [
+          "drugId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_review_demo_interaction_flags",
+      "title": "Review synthetic medication interaction flags",
+      "description": "Review two to ten exact UDI drug ids against ClearDose's intentionally incomplete synthetic interaction fixtures. Every result exposes coverage gaps and requires verification by a licensed pharmacist.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "drugIds": {
+            "type": "array",
+            "description": "Two to ten exact ClearDose UDI ids representing the medication list to review.",
+            "minItems": 2,
+            "maxItems": 10,
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "drugIds"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_build_procurement_plan",
+      "title": "Build a local fictional procurement plan",
+      "description": "Build a local-only plan for one to twelve requested UDI medications using fictional package offers. The result is planning-only and leaves prescription validation, inventory reservation, and ordering to human-controlled workflows.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "description": "Requested UDI records and optional exact package preferences.",
+            "minItems": 1,
+            "maxItems": 12,
+            "items": {
+              "type": "object",
+              "properties": {
+                "drugId": {
+                  "type": "string",
+                  "description": "Exact UDI drug id returned by search_drug_index."
+                },
+                "strength": {
+                  "type": "string",
+                  "description": "Optional exact indexed strength."
+                },
+                "quantity": {
+                  "type": "integer",
+                  "description": "Optional exact indexed package quantity.",
+                  "minimum": 1,
+                  "maximum": 365
+                }
+              },
+              "required": [
+                "drugId"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "strategy": {
+            "type": "string",
+            "description": "How to select fictional offers: lowest delivered total, fewest channels, or a simple cost-and-speed balance.",
+            "enum": [
+              "lowest_total",
+              "fewest_shipments",
+              "balanced"
+            ],
+            "default": "lowest_total"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_highlight_section",
+      "title": "Highlight a visible ClearDose section",
+      "description": "Move keyboard focus to and visibly highlight one stable section on the current ClearDose page so the user and agent can discuss the same content.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "enum": [
+              "medication-search",
+              "comparison-results",
+              "demo-side-by-side",
+              "how-webmcp-works",
+              "tool-catalog",
+              "cart-summary",
+              "checkout-flow",
+              "provider-handoff",
+              "primary-price",
+              "add-to-cart-action",
+              "agent-tools-control",
+              "udi-search",
+              "udi-results",
+              "udi-lab"
+            ],
+            "description": "Stable section identifier. If the section is not on the current page, the tool returns a clear non-retryable error."
+          }
+        },
+        "required": [
+          "target"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_get_cart",
+      "title": "Read the local ClearDose cart",
+      "description": "Read the current fictional ClearDose cart with item-level and total prices. This tool does not change state or expose customer profile data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_add_to_cart",
+      "title": "Add one indexed package to the local cart",
+      "description": "Add one exact fictional UDI medication package to the local ClearDose cart. Use get_drug_index_entry first to obtain the exact drugId and variantId. This changes only resettable browser demo state.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "drugId": {
+            "type": "string",
+            "description": "Exact UDI drug id returned by get_drug_index_entry."
+          },
+          "variantId": {
+            "type": "string",
+            "description": "Exact package variant id returned by get_drug_index_entry."
+          }
+        },
+        "required": [
+          "drugId",
+          "variantId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "untrustedContentHint": false
+      }
+    }
+  ]
+}
