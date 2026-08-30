@@ -25,6 +25,8 @@ const checks = [
   ["/src/components/PromptGuide.vue", /Prompt guide/],
   ["/src/infrastructure/persistence/DuckDbWasmDao.js", /cleardose-flow-lab\.duckdb/],
   ["/src/infrastructure/webmcp/tools/createDefaultTools.js", /createStructuredExchangeToolPair/],
+  ["/src/views/HackathonShortcutsView.vue", /Copy the prompt\. Watch the machine/],
+  ["/src/infrastructure/webmcp/catalog/capabilityCatalog.js", /prepare_agent_memory_packet/],
 ];
 
 try {

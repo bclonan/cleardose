@@ -9,6 +9,9 @@ import WebMcpStatus from "../components/WebMcpStatus.vue";
 import WorkflowLiveViewer from "../components/WorkflowLiveViewer.vue";
 import DoctorQuestionCard from "../components/DoctorQuestionCard.vue";
 import PromptGuide from "../components/PromptGuide.vue";
+import CapabilityMachinePane from "../components/CapabilityMachinePane.vue";
+import HackathonLauncher from "../components/HackathonLauncher.vue";
+import PrescriptionRecoveryPanel from "../components/PrescriptionRecoveryPanel.vue";
 
 export const clearDoseComponents = Object.freeze({
   AccountNav,
@@ -22,6 +25,9 @@ export const clearDoseComponents = Object.freeze({
   WorkflowLiveViewer,
   DoctorQuestionCard,
   PromptGuide,
+  CapabilityMachinePane,
+  HackathonLauncher,
+  PrescriptionRecoveryPanel,
 });
 
 export function registerClearDoseComponents(app, { prefix = "Cd" } = {}) {

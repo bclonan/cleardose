@@ -144,7 +144,7 @@ onBeforeUnmount(() => voice.cancel());
             </div>
             <div class="agent-tool-list">
               <details v-for="tool in store.webMcp.tools" :key="tool.name">
-                <summary><span><strong>{{ tool.title }}</strong><code>{{ tool.name }}</code></span><em>{{ adapter.toolKind(tool) }}</em></summary>
+                <summary><span><strong>{{ tool.title }}</strong><code>{{ tool.name }}</code><small>{{ tool.category }} · {{ tool.interactionModel }}</small></span><em>{{ adapter.toolKind(tool) }}</em></summary>
                 <p>{{ tool.description }}</p>
                 <div v-if="Object.keys(tool.inputSchema?.properties ?? {}).length" class="tool-parameters">
                   <span v-for="(schema, name) in tool.inputSchema.properties" :key="name"><code>{{ name }}</code> {{ schema.description }}</span>
@@ -152,6 +152,7 @@ onBeforeUnmount(() => voice.cancel());
               </details>
             </div>
             <RouterLink class="button button-dark button-wide" to="/demo" @click="closePanel">Open the hackathon demo</RouterLink>
+            <RouterLink class="button button-ghost button-wide" to="/shortcuts" @click="closePanel">Open prompt shortcuts</RouterLink>
           </section>
         </div>
         <p class="sr-only" aria-live="polite">{{ announcement }}</p>

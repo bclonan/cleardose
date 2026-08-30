@@ -16,6 +16,12 @@ const DEFAULT_TARGETS = Object.freeze([
   "workflow-runtime",
   "question-card",
   "failure-lab",
+  "hackathon-shortcuts",
+  "prompt-chain",
+  "shortcut-observatory",
+  "machine-inspector",
+  "agent-memory",
+  "prescription-recovery",
 ]);
 
 export class SectionHighlightService {

@@ -29,9 +29,18 @@ export const negativeScenarios = Object.freeze([
       Object.freeze({ type: "PRICE_VERSION_STALE", toState: "reviewing", context: { quotedPrice: 11.82, currentPrice: 12.47, requiresReconfirmation: true, orderPlaced: false } }),
     ]),
   }),
+  Object.freeze({
+    id: "prescription-required",
+    title: "Prescription required",
+    description: "Return actionable administrative steps and an editable agent handoff while keeping external contact under patient control.",
+    definitionId: "prescription-follow-up",
+    transitions: Object.freeze([
+      Object.freeze({ type: "FULFILLMENT_BLOCKED", toState: "preparing", context: { code: "PRESCRIPTION_REQUIRED", orderPlaced: false, externalActionTaken: false } }),
+      Object.freeze({ type: "EDITABLE_HANDOFF_PREPARED", toState: "human_review", context: { summary: "Your prescriber must send a valid prescription before fulfillment.", recommendedTool: "cleardose_prepare_prescription_follow_up", orderPlaced: false, externalActionTaken: false } }),
+    ]),
+  }),
 ]);
 
 export function getNegativeScenario(id) {
   return negativeScenarios.find((scenario) => scenario.id === String(id)) ?? null;
 }
-

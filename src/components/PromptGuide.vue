@@ -5,6 +5,7 @@ import { usePharmacyStore } from "../composables/usePharmacyStore";
 import { useAgentReadyComponent } from "../composables/useAgentReadyComponent";
 import { agentReadyProps } from "../presentation/agentReadyProps";
 import { promptGuideAdapter } from "../presentation/adapters/componentAdapters";
+import { capabilityCatalog, capabilityCategories } from "../infrastructure/webmcp/catalog/capabilityCatalog";
 
 const props = defineProps({ ...agentReadyProps });
 const store = usePharmacyStore();
@@ -15,30 +16,19 @@ const query = ref("");
 const listening = ref(false);
 const announcement = ref("Prompt guide ready.");
 
-const promptByName = {
-  search_drug_index: "Find lisinopril in the ClearDose drug index.",
-  get_drug_index_entry: "Show the exact indexed packages for med_lisinopril.",
-  compare_drug_prices: "Compare the fictional prices for lisinopril and losartan without calling them substitutes.",
-  find_related_drugs: "Find discussion-only records related to lisinopril so I can prepare doctor questions.",
-  review_demo_interaction_flags: "Review the synthetic flags for sildenafil and isosorbide mononitrate and explain the coverage limit.",
-  build_procurement_plan: "Build a lowest-total local fictional plan for lisinopril and atorvastatin. Do not order.",
-  inspect_workflow_runtime: "Show the current ClearDose flows, recent event ids, states, and bounded context.",
-  prepare_doctor_question_card_request: "Prepare a doctor question-card handoff for lisinopril and related discussion records.",
-  submit_doctor_question_card_draft: "Use the prepared exchange schema to return two neutral questions for my doctor.",
-  highlight_section: "Highlight the visible comparison results so we can discuss the same section.",
-  get_cart: "Read my local mock cart and total without exposing profile data.",
-  add_to_cart: "Add the exact indexed lisinopril package I already selected to the local demo cart.",
-};
-
-const tools = computed(() => store.webMcp.tools.map((tool) => {
-  const shortName = tool.name.replace(/^cleardose_/, "");
-  return { ...tool, prompt: promptByName[shortName] ?? `Explain when to use ${tool.name}.` };
-}));
+const tools = computed(() => {
+  const registered = new Map(store.webMcp.tools.map((tool) => [tool.name.replace(/^cleardose_/, ""), tool]));
+  return capabilityCatalog.map((capability) => {
+    const runtime = registered.get(capability.toolName) ?? {};
+    return { ...runtime, ...capability, name: capability.qualifiedName, title: runtime.title ?? capability.toolName.replaceAll("_", " "), description: runtime.description ?? `Visible declarative ClearDose form contract for ${capability.route}.`, prompt: capability.examplePrompt, annotations: runtime.annotations ?? { readOnlyHint: true } };
+  });
+});
 const filteredTools = computed(() => {
   const term = query.value.trim().toLowerCase();
   if (!term) return tools.value;
   return tools.value.filter((tool) => `${tool.name} ${tool.title} ${tool.description} ${tool.prompt}`.toLowerCase().includes(term));
 });
+const groupedTools = computed(() => capabilityCategories.map((category) => ({ ...category, tools: filteredTools.value.filter((tool) => tool.category === category.id) })).filter((group) => group.tools.length));
 const voiceSupported = computed(() => Boolean(adapter.value.recognitionConstructor()));
 
 function openGuide() {
@@ -77,13 +67,12 @@ async function copyPrompt(prompt) {
         <div class="prompt-guide-search"><Search :size="18" /><label class="sr-only" for="prompt-guide-query">Search tools and example prompts</label><input id="prompt-guide-query" ref="searchInput" v-model="query" type="search" placeholder="Try “question card”, “price”, or “workflow”" /><button type="button" :disabled="!voiceSupported || listening" :aria-pressed="listening" @click="startVoiceSearch"><Mic :size="18" />{{ listening ? 'Listening…' : 'Voice search' }}</button></div>
         <p v-if="!voiceSupported" class="prompt-voice-note">Voice search is not supported in this browser. All examples remain keyboard searchable.</p>
         <div class="prompt-tool-list" aria-live="polite">
-          <article v-for="tool in filteredTools" :key="tool.name"><div><code>{{ tool.name }}</code><span>{{ tool.annotations?.readOnlyHint ? 'Read only' : 'Local change' }}</span></div><h3>{{ tool.title }}</h3><p>{{ tool.description }}</p><blockquote>{{ tool.prompt }}</blockquote><button type="button" @click="copyPrompt(tool.prompt)"><Clipboard :size="15" /> Copy example</button></article>
+          <section v-for="group in groupedTools" :key="group.id" class="prompt-group"><header><h3>{{ group.label }}</h3><p>{{ group.description }}</p></header><article v-for="tool in group.tools" :key="tool.name"><div><code>{{ tool.name }}</code><span>{{ tool.interactionModel }} · {{ tool.annotations?.readOnlyHint ? 'read only' : 'local change' }}</span></div><h3>{{ tool.title }}</h3><p>{{ tool.description }}</p><small class="prompt-machine-id">{{ tool.machine.id }}</small><blockquote>{{ tool.prompt }}</blockquote><button type="button" @click="copyPrompt(tool.prompt)"><Clipboard :size="15" /> Copy example</button></article></section>
           <p v-if="!filteredTools.length">No tools match that search.</p>
         </div>
-        <footer><strong>Demo safety boundary</strong><span>Use fictional data only. ClearDose does not provide clinical advice, process payment, or place real orders.</span></footer>
+        <footer><strong>Demo safety boundary</strong><span>Use fictional data only. ClearDose does not provide clinical advice, process payment, place real orders, or silently write an external agent memory.</span><RouterLink to="/shortcuts" @click="dialog.close()">Open prompt chains →</RouterLink></footer>
       </div>
     </dialog>
     <p class="sr-only" aria-live="polite">{{ announcement }}</p>
   </div>
 </template>
-

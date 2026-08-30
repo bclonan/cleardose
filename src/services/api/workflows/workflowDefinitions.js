@@ -29,6 +29,27 @@ export const workflowDefinitions = Object.freeze([
     description: "Validate a bounded demo form payload without storing real health information.",
     states: Object.freeze(["idle", "validating", "rejected", "ready"]),
   }),
+  Object.freeze({
+    id: "shortcut-runner",
+    machineId: "machine.shortcut.runner.v1",
+    title: "Hackathon shortcut runner",
+    description: "Run a deterministic, scoped visual analog of a copied agent prompt chain.",
+    states: Object.freeze(["ready", "running", "human_review", "complete", "error"]),
+  }),
+  Object.freeze({
+    id: "prescription-follow-up",
+    machineId: "machine.prescription.follow-up.v1",
+    title: "Prescription follow-up",
+    description: "Convert a prescription-required gate into editable steps and a human-reviewed handoff.",
+    states: Object.freeze(["blocked", "preparing", "human_review", "complete"]),
+  }),
+  Object.freeze({
+    id: "memory-packet",
+    machineId: "machine.memory.packet.v1",
+    title: "Agent memory packet",
+    description: "Prepare local context, pause for human review, then allow explicit copy or file save.",
+    states: Object.freeze(["drafting", "human_review", "exported", "complete"]),
+  }),
 ]);
 
 const byId = new Map(workflowDefinitions.map((definition) => [definition.id, definition]));

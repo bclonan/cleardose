@@ -143,6 +143,26 @@ export class DuckDbWasmDao {
     ); CHECKPOINT;`);
   }
 
+  async queryDrugs({ query = "", category = "", drugClass = "", limit = 12 } = {}) {
+    if (this.usingFallback) return this.fallback.queryDrugs({ query, category, drugClass, limit });
+    const clauses = [];
+    const term = String(query).trim().toLowerCase();
+    if (term) clauses.push(`lower(concat_ws(' ', id, name, generic_for, category, drug_class, udi)) LIKE ${sql(`%${term}%`)}`);
+    const categoryTerm = String(category).trim();
+    if (categoryTerm && categoryTerm.toLowerCase() !== "all medications") clauses.push(`lower(category) = ${sql(categoryTerm.toLowerCase())}`);
+    const classTerm = String(drugClass).trim();
+    if (classTerm) clauses.push(`lower(drug_class) = ${sql(classTerm.toLowerCase())}`);
+    const result = await this.connection.query(`SELECT payload_json FROM drugs ${clauses.length ? `WHERE ${clauses.join(" AND ")}` : ""} ORDER BY name LIMIT ${Math.max(1, Math.min(50, Number(limit) || 12))}`);
+    return rows(result).map((row) => parseJson(row.payload_json, {}));
+  }
+
+  async getDrug(id) {
+    if (this.usingFallback) return this.fallback.getDrug(id);
+    const result = await this.connection.query(`SELECT payload_json FROM drugs WHERE id = ${sql(id)} LIMIT 1`);
+    const row = rows(result)[0];
+    return row ? parseJson(row.payload_json, null) : null;
+  }
+
   async loadSnapshot() {
     if (this.usingFallback) return this.fallback.loadSnapshot();
     const [flowRows, eventRows, exchangeRows, cardRows] = await Promise.all([

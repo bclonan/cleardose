@@ -17,6 +17,8 @@
 - As a visitor, I can inspect multiple concurrent flows, exact event ids, state history, and context at the selected step.
 - As a visitor, I can prepare a bounded agent handoff and receive a printable doctor-question card that remains a human-review draft.
 - As a visitor, I can run deterministic invalid-form, unavailable-stock, and stale-price scenarios and see the failure state instead of a silent success.
+- As a hackathon judge, I can copy a complete demo chain, run its deterministic visual analog, and inspect the same machine/event evidence side by side.
+- As a judge, I can choose focused single-step or multi-step shortcuts without memorizing tool names.
 - As a keyboard or assistive-technology user, I can navigate landmarks, forms, the comparison, and the tool dialog without a pointer.
 - As a shopper, I can inspect strengths, forms, quantities, retail comparisons, and price components before adding an item.
 - As a shopper, I can add a variant, change quantity up to the demo limit, remove it, and see totals update.
@@ -30,6 +32,8 @@
 ## Provider handoff
 
 - As a patient, I can understand how an on-file, provider-sent, or transferred prescription changes fulfillment status.
+- As a patient blocked by a prescription requirement, I receive actionable administrative steps and an editable agent prompt, while prescriber contact remains under my control.
+- As a patient, I can review a memory packet and explicitly copy or save it; the site never silently retains it in another agent.
 - As a provider-demo user, I can generate an on-screen routing note without sending email, fax, or health data.
 
 ## Agent user
@@ -43,6 +47,8 @@
 - As a browser agent, I can add an exact variant to the mock cart and see the human UI update through the same Pinia action.
 - As a browser agent, I can inspect local workflow state without changing it.
 - As a browser agent, I can receive a bounded site instruction and exact response schema, then submit a neutral question-card draft in a second tool call.
+- As a browser agent, I can inspect each capability's category, imperative/declarative tag, example prompt, and deterministic machine contract.
+- As a browser agent, I can recommend a follow-up tool for a recoverable error without silently invoking a new external side effect.
 - As a browser agent in a browser without WebMCP, I do not break the human experience.
 
 ## Developer
@@ -53,6 +59,8 @@
 - As a developer, I can choose imperative, declarative, or combined WebMCP composition through component props.
 - As a developer, I can replace the mock API without moving fixture, persistence, or request logic into pages.
 - As a developer, I can add a tool definition without importing it into pages.
+- As a developer, I can add one catalog record and get a validated name, category, prompt-guide entry, and static machine analog.
+- As a developer, I can start a dynamic machine scoped to role, situation, and step without modifying the DuckDB schema.
 - As a developer, I can verify facade and WebMCP contracts with automated tests.
 - As a developer, I can regenerate a static schema and run direct, chained, mutation, and refusal eval journeys with Chrome Labs' experimental eval CLI.
 - As a developer, I can add a two-call exchange from one reusable factory and a template-literal domain contract.

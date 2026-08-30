@@ -16,7 +16,7 @@ const { adapter } = useAgentReadyComponent(props, { name: "workflow_live_viewer"
 const selectedEventId = ref("");
 const flows = computed(() => store.workflow.flows);
 const selectedFlow = computed(() => flows.value.find((flow) => flow.id === store.selectedFlowId) ?? flows.value[0] ?? null);
-const definition = computed(() => store.workflow.definitions.find((item) => item.id === selectedFlow.value?.definitionId));
+const definition = computed(() => selectedFlow.value?.context?.machineDefinition ?? store.workflow.definitions.find((item) => item.id === selectedFlow.value?.definitionId));
 const flowEvents = computed(() => store.workflow.events.filter((event) => event.flowId === selectedFlow.value?.id).slice(-props.maxEvents).reverse());
 const selectedEvent = computed(() => flowEvents.value.find((event) => event.id === selectedEventId.value) ?? flowEvents.value[0] ?? null);
 const selectedContext = computed(() => selectedEvent.value?.context ?? selectedFlow.value?.context ?? {});

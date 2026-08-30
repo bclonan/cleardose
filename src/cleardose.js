@@ -20,3 +20,9 @@ export { MemoryWorkflowDao } from "./infrastructure/persistence/MemoryWorkflowDa
 export { createStructuredExchangeToolPair } from "./infrastructure/webmcp/templates/createStructuredExchangeToolPair";
 export { doctorQuestionCardExchange, doctorQuestionCardResponseSchema } from "./services/api/workflows/doctorQuestionCardExchange";
 export { workflowDefinitions } from "./services/api/workflows/workflowDefinitions";
+export { capabilityCatalog, capabilityCategories, getCapability, groupCapabilities, decorateToolDefinitions } from "./infrastructure/webmcp/catalog/capabilityCatalog";
+export { hackathonShortcuts, getHackathonShortcut } from "./services/api/shortcuts/hackathonShortcuts";
+export { LocalDrugIndexApi } from "./services/api/local/LocalDrugIndexApi";
+export { getRecoveryGuidance, buildPrescriptionFollowUp } from "./services/api/recovery/recoveryGuidance";
+export { createAgentMemoryPacket } from "./services/api/documents/agentMemoryPacket";
+export { AgentMemoryFileService } from "./services/files/AgentMemoryFileService";

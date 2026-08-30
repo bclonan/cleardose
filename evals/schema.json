@@ -313,6 +313,108 @@
       }
     },
     {
+      "name": "cleardose_prepare_prescription_follow_up",
+      "title": "Prepare prescription-required follow-up",
+      "description": "Turn a prescription-required fulfillment gate into deterministic next steps and an editable prompt for patient review. This tool does not contact a prescriber, transfer a prescription, or make a clinical recommendation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "drugId": {
+            "type": "string",
+            "description": "Exact ClearDose UDI drug id."
+          },
+          "preferredPath": {
+            "type": "string",
+            "enum": [
+              "prescriber_send",
+              "transfer",
+              "on_file",
+              "undecided"
+            ],
+            "default": "undecided",
+            "description": "Patient-selected administrative path."
+          },
+          "questions": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 6,
+            "items": {
+              "type": "string",
+              "maxLength": 160
+            },
+            "description": "Optional short questions to preserve in the editable handoff."
+          }
+        },
+        "required": [
+          "drugId"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "untrustedContentHint": true
+      }
+    },
+    {
+      "name": "cleardose_prepare_agent_memory_packet",
+      "title": "Prepare a user-controlled agent memory packet",
+      "description": "Create a bounded Markdown and structured context packet for the user to review, edit, copy, or save locally. The tool does not write to an external agent memory or filesystem automatically.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "goal": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "facts": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 12,
+            "items": {
+              "type": "string",
+              "maxLength": 240
+            }
+          },
+          "decisions": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 12,
+            "items": {
+              "type": "string",
+              "maxLength": 240
+            }
+          },
+          "nextSteps": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 12,
+            "items": {
+              "type": "string",
+              "maxLength": 240
+            }
+          },
+          "flowIds": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 12,
+            "items": {
+              "type": "string",
+              "maxLength": 120
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "untrustedContentHint": true
+      }
+    },
+    {
       "name": "cleardose_highlight_section",
       "title": "Highlight a visible ClearDose section",
       "description": "Move keyboard focus to and visibly highlight one stable section on the current ClearDose page so the user and agent can discuss the same content.",
@@ -338,7 +440,13 @@
               "udi-lab",
               "workflow-runtime",
               "question-card",
-              "failure-lab"
+              "failure-lab",
+              "hackathon-shortcuts",
+              "prompt-chain",
+              "shortcut-observatory",
+              "machine-inspector",
+              "agent-memory",
+              "prescription-recovery"
             ],
             "description": "Stable section identifier. If the section is not on the current page, the tool returns a clear non-retryable error."
           }

@@ -20,7 +20,7 @@ export class WebMcpToolRegistry {
       status: errors ? "error" : registered ? "ready" : available ? "unsupported" : "idle",
       available,
       registered,
-      tools: records.map(({ name, title, description, inputSchema, annotations, status, error }) => ({
+      tools: records.map(({ name, title, description, inputSchema, annotations, status, error, capabilityId, category, interactionModel, machine, examplePrompt }) => ({
         name,
         title: title ?? name,
         description: description ?? "",
@@ -28,6 +28,11 @@ export class WebMcpToolRegistry {
         annotations: annotations ?? {},
         status,
         error: error ?? null,
+        capabilityId: capabilityId ?? "",
+        category: category ?? "uncategorized",
+        interactionModel: interactionModel ?? "imperative",
+        machine: machine ?? null,
+        examplePrompt: examplePrompt ?? "",
       })),
     });
   }

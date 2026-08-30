@@ -49,6 +49,16 @@ export function createClearDosePlugin(options = {}) {
       void workflowRuntime.initialize({ drugs: facade.getSnapshot().state.medications })
         .then(() => workflowRuntime.seedDemoFlows());
 
+      globalThis.document?.addEventListener("submit", (event) => {
+        const form = event.target;
+        const toolName = form?.getAttribute?.("toolname");
+        if (!toolName || form.dataset.cleardoseObserved === "true") return;
+        form.dataset.cleardoseObserved = "true";
+        queueMicrotask(() => { delete form.dataset.cleardoseObserved; });
+        const fieldNames = [...new FormData(form).keys()];
+        void workflowRuntime.recordDeclarativeForm({ name: toolName, fieldNames });
+      }, true);
+
       if (options.webMcp?.enabled !== false) {
         void toolRegistry.registerDefinitions(createDefaultTools({ store, highlightService, workflowRuntime }));
       }

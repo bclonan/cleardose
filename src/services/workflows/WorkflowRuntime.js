@@ -1,11 +1,14 @@
 import { doctorQuestionCardExchange } from "../api/workflows/doctorQuestionCardExchange";
 import { getWorkflowDefinition, workflowDefinitions } from "../api/workflows/workflowDefinitions";
 import { getNegativeScenario, negativeScenarios } from "../api/mock/negativeScenarios";
+import { getCapability } from "../../infrastructure/webmcp/catalog/capabilityCatalog";
+import { createAgentMemoryPacket } from "../api/documents/agentMemoryPacket";
+import { LocalDrugIndexApi } from "../api/local/LocalDrugIndexApi";
 
 function copy(value) { return value == null ? value : structuredClone(value); }
 function now() { return new Date().toISOString(); }
 function id(prefix) { return `${prefix}_${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(16).slice(2)}`}`; }
-function completedState(state) { return ["ready", "complete", "error", "rejected"].includes(state); }
+function completedState(state, definition) { return ["error", "rejected"].includes(state) || definition?.states?.at(-1) === state; }
 
 function boundedStrings(values, { field, minimum = 0, maximum = 8, maxLength = 220, question = false } = {}) {
   if (!Array.isArray(values) || values.length < minimum || values.length > maximum) {
@@ -24,6 +27,7 @@ function boundedStrings(values, { field, minimum = 0, maximum = 8, maxLength = 2
 export class WorkflowRuntime {
   constructor({ dao, channelName = "cleardose-flow-events-v1" }) {
     this.dao = dao;
+    this.localDrugIndexApi = new LocalDrugIndexApi({ dao });
     this.channelName = channelName;
     this.flows = new Map();
     this.events = new Map();
@@ -74,13 +78,19 @@ export class WorkflowRuntime {
       flows: copy(flows),
       events: copy(events),
       exchanges: copy([...this.exchanges.values()].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))),
-      cards: copy([...this.cards.values()].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))),
+      cards: copy([...this.cards.values()].filter((item) => !item.artifactType || item.artifactType === "doctor-question-card").sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))),
+      artifacts: copy([...this.cards.values()].sort((left, right) => String(right.updatedAt || right.createdAt).localeCompare(String(left.updatedAt || left.createdAt)))),
+      memoryPackets: copy([...this.cards.values()].filter((item) => item.artifactType === "agent-memory-packet").sort((left, right) => right.createdAt.localeCompare(left.createdAt))),
     });
+  }
+
+  definitionForFlow(flow) {
+    return flow?.context?.machineDefinition ?? getWorkflowDefinition(flow?.definitionId);
   }
 
   async startFlow({ definitionId, title, context = {}, source = "ui", flowId = id("flow") }) {
     await this.readyPromise;
-    const definition = getWorkflowDefinition(definitionId);
+    const definition = context?.machineDefinition ?? getWorkflowDefinition(definitionId);
     if (!definition) throw new TypeError(`Unknown workflow definition: ${definitionId}.`);
     const initialState = definition.states[0];
     const timestamp = now();
@@ -89,7 +99,7 @@ export class WorkflowRuntime {
       definitionId,
       title: String(title || definition.title).slice(0, 120),
       state: initialState,
-      status: completedState(initialState) ? "completed" : "active",
+      status: completedState(initialState, definition) ? "completed" : "active",
       context: copy(context),
       eventCount: 0,
       createdAt: timestamp,
@@ -104,7 +114,7 @@ export class WorkflowRuntime {
     await this.readyPromise;
     const flow = this.flows.get(String(flowId));
     if (!flow) throw new TypeError(`Unknown workflow id: ${flowId}.`);
-    const definition = getWorkflowDefinition(flow.definitionId);
+    const definition = this.definitionForFlow(flow);
     if (!definition.states.includes(toState)) throw new TypeError(`State ${toState} does not belong to ${flow.definitionId}.`);
     return this.recordEvent({ flowId: flow.id, type, fromState: flow.state, toState, context, source, correlationId });
   }
@@ -122,7 +132,7 @@ export class WorkflowRuntime {
     const nextFlow = {
       ...flow,
       state: toState,
-      status: completedState(toState) ? (toState === "error" ? "error" : "completed") : "active",
+      status: completedState(toState, this.definitionForFlow(flow)) ? (toState === "error" ? "error" : "completed") : "active",
       context: mergedContext,
       eventCount: flow.eventCount + 1,
       updatedAt: timestamp,
@@ -137,10 +147,11 @@ export class WorkflowRuntime {
 
   async runTool(name, input, execute) {
     const correlationId = id("call");
+    const capability = getCapability(name);
     const flow = await this.startFlow({
       definitionId: "webmcp-tool-call",
       title: `Tool · ${name}`,
-      context: { tool: name, input: copy(input), correlationId },
+      context: { tool: name, input: copy(input), correlationId, capabilityId: capability?.id ?? "", category: capability?.category ?? "uncategorized", interactionModel: capability?.interactionModel ?? "imperative", capabilityMachine: capability?.machine ?? null },
       source: "webmcp",
     });
     await this.transition(flow.id, { type: "TOOL_EXECUTION_STARTED", toState: "running", source: "webmcp", correlationId });
@@ -162,6 +173,88 @@ export class WorkflowRuntime {
       });
       throw error;
     }
+  }
+
+  async querySeededDrugs(input) { await this.readyPromise; return this.localDrugIndexApi.search(input); }
+  async getSeededDrug(idValue) { await this.readyPromise; return this.localDrugIndexApi.get(idValue); }
+
+  async recordDeclarativeForm({ name, fieldNames = [] }) {
+    const capability = getCapability(name);
+    const flow = await this.startFlow({
+      definitionId: "agent-ready-form",
+      title: `Form · ${name}`,
+      context: { tool: name, capabilityId: capability?.id ?? "", interactionModel: "declarative", fieldNames: [...new Set(fieldNames)].slice(0, 20), valuesPersisted: false },
+      source: "declarative-webmcp",
+    });
+    await this.transition(flow.id, { type: "VISIBLE_FORM_SUBMITTED", toState: "validating", source: "declarative-webmcp" });
+    await this.transition(flow.id, { type: "VISIBLE_FORM_READY", toState: "ready", context: { humanSubmissionControl: true }, source: "declarative-webmcp" });
+    return copy(this.flows.get(flow.id));
+  }
+
+  async startShortcut(shortcut) {
+    const states = ["ready", ...shortcut.steps.map((item, index) => `step_${index + 1}_${item.id}`), "human_review", "complete"];
+    return this.startDynamicMachine({
+      id: `shortcut-${shortcut.id}`, title: shortcut.title, description: shortcut.summary, states,
+      scope: shortcut.scope,
+      context: { shortcutId: shortcut.id, mode: shortcut.mode, totalSteps: shortcut.steps.length, currentStep: 0 },
+      source: "shortcut",
+    });
+  }
+
+  async startDynamicMachine({ id: dynamicId, title, description = "", states, scope, context = {}, source = "dynamic" }) {
+    const normalizedId = String(dynamicId || "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "");
+    if (!normalizedId) throw new TypeError("A dynamic machine id is required.");
+    if (!Array.isArray(states) || states.length < 2 || new Set(states).size !== states.length || states.some((state) => !/^[a-z][a-z0-9_]*$/.test(state))) throw new TypeError("Dynamic machines need two or more unique snake_case states.");
+    if (!scope?.role || !scope?.situation || !scope?.step) throw new TypeError("Dynamic machine scope requires role, situation, and step.");
+    const machineId = `machine.dynamic.${normalizedId}.v1`;
+    const machineDefinition = { id: machineId, machineId, title: String(title || normalizedId), description: String(description), states: [...states] };
+    return this.startFlow({
+      definitionId: "shortcut-runner",
+      title: String(title || normalizedId),
+      context: { ...context, scope: copy(scope), machineKind: "dynamic", machineDefinition },
+      source,
+    });
+  }
+
+  async advanceShortcut(flowId, shortcut, index) {
+    const stepIndex = Math.max(0, Math.min(shortcut.steps.length - 1, Number(index) || 0));
+    const step = shortcut.steps[stepIndex];
+    const toState = `step_${stepIndex + 1}_${step.id}`;
+    const event = await this.transition(flowId, { type: `SHORTCUT_STEP_${stepIndex + 1}_VISIBLE`, toState, context: { currentStep: stepIndex + 1, prompt: step.prompt, capabilityId: step.capabilityId }, source: "shortcut" });
+    if (stepIndex === shortcut.steps.length - 1) await this.transition(flowId, { type: "HUMAN_REVIEW_REQUIRED", toState: "human_review", context: { copiedPromptRequiresUserAction: true }, source: "shortcut" });
+    return event;
+  }
+
+  async completeShortcut(flowId) {
+    return this.transition(flowId, { type: "SHORTCUT_REVIEW_COMPLETED", toState: "complete", context: { completedByHuman: true }, source: "shortcut" });
+  }
+
+  async preparePrescriptionFollowUp(guidance) {
+    const flow = await this.startFlow({ definitionId: "prescription-follow-up", title: `Prescription follow-up · ${guidance.drug.name}`, context: { code: guidance.code, drugId: guidance.drug.id, preferredPath: guidance.preferredPath }, source: "recovery" });
+    await this.transition(flow.id, { type: "FOLLOW_UP_PREPARATION_STARTED", toState: "preparing", source: "recovery" });
+    await this.transition(flow.id, { type: "EDITABLE_HANDOFF_PREPARED", toState: "human_review", context: { recommendedTool: guidance.recommendedTool, editablePrompt: guidance.editablePrompt, externalActionTaken: false }, source: "recovery" });
+    return { ...guidance, flowId: flow.id };
+  }
+
+  async prepareMemoryPacket(input) {
+    const flow = await this.startFlow({ definitionId: "memory-packet", title: `Memory · ${input.label || "ClearDose demo"}`, context: { scope: input.scope ?? {}, externalWrite: false }, source: "memory" });
+    const packet = { ...createAgentMemoryPacket(input), flowId: flow.id, status: "human_review", updatedAt: now() };
+    this.cards.set(packet.id, packet);
+    await this.dao.saveCard(packet);
+    this.channel?.postMessage({ kind: "card", card: packet });
+    await this.transition(flow.id, { type: "MEMORY_PACKET_PREPARED", toState: "human_review", context: { packetId: packet.id, factCount: packet.facts.length, userActionRequired: true }, source: "memory" });
+    this.notify();
+    return copy(packet);
+  }
+
+  async markMemoryExported(packetId, method) {
+    const packet = this.cards.get(String(packetId));
+    if (!packet || packet.artifactType !== "agent-memory-packet") throw new TypeError(`Unknown memory packet: ${packetId}.`);
+    const updated = { ...packet, status: "exported", exportMethod: String(method), updatedAt: now() };
+    this.cards.set(updated.id, updated); await this.dao.saveCard(updated);
+    this.channel?.postMessage({ kind: "card", card: updated });
+    await this.transition(updated.flowId, { type: "USER_EXPORTED_MEMORY", toState: "exported", context: { exportMethod: updated.exportMethod }, source: "memory" });
+    this.notify(); return copy(updated);
   }
 
   async prepareDoctorQuestionCard({ primaryDrug, relatedDrugs = [], concerns = [] }) {
@@ -226,6 +319,7 @@ export class WorkflowRuntime {
     const timestamp = now();
     const card = {
       id: id("card"),
+      artifactType: "doctor-question-card",
       exchangeId: exchange.id,
       flowId: exchange.flowId,
       status: "human_review",
@@ -271,7 +365,13 @@ export class WorkflowRuntime {
     const flows = flowId ? [this.flows.get(String(flowId))].filter(Boolean) : [...this.flows.values()];
     const selectedIds = new Set(flows.map((flow) => flow.id));
     const events = [...this.events.values()].filter((event) => selectedIds.has(event.flowId)).slice(-boundedLimit);
-    return { database: copy(this.database), flows: copy(flows), events: copy(events), cards: copy([...this.cards.values()].filter((card) => selectedIds.has(card.flowId))) };
+    const artifacts = [...this.cards.values()].filter((card) => selectedIds.has(card.flowId));
+    return {
+      database: copy(this.database), flows: copy(flows), events: copy(events),
+      cards: copy(artifacts.filter((item) => !item.artifactType || item.artifactType === "doctor-question-card")),
+      artifacts: copy(artifacts),
+      memoryPackets: copy(artifacts.filter((item) => item.artifactType === "agent-memory-packet")),
+    };
   }
 
   async seedDemoFlows() {

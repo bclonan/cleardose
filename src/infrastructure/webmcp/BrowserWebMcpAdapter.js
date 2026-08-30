@@ -18,7 +18,15 @@ export class BrowserWebMcpAdapter {
     if (this.exposedTo?.length) options.exposedTo = this.exposedTo;
 
     try {
-      await this.documentRef.modelContext.registerTool(tool, options);
+      const browserTool = {
+        name: tool.name,
+        title: tool.title,
+        description: tool.description,
+        inputSchema: tool.inputSchema,
+        annotations: tool.annotations,
+        execute: tool.execute,
+      };
+      await this.documentRef.modelContext.registerTool(browserTool, options);
       return { name: tool.name, status: "registered", unregister: () => controller.abort() };
     } catch (error) {
       controller.abort();

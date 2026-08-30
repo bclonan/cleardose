@@ -13,6 +13,9 @@ ClearDose is engineered toward **WCAG 2.2 Level AAA** for the complete fictional
 - Correct `name`, `type`, `autocomplete`, `inputmode`, and section tokens for sign-in, account, contact, and shipping forms
 - Standard HTML forms enhanced with declarative WebMCP metadata; no required workflow depends on WebMCP or speech support
 - A keyboard-searchable floating tool guide; browser speech recognition only filters the same visible examples and always has a text-input fallback
+- A keyboard-operable shortcut library, prompt step list, dynamic machine pane, event timeline, editable recovery log, and memory preview
+- Route-aware voice guidance for the shortcut workbench; every spoken step is duplicated in a persistent transcript
+- Explicit status announcements for copied prompts, visual analog completion, recovery preparation, and memory export
 - A semantic concurrent-flow list, ordered state nodes, button-based event timeline, focusable context JSON, and a text equivalent in the live region
 - A print stylesheet that isolates the patient-owned question card while preserving its disclaimer and list structure
 

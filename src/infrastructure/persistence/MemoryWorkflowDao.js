@@ -35,6 +35,20 @@ export class MemoryWorkflowDao {
   async saveExchange(exchange) { this.exchanges.set(exchange.id, copy(exchange)); }
   async saveCard(card) { this.cards.set(card.id, copy(card)); }
 
+  async queryDrugs({ query = "", category = "", drugClass = "", limit = 12 } = {}) {
+    const term = String(query).trim().toLowerCase();
+    const categoryTerm = String(category).trim().toLowerCase();
+    const classTerm = String(drugClass).trim().toLowerCase();
+    return copy([...this.drugs.values()].filter((drug) => {
+      const haystack = [drug.id, drug.name, drug.genericFor, drug.category, drug.drugClass, drug.identifiers?.udi].join(" ").toLowerCase();
+      return (!term || haystack.includes(term))
+        && (!categoryTerm || categoryTerm === "all medications" || String(drug.category).toLowerCase() === categoryTerm)
+        && (!classTerm || String(drug.drugClass).toLowerCase() === classTerm);
+    }).slice(0, Math.max(1, Math.min(50, Number(limit) || 12))));
+  }
+
+  async getDrug(id) { return copy(this.drugs.get(String(id)) ?? null); }
+
   async loadSnapshot() {
     return {
       flows: copy([...this.flows.values()]),
@@ -52,4 +66,3 @@ export class MemoryWorkflowDao {
     this.cards.clear();
   }
 }
-

@@ -23,6 +23,8 @@ Build and extend **ClearDose — Transparent prescriptions, agent-ready.** as a 
 - DuckDB-Wasm/OPFS is the primary event store. Preserve the explicit memory fallback and cross-tab `BroadcastChannel` path; a database failure must not break the patient UI.
 - Reusable components accept the shared props in `src/presentation/agentReadyProps.js` and use `useAgentReadyComponent` so adapters and component-scoped tools can be composed without rewriting the component.
 - Register reusable components in `src/app/componentRegistry.js`; default WebMCP tools belong in `src/infrastructure/webmcp/tools/createDefaultTools.js`.
+- Treat `src/infrastructure/webmcp/catalog/capabilityCatalog.js` as the canonical capability manifest. Every imperative tool and declarative form needs one catalog entry, category, prompt, interaction tag, and machine id.
+- Drug reads used by tools must pass through `LocalDrugIndexApi` and the configured workflow DAO; do not bypass the seeded DuckDB path with page data.
 
 ## WebMCP rules
 
@@ -38,6 +40,10 @@ Build and extend **ClearDose — Transparent prescriptions, agent-ready.** as a 
 - Structured exchanges must return an exact response tool name and closed JSON Schema. The site must validate the second call, derive display facts from trusted local data, and leave generated content in human review.
 - Interaction-review tools must expose incomplete coverage and require professional verification. Related-record tools must never claim equivalence or recommend substitution.
 - Imperative and declarative tools must share namespaced contracts without making form completion dependent on experimental browser support.
+- Naming follows ADR 0001: `cleardose_<verb_noun>` for registered tools, `cleardose.<category>.<verb_noun>` for capability ids, and `machine.<scope>.<name>.v1` for machine ids. Events are `UPPER_SNAKE_CASE`; instance ids use `flow_`, `evt_`, `call_`, `exchange_`, `card_`, or `memory_`.
+- Static tool/form machines and dynamic shortcut machines must declare `role`, `situation`, and `step` scope. Dynamic state arrays are unique, deterministic, and validated before a flow starts.
+- Error tools return actionable structured recovery and a recommended next tool. They must not secretly chain external side effects; a user or agent explicitly chooses the next call.
+- Memory and document tools may prepare reviewable artifacts only. Clipboard writes, File System Access pickers, downloads, and any transfer to another agent require a visible user action.
 
 ## Accessibility rules
 
@@ -56,6 +62,8 @@ Build and extend **ClearDose — Transparent prescriptions, agent-ready.** as a 
 6. Update `evals/cleardose.evals.json`, run `npm run evals:contracts`, and add refusal cases for unsafe requests.
 7. Update `docs/USER_STORIES.md` and `docs/WEBMCP_PLUGIN.md` when behavior changes.
 8. For workflow changes, add state/context tests, negative scenarios, and update `docs/LOCAL_WORKFLOW_RUNTIME.md`.
+9. Run `scripts/validate-capability-catalog.mjs` through `npm run evals:contracts`; every shortcut step must reference a real capability.
+10. Update `CHANGELOG.md` and the applicable ADR when a naming, safety, persistence, or orchestration contract changes.
 
 ## Commands
 

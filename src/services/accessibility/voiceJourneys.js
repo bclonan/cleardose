@@ -56,6 +56,15 @@ const journeys = {
       "Review or print generated questions, or open the Universal Drug Index in a second tab.",
     ],
   },
+  shortcuts: {
+    title: "Hackathon prompt shortcuts",
+    intro: "Choose a prompt chain, copy it to your compatible agent, and inspect the deterministic machine analog beside the live workflow runtime.",
+    steps: [
+      "Choose a single-step or multi-step shortcut and review its role, situation, and step scope.",
+      "Copy the full chain or one step, or run the visual analog without invoking an external agent.",
+      "Inspect event ids and context, then explicitly review, copy, or save an optional memory packet.",
+    ],
+  },
   default: {
     title: "ClearDose page guidance",
     intro: "Use headings, landmarks, and the visible next action to continue through this fictional patient journey.",

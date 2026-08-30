@@ -67,6 +67,7 @@ function signOut() {
           <RouterLink to="/contact-doctor">Contact your doctor</RouterLink>
           <RouterLink to="/demo">WebMCP demo</RouterLink>
           <RouterLink to="/flow-lab">Flow lab</RouterLink>
+          <RouterLink to="/shortcuts">Shortcuts</RouterLink>
         </nav>
 
         <div class="header-actions">
@@ -117,6 +118,7 @@ function signOut() {
         <RouterLink to="/contact-doctor#providers">For providers</RouterLink>
         <RouterLink to="/demo">WebMCP demo</RouterLink>
         <RouterLink to="/flow-lab">Live flow lab</RouterLink>
+        <RouterLink to="/shortcuts">Hackathon shortcuts</RouterLink>
         <RouterLink v-if="store.currentCustomer" to="/account">My account</RouterLink>
         <RouterLink v-else to="/create-account">Create account</RouterLink>
       </div>
@@ -154,6 +156,7 @@ function signOut() {
           <RouterLink to="/login">Demo account</RouterLink>
           <RouterLink to="/cart">Mock cart</RouterLink>
           <RouterLink to="/flow-lab">Live flow lab</RouterLink>
+          <RouterLink to="/shortcuts">Prompt shortcuts</RouterLink>
           <button type="button" class="footer-link-button" @click="store.resetDemo(); router.push('/')">Reset demo data</button>
         </div>
         <div>
@@ -168,5 +171,6 @@ function signOut() {
       </div>
     </footer>
     <CdPromptGuide />
+    <CdHackathonLauncher />
   </div>
 </template>

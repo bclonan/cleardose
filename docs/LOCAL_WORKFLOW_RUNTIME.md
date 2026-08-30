@@ -23,7 +23,7 @@ flowchart TD
 | `flow_instances` | Current state, status, context, timestamps, and event count per concurrent flow |
 | `flow_events` | Immutable transition history with event id, source, correlation id, and context at that step |
 | `agent_exchanges` | Bounded site instruction, request context, exact response schema, and exchange status |
-| `generated_cards` | Patient-reviewable question card drafts and review state |
+| `generated_cards` | Patient-reviewable question cards and memory packet artifacts plus review/export state |
 
 The database opens at `opfs://cleardose-flow-lab.duckdb` and checkpoints writes. ClearDose uses DuckDB's official `getJsDelivrBundles()` and `selectBundle()` bootstrap so the browser receives the compatible engine and worker without putting 34–39 MB binaries into the Site artifact. Engine assets require an initial jsDelivr fetch; SQL execution and all OPFS data remain local to the browser after loading.
 
@@ -44,6 +44,16 @@ The fallback is intentionally explicit: it does not claim persistence, and its s
 ## Adding a flow
 
 Add one state definition under `src/services/api/workflows`, expose a Pinia action that calls `startFlow()` and `transition()`, and add deterministic tests for valid/invalid target states and bounded context. Pages should only select the use case and render the result.
+
+For a situation-specific machine, call `startDynamicMachine({ id, title, states, scope, context })`. `scope` must include `role`, `situation`, and `step`; states must be unique snake_case strings. The runtime embeds the definition in context, persists it with the flow, and the live viewer resolves it without importing route-specific code. `startShortcut()` is the reference adapter.
+
+Every imperative call is also represented by a four-state machine from the capability catalog. Declarative forms emit a privacy-minimized machine containing field names—not values—and `valuesPersisted: false`.
+
+## Prescription and memory sequences
+
+Prescription recovery moves `blocked → preparing → human_review`. Its context records the error code, recommended follow-up tool, editable prompt, and `externalActionTaken: false`. A person must initiate any later copy, provider contact, or tool call.
+
+Memory preparation moves `drafting → human_review`. An explicit clipboard or file action records `USER_EXPORTED_MEMORY` and moves to `exported`. The browser file picker is invoked before asynchronous work so it retains the required user activation; unsupported browsers receive an ordinary Markdown download.
 
 ## Privacy boundary
 

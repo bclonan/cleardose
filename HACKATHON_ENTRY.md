@@ -4,13 +4,13 @@
 
 ## What we built
 
-ClearDose is a fictional, local-first Vue 3 prescription-commerce experience where a patient and browser agent use the same typed capabilities. A 52-record Universal Drug Index expands into 156 packages and 468 deterministic fictional offers. It supports search, price comparison, discussion-only related records, synthetic interaction-review fixtures, local procurement planning, cart/account/checkout journeys, and a structured patient-to-doctor question card.
+ClearDose is a fictional, local-first Vue 3 prescription-commerce experience where a patient and browser agent use the same typed capabilities. A 52-record Universal Drug Index expands into 156 packages and 468 deterministic fictional offers. It supports search, price comparison, discussion-only related records, synthetic interaction-review fixtures, local procurement planning, cart/account/checkout journeys, structured patient-to-doctor documents, prescription recovery, and user-controlled agent memory packets.
 
 The differentiator is observability: the dedicated flow lab renders concurrent XState/Stately-style state paths, exact event ids, transition history, and the bounded context at every step. DuckDB-Wasm stores the drug seed, flows, events, agent exchanges, and cards in browser OPFS. `BroadcastChannel` mirrors activity into a second tab, so a demo operator can put the patient experience and live runtime side by side.
 
 ## Why WebMCP
 
-Prescription journeys contain precise identity, price, package, state, and human-approval boundaries that are difficult for an agent to reconstruct from presentation alone. ClearDose registers twelve single-purpose tools through `document.modelContext.registerTool()`. Every tool has a closed bounded schema, strict runtime validation, clear read/mutation annotations, deterministic structured output, and graceful unsupported-browser behavior.
+Prescription journeys contain precise identity, price, package, state, and human-approval boundaries that are difficult for an agent to reconstruct from presentation alone. ClearDose registers fourteen single-purpose imperative tools through `document.modelContext.registerTool()` and catalogs seven declarative forms. Every capability has a category, interaction-model tag, copyable prompt, closed bounded contract, deterministic machine analog, and graceful unsupported-browser behavior.
 
 Human components and agent tools share Pinia actions and application services. Search returns exact UDI ids for later calls. Comparison never claims therapeutic substitution. Synthetic interaction results expose incomplete coverage. Planning never reserves or orders. Checkout, patient data, and clinical decisions remain human-controlled.
 
@@ -25,14 +25,14 @@ The question-card exchange demonstrates a reusable two-tool pattern:
 
 The generic `createStructuredExchangeToolPair()` factory and domain template literals make this pattern easy to extend without placing orchestration logic in route pages.
 
-## Three-minute demo
+## Judge demo
 
-1. Open **WebMCP demo** and show the DOM-vs-tools side-by-side explanation plus the live tool manifest.
-2. Open **Flow lab**. Keep the viewer on the right and prepare a lisinopril question-card handoff on the left.
-3. Show the returned instruction and response schema, submit the prefilled mock agent response, and print or mark the resulting card reviewed.
-4. Open the UDI in a second tab, call or simulate another tool, and watch a concurrent flow/event appear.
-5. Run **invalid health-data form**, **package becomes unavailable**, and **price changes before review**. Show that each failure is visible context—not a silent success or automatic order.
-6. Open the floating **Prompt guide**, voice-search “workflow,” and copy an example for `inspect_workflow_runtime`.
+1. Use the floating **Demo shortcuts** CTA and select **Full judge tour**.
+2. Copy its chain into a WebMCP-capable agent, then run the deterministic visual analog. Explain that the simulation and real agent are deliberately distinguished.
+3. Inspect the dynamic `role/situation/step` scope, current state, event ids, and context beside the same run.
+4. Select **Prescription recovery**. Generate an editable follow-up, review it, and copy it without contacting a prescriber.
+5. Prepare a memory packet, inspect every line, then explicitly copy or save the Markdown. Show that nothing is retained automatically.
+6. Run the negative recovery lab and finish with `cleardose_inspect_workflow_runtime`.
 
 ## Architecture
 
@@ -42,7 +42,9 @@ The generic `createStructuredExchangeToolPair()` factory and domain template lit
 - Memory fallback plus same-origin `BroadcastChannel` replication
 - Centralized workflow definitions, negative fixtures, and structured exchange contract
 - Reusable adapter-ready components registered by one ClearDose plugin
-- Twelve WebMCP tools, declarative form examples, runtime contract tests, and Chrome-compatible eval fixtures
+- A canonical 21-capability manifest, seven prompt chains, fourteen imperative tools, seven declarative forms, runtime contract tests, and Chrome-compatible eval fixtures
+- Static tool/form machines plus dynamic shortcut machines scoped to a role, situation, and step
+- User-controlled File System Access/download memory export with no silent external agent transfer
 
 ## Reliability and accessibility
 

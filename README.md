@@ -2,7 +2,7 @@
 
 **Transparent prescriptions, agent-ready.**
 
-A complete Vue 3 prescription-commerce sandbox with a local Universal Drug Index, fictional prices, customer and checkout flows, a Pinia application store, clean DTO/DAO boundaries, replaceable adapters, an extensible WebMCP plugin, and a live local-first workflow observatory.
+A complete Vue 3 prescription-commerce sandbox with a local Universal Drug Index, fictional prices, customer and checkout flows, a Pinia application store, clean DTO/DAO boundaries, replaceable adapters, an extensible WebMCP plugin, a judge-ready prompt shortcut runner, and a live local-first workflow observatory.
 
 ## Run
 
@@ -31,11 +31,17 @@ Open `/#/flow-lab` to run multiple workflows next to a Stately-style live inspec
 
 The question-card demo implements a two-call exchange: `prepare_doctor_question_card_request` returns bounded UDI facts, a template-literal instruction, and an exact expected response schema; `submit_doctor_question_card_draft` accepts only structured neutral questions and produces a printable patient-reviewable card. ClearDose derives displayed price facts from its UDI rather than accepting agent-authored prices.
 
-The same page contains deterministic negative fixtures for invalid health-data-style forms, unavailable demo stock, and stale fictional prices that require reconfirmation.
+The same page contains deterministic negative fixtures for invalid health-data-style forms, unavailable demo stock, stale fictional prices that require reconfirmation, and prescription-required recovery that ends in human review.
+
+## Hackathon prompt shortcuts
+
+Open `/#/shortcuts` or use the floating **Demo shortcuts** CTA. Seven copyable single- and multi-step chains cover the end-to-end judge tour, price comparison, prescription recovery, doctor question cards, negative paths, runtime inspection, and declarative form autofill. Each shortcut has a dynamic deterministic machine scoped by `role`, `situation`, and `step`; its timed visual analog writes real local events without falsely claiming that an external agent ran.
+
+The page also contains reusable prescription-recovery and agent-memory surfaces. A prescription gate returns actionable administrative steps plus an editable prompt. A memory packet can be reviewed, copied, or saved as Markdown using the File System Access API when supported and an ordinary download otherwise. ClearDose never silently sends context to an external agent or writes a file.
 
 ## WebMCP
 
-The plugin progressively registers twelve single-purpose tools through `document.modelContext`: the original UDI, review, planning, highlighting, and cart capabilities plus workflow inspection and the two-call doctor-question-card exchange. UI and agents call the same Pinia actions, so state stays synchronized. Browsers without WebMCP continue to work normally.
+The plugin progressively registers fourteen single-purpose imperative tools through `document.modelContext` and catalogs seven declarative forms. The 21-capability catalog owns names, categories, imperative/declarative tags, example prompts, and deterministic machine analogs. UI and agents call the same Pinia actions, so state stays synchronized. Browsers without WebMCP continue to work normally.
 
 Reusable components accept adapter overrides plus imperative and declarative WebMCP configuration. The global agent center exposes the live tool manifest and an optional route-aware voice journey with a persistent transcript. A floating prompt guide documents every registered tool, offers copyable examples, and uses browser speech recognition as an optional voice-search enhancement. See [docs/WEBMCP_PLUGIN.md](docs/WEBMCP_PLUGIN.md) for extension examples.
 
@@ -51,7 +57,11 @@ Reusable components accept adapter overrides plus imperative and declarative Web
 - [WebMCP evals](docs/EVALS.md)
 - [Local workflow runtime](docs/LOCAL_WORKFLOW_RUNTIME.md)
 - [Prompt and voice guide](docs/PROMPT_GUIDE.md)
+- [Hackathon shortcuts](docs/HACKATHON_SHORTCUTS.md)
+- [Capability naming ADR](docs/adr/0001-capability-naming-and-machine-scope.md)
+- [Human-controlled memory ADR](docs/adr/0002-human-controlled-agent-memory-files.md)
 - [Hackathon entry](HACKATHON_ENTRY.md)
+- [Changelog](CHANGELOG.md)
 - [Agent/contributor instructions](AGENTS.md)
 
 ## Safety boundary

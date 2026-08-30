@@ -1,5 +1,6 @@
 import { computed, markRaw, reactive, ref, shallowRef } from "vue";
 import { defineStore } from "pinia";
+import { buildPrescriptionFollowUp } from "../services/api/recovery/recoveryGuidance";
 
 const emptyState = () => ({
   currentCustomerId: null,
@@ -27,6 +28,8 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
     events: [],
     exchanges: [],
     cards: [],
+    artifacts: [],
+    memoryPackets: [],
   });
   const selectedFlowId = ref("");
 
@@ -82,6 +85,17 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
   function selectWorkflow(flowId) { selectedFlowId.value = String(flowId || ""); }
   function inspectWorkflow(input) { return workflowRuntime.value?.inspect(input) ?? { database: workflow.database, flows: [], events: [], cards: [] }; }
 
+  async function searchLocalDrugIndex(input) {
+    if (!workflowRuntime.value) return searchDrugIndex(input);
+    const drugs = await workflowRuntime.value.querySeededDrugs(input);
+    return drugs.map((drug) => ({ id: drug.id, udi: drug.identifiers?.udi, name: drug.name, genericFor: drug.genericFor, category: drug.category, drugClass: drug.drugClass, fromPrice: Math.min(...drug.variants.map((item) => item.price)), variantCount: drug.variants.length }));
+  }
+
+  async function localDrugIndexEntry(drugId) {
+    if (!workflowRuntime.value) return drugIndexEntry(drugId);
+    return workflowRuntime.value.getSeededDrug(drugId);
+  }
+
   async function startWorkflow(input) {
     if (!workflowRuntime.value) throw new Error("Workflow runtime is not configured.");
     const flow = await workflowRuntime.value.startFlow(input);
@@ -134,6 +148,41 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
     return flow;
   }
 
+  async function startHackathonShortcut(shortcut) {
+    if (!workflowRuntime.value) throw new Error("Workflow runtime is not configured.");
+    const flow = await workflowRuntime.value.startShortcut(shortcut);
+    selectedFlowId.value = flow.id;
+    return flow;
+  }
+
+  async function advanceHackathonShortcut(flowId, shortcut, index) {
+    if (!workflowRuntime.value) throw new Error("Workflow runtime is not configured.");
+    return workflowRuntime.value.advanceShortcut(flowId, shortcut, index);
+  }
+
+  async function completeHackathonShortcut(flowId) { return workflowRuntime.value?.completeShortcut(flowId); }
+
+  async function recordDeclarativeForm(input) { return workflowRuntime.value?.recordDeclarativeForm(input); }
+
+  async function preparePrescriptionFollowUp({ drugId, preferredPath = "undecided", questions = [] }) {
+    if (!workflowRuntime.value) throw new Error("Workflow runtime is not configured.");
+    const drug = await localDrugIndexEntry(drugId);
+    if (!drug) throw new TypeError(`Unknown UDI drug id: ${drugId}.`);
+    const guidance = buildPrescriptionFollowUp({ drug, preferredPath, questions });
+    const result = await workflowRuntime.value.preparePrescriptionFollowUp(guidance);
+    selectedFlowId.value = result.flowId;
+    return result;
+  }
+
+  async function prepareAgentMemoryPacket(input) {
+    if (!workflowRuntime.value) throw new Error("Workflow runtime is not configured.");
+    const packet = await workflowRuntime.value.prepareMemoryPacket(input);
+    selectedFlowId.value = packet.flowId;
+    return packet;
+  }
+
+  async function markMemoryExported(packetId, method) { return workflowRuntime.value?.markMemoryExported(packetId, method); }
+
   return {
     state,
     initialized,
@@ -172,6 +221,8 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
     customerPrescriptions,
     selectWorkflow,
     inspectWorkflow,
+    searchLocalDrugIndex,
+    localDrugIndexEntry,
     startWorkflow,
     transitionWorkflow,
     prepareDoctorQuestionCard,
@@ -179,6 +230,13 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
     markQuestionCardReviewed,
     clearWorkflowLab,
     runWorkflowScenario,
+    startHackathonShortcut,
+    advanceHackathonShortcut,
+    completeHackathonShortcut,
+    recordDeclarativeForm,
+    preparePrescriptionFollowUp,
+    prepareAgentMemoryPacket,
+    markMemoryExported,
   };
 });
 

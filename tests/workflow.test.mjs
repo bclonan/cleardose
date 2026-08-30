@@ -63,9 +63,39 @@ test("negative fixtures capture rejected form, stock, and stale-price states", a
   const invalid = await runtime.runNegativeScenario("invalid-health-form");
   const unavailable = await runtime.runNegativeScenario("out-of-stock");
   const price = await runtime.runNegativeScenario("price-updated");
+  const prescription = await runtime.runNegativeScenario("prescription-required");
   assert.equal(invalid.state, "rejected");
   assert.equal(invalid.context.persisted, false);
   assert.equal(unavailable.context.availability, "unavailable-demo-stock");
   assert.equal(price.context.requiresReconfirmation, true);
   assert.equal(price.context.orderPlaced, false);
+  assert.equal(prescription.state, "human_review");
+  assert.equal(prescription.context.recommendedTool, "cleardose_prepare_prescription_follow_up");
+});
+
+test("dynamic shortcut machine preserves role, situation, step, and every visible step", async () => {
+  const { runtime } = await runtimeFixture();
+  const shortcut = { id: "test-tour", title: "Test tour", summary: "Bounded test", mode: "multi-step", scope: { role: "judge", situation: "demo", step: "tour" }, steps: [{ id: "search", title: "Search", prompt: "Search", capabilityId: "cleardose.discovery-and-pricing.search_drug_index" }, { id: "inspect", title: "Inspect", prompt: "Inspect", capabilityId: "cleardose.interface-and-observability.inspect_workflow_runtime" }] };
+  const flow = await runtime.startShortcut(shortcut);
+  await runtime.advanceShortcut(flow.id, shortcut, 0);
+  await runtime.advanceShortcut(flow.id, shortcut, 1);
+  const inspected = runtime.inspect({ flowId: flow.id });
+  assert.equal(inspected.flows[0].state, "human_review");
+  assert.deepEqual(inspected.flows[0].context.scope, shortcut.scope);
+  assert.equal(inspected.flows[0].context.machineDefinition.id, "machine.dynamic.shortcut-test-tour.v1");
+  assert.equal(inspected.events.length, 4);
+  await assert.rejects(runtime.startDynamicMachine({ id: "unsafe", title: "Unsafe", states: ["idle", "done"], scope: { role: "judge" } }), /role, situation, and step/);
+});
+
+test("seeded local database adapter answers drug queries and memory packets remain reviewable", async () => {
+  const { MemoryWorkflowDao } = await vite.ssrLoadModule("/src/infrastructure/persistence/MemoryWorkflowDao.js");
+  const { WorkflowRuntime } = await vite.ssrLoadModule("/src/services/workflows/WorkflowRuntime.js");
+  const runtime = new WorkflowRuntime({ dao: new MemoryWorkflowDao({ reason: "test" }), channelName: "query-test" });
+  await runtime.initialize({ drugs: [{ id: "med_lisinopril", name: "Lisinopril", genericFor: "Zestril", category: "Heart health", drugClass: "ACE inhibitor", identifiers: { udi: "udi:cleardose:lisinopril" }, variants: [{ price: 8.25 }] }] });
+  const records = await runtime.querySeededDrugs({ query: "ACE", limit: 5 });
+  assert.equal(records[0].id, "med_lisinopril");
+  const packet = await runtime.prepareMemoryPacket({ label: "Reviewed facts", facts: ["Fictional data only"], flowIds: [] });
+  assert.equal(packet.status, "human_review");
+  assert.match(packet.markdown, /Fictional data only/);
+  assert.equal(runtime.snapshot().memoryPackets.length, 1);
 });

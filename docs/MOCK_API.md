@@ -6,14 +6,22 @@ All simulated server behavior is isolated under `src/services/api`:
 src/services/api/
 ├── createMockPharmacyApi.js
 ├── index.js
+├── local/
+│   └── LocalDrugIndexApi.js
+├── documents/
+│   └── agentMemoryPacket.js
+├── recovery/
+│   └── recoveryGuidance.js
+├── shortcuts/
+│   └── hackathonShortcuts.js
 ├── udi/
 │   ├── drugConcepts.js
 │   ├── demoInteractionRules.js
 │   └── UniversalDrugIndex.js
 ├── mock/
-    ├── MockPharmacyApi.js
-    ├── negativeScenarios.js
-    └── seedData.js
+│   ├── MockPharmacyApi.js
+│   ├── negativeScenarios.js
+│   └── seedData.js
 └── workflows/
     ├── doctorQuestionCardExchange.js
     └── workflowDefinitions.js
@@ -23,4 +31,6 @@ src/services/api/
 
 To replace the mock server, implement the same API methods with HTTP calls and pass the resulting data adapter to `createClearDosePlugin({ dataAdapter })`. Route pages and components do not import fixtures or persistence.
 
-`negativeScenarios.js` contains deterministic invalid-form, unavailable-stock, and stale-price events. `workflows/` owns state definitions and the structured question-card contract. The runtime consumes these fixtures through Pinia; route pages do not invent event payloads.
+`LocalDrugIndexApi` adapts the configured DAO's `queryDrugs()` and `getDrug()` methods, so WebMCP search/detail calls exercise the seeded DuckDB table or the explicit memory fallback. It has no dependency on Vue, DuckDB, or page state.
+
+`negativeScenarios.js` contains deterministic invalid-form, unavailable-stock, stale-price, and prescription-required events. `recovery/` maps these codes to actionable, human-reviewed next steps. `documents/` builds bounded memory artifacts. `shortcuts/` contains prompt-chain fixtures and their situation scope. `workflows/` owns state definitions and the structured question-card contract. The runtime consumes these fixtures through Pinia; route pages do not invent event payloads.

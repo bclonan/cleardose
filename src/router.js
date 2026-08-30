@@ -15,6 +15,7 @@ import CompareView from "./views/CompareView.vue";
 import DemoView from "./views/DemoView.vue";
 import DrugIndexView from "./views/DrugIndexView.vue";
 import FlowLabView from "./views/FlowLabView.vue";
+import HackathonShortcutsView from "./views/HackathonShortcutsView.vue";
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -37,6 +38,7 @@ const router = createRouter({
     { path: "/demo", name: "demo", component: DemoView, meta: { title: "WebMCP hackathon demo — ClearDose" } },
     { path: "/udi", name: "udi", component: DrugIndexView, meta: { title: "Universal Drug Index — ClearDose" } },
     { path: "/flow-lab", name: "flow-lab", component: FlowLabView, meta: { title: "Live workflow observatory — ClearDose" } },
+    { path: "/shortcuts", name: "shortcuts", component: HackathonShortcutsView, meta: { title: "Hackathon prompt shortcuts — ClearDose" } },
     { path: "/:pathMatch(.*)*", redirect: "/" },
   ],
 });

@@ -207,5 +207,47 @@
         }
       }
     ]
+  },
+  {
+    "name": "Prepare prescription-required recovery without external action",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "ClearDose says a prescription is required for lisinopril. Prepare an editable prescriber follow-up for my review, but do not contact anyone."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "cleardose_prepare_prescription_follow_up",
+        "arguments": {
+          "drugId": "med_lisinopril",
+          "preferredPath": "undecided"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Prepare a user-controlled memory packet",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Prepare a ClearDose demo memory packet stating that all data is fictional and the next step is human review. Do not save or retain it automatically."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "cleardose_prepare_agent_memory_packet",
+        "arguments": {
+          "facts": [
+            "All data is fictional"
+          ],
+          "nextSteps": [
+            "Human review"
+          ]
+        }
+      }
+    ]
   }
 ]

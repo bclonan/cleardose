@@ -1,6 +1,7 @@
 import { toolError, toolResponse } from "../toolResponse.js";
 import { createStructuredExchangeToolPair } from "../templates/createStructuredExchangeToolPair.js";
 import { doctorQuestionCardResponseSchema } from "../../../services/api/workflows/doctorQuestionCardExchange.js";
+import { decorateToolDefinitions } from "../catalog/capabilityCatalog.js";
 
 class ToolInputError extends Error {
   constructor(message, details = {}) {
@@ -91,7 +92,7 @@ export function createDefaultTools({ store, highlightService, workflowRuntime })
         const category = stringValue(input, "category", { maxLength: 80 }) || "All medications";
         const drugClass = stringValue(input, "drugClass", { maxLength: 80 });
         const limit = integerValue(input, "limit", { fallback: 12, maximum: 50 });
-        const drugs = store.searchDrugIndex({ query, category, drugClass, limit });
+        const drugs = await store.searchLocalDrugIndex({ query, category, drugClass, limit });
         return toolResponse({ ok: true, count: drugs.length, drugs }, `Found ${drugs.length} matching UDI record${drugs.length === 1 ? "" : "s"}.`);
       }, ["query", "category", "drugClass", "limit"]),
     },
@@ -110,7 +111,7 @@ export function createDefaultTools({ store, highlightService, workflowRuntime })
       annotations: readOnlyAnnotations,
       execute: safe(async (input) => {
         const drugId = stringValue(input, "drugId", { required: true, maxLength: 100 });
-        const drug = store.drugIndexEntry(drugId);
+        const drug = await store.localDrugIndexEntry(drugId);
         if (!drug) throw new ToolInputError(`Unknown UDI drug id: ${drugId}.`, { field: "drugId" });
         return toolResponse({ ok: true, drug }, `Returned ${drug.name} with ${drug.variants.length} fictional package variants.`);
       }, ["drugId"]),
@@ -302,7 +303,15 @@ export function createDefaultTools({ store, highlightService, workflowRuntime })
         const variantId = stringValue(input, "variantId", { required: true, maxLength: 140 });
         const added = store.addToCart(drugId, variantId);
         if (!added) throw new ToolInputError("The UDI drug or package variant was not found.", { field: "variantId" });
-        return toolResponse({ ok: true, itemCount: store.cartCount, total: store.cartTotal }, "Added the indexed package to the local fictional cart.");
+        const drug = await store.localDrugIndexEntry(drugId);
+        const fulfillmentGate = drug ? {
+          code: "PRESCRIPTION_REQUIRED",
+          title: "Prescription required",
+          summary: "Your prescriber must send a valid prescription before fulfillment.",
+          recommendedTool: "cleardose_prepare_prescription_follow_up",
+          humanReviewRequired: true,
+        } : null;
+        return toolResponse({ ok: true, itemCount: store.cartCount, total: store.cartTotal, fulfillmentGate }, fulfillmentGate ? "Added the indexed package to the local cart. Prescription follow-up is required before fictional fulfillment." : "Added the indexed package to the local fictional cart.");
       }, ["drugId", "variantId"]),
     },
   ];
@@ -372,9 +381,61 @@ export function createDefaultTools({ store, highlightService, workflowRuntime })
   });
   tools.splice(7, 0, ...exchangeTools);
 
-  if (!workflowRuntime) return tools;
-  return tools.map((tool) => ({
+  tools.splice(9, 0, {
+    name: "prepare_prescription_follow_up",
+    title: "Prepare prescription-required follow-up",
+    description: "Turn a prescription-required fulfillment gate into deterministic next steps and an editable prompt for patient review. This tool does not contact a prescriber, transfer a prescription, or make a clinical recommendation.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        drugId: { type: "string", description: "Exact ClearDose UDI drug id." },
+        preferredPath: { type: "string", enum: ["prescriber_send", "transfer", "on_file", "undecided"], default: "undecided", description: "Patient-selected administrative path." },
+        questions: { type: "array", minItems: 0, maxItems: 6, items: { type: "string", maxLength: 160 }, description: "Optional short questions to preserve in the editable handoff." },
+      },
+      required: ["drugId"],
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, untrustedContentHint: true },
+    execute: safe(async (input) => {
+      const drugId = stringValue(input, "drugId", { required: true, maxLength: 100 });
+      const preferredPath = stringValue(input, "preferredPath", { maxLength: 30 }) || "undecided";
+      if (!["prescriber_send", "transfer", "on_file", "undecided"].includes(preferredPath)) throw new ToolInputError("preferredPath is not supported.", { field: "preferredPath" });
+      const questions = optionalStringArray(input, "questions", { maximum: 6 });
+      const followUp = await store.preparePrescriptionFollowUp({ drugId, preferredPath, questions });
+      return toolResponse({ ok: true, followUp, visibleState: "human_review" }, "Prepared editable prescription follow-up steps for patient review; no external action was taken.");
+    }, ["drugId", "preferredPath", "questions"]),
+  });
+
+  tools.splice(10, 0, {
+    name: "prepare_agent_memory_packet",
+    title: "Prepare a user-controlled agent memory packet",
+    description: "Create a bounded Markdown and structured context packet for the user to review, edit, copy, or save locally. The tool does not write to an external agent memory or filesystem automatically.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        label: { type: "string", maxLength: 100 }, goal: { type: "string", maxLength: 500 },
+        facts: { type: "array", minItems: 0, maxItems: 12, items: { type: "string", maxLength: 240 } },
+        decisions: { type: "array", minItems: 0, maxItems: 12, items: { type: "string", maxLength: 240 } },
+        nextSteps: { type: "array", minItems: 0, maxItems: 12, items: { type: "string", maxLength: 240 } },
+        flowIds: { type: "array", minItems: 0, maxItems: 12, items: { type: "string", maxLength: 120 } },
+      },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, untrustedContentHint: true },
+    execute: safe(async (input) => {
+      const packet = await store.prepareAgentMemoryPacket({
+        label: stringValue(input, "label", { maxLength: 100 }) || "ClearDose demo memory",
+        goal: stringValue(input, "goal", { maxLength: 500 }),
+        facts: optionalStringArray(input, "facts", { maximum: 12 }), decisions: optionalStringArray(input, "decisions", { maximum: 12 }),
+        nextSteps: optionalStringArray(input, "nextSteps", { maximum: 12 }), flowIds: optionalStringArray(input, "flowIds", { maximum: 12 }),
+      });
+      return toolResponse({ ok: true, packet, visibleState: "human_review" }, "Prepared a local memory packet. The user must review and explicitly copy or save it.");
+    }, ["label", "goal", "facts", "decisions", "nextSteps", "flowIds"]),
+  });
+
+  const executableTools = !workflowRuntime ? tools : tools.map((tool) => ({
     ...tool,
     execute: (input) => workflowRuntime.runTool(tool.name, input, () => tool.execute(input)),
   }));
+  return decorateToolDefinitions(executableTools);
 }

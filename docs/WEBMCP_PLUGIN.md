@@ -23,7 +23,7 @@ createApp(App).use(pinia).use(clearDose).mount("#app");
 
 ## Registered components
 
-`CdAccountNav`, `CdAgentControlCenter`, `CdAgentReadyForm`, `CdAgentReadyHost`, `CdComparisonPanel`, `CdMedicationCard`, `CdStatusBadge`, `CdWebMcpStatus`, `CdWorkflowLiveViewer`, `CdDoctorQuestionCard`, and `CdPromptGuide` are registered globally. Every reusable component accepts:
+`CdAccountNav`, `CdAgentControlCenter`, `CdAgentReadyForm`, `CdAgentReadyHost`, `CdComparisonPanel`, `CdMedicationCard`, `CdStatusBadge`, `CdWebMcpStatus`, `CdWorkflowLiveViewer`, `CdDoctorQuestionCard`, `CdPromptGuide`, `CdCapabilityMachinePane`, `CdPrescriptionRecoveryPanel`, and `CdHackathonLauncher` are registered globally. Every reusable component accepts:
 
 | Prop | Type | Purpose |
 |---|---|---|
@@ -64,6 +64,8 @@ Declarative form names describe visible UI effects such as `populate_visible_pri
 | `cleardose_inspect_workflow_runtime` | No | Read concurrent flows, recent event ids, state/context snapshots, cards, and local database status |
 | `cleardose_prepare_doctor_question_card_request` | Yes, local | Create a bounded site-to-agent exchange with an instruction and exact response schema |
 | `cleardose_submit_doctor_question_card_draft` | Yes, local | Validate structured questions and render a patient-reviewable local card |
+| `cleardose_prepare_prescription_follow_up` | Yes, local | Prepare actionable administrative steps and an editable prompt without contacting a prescriber |
+| `cleardose_prepare_agent_memory_packet` | Yes, local | Prepare a bounded Markdown/structured packet that still requires explicit copy or save |
 | `cleardose_highlight_section` | No | Move visible focus to a stable page section or action shared by the human and agent |
 | `cleardose_get_cart` | No | Read items and transparent totals |
 | `cleardose_add_to_cart` | Yes | Add an exact UDI package through the same Pinia action as the UI |
@@ -77,6 +79,27 @@ Declarative form names describe visible UI effects such as `populate_visible_pri
 - Results contain the minimum structured context needed for a next call. Errors return `INVALID_INPUT` or `TOOL_FAILURE` plus a `retryable` signal.
 - Interaction and related-record outputs include domain boundaries in structured content instead of depending only on UI disclaimers.
 - Every imperative execution is wrapped by the workflow runtime. The wrapper records queued, running, complete/error, input, and compact structured result states without changing the tool's return contract.
+- Browser registration receives only standard WebMCP fields. Category, prompt, interaction tag, and machine metadata remain in the ClearDose registry and never depend on a browser accepting extension keys.
+
+## Canonical capability catalog and naming
+
+`src/infrastructure/webmcp/catalog/capabilityCatalog.js` is the source of truth for fourteen imperative and seven declarative capabilities. Use these formats:
+
+| Artifact | Format | Example |
+|---|---|---|
+| Registered tool | `cleardose_<verb_noun>` | `cleardose_compare_drug_prices` |
+| Capability id | `cleardose.<category>.<verb_noun>` | `cleardose.discovery-and-pricing.compare_drug_prices` |
+| Static machine | `machine.tool.<kebab-name>.v1` | `machine.tool.compare-drug-prices.v1` |
+| Dynamic machine | `machine.dynamic.<scope-name>.v1` | `machine.dynamic.shortcut-price-comparison.v1` |
+| Events | `UPPER_SNAKE_CASE` | `HUMAN_REVIEW_REQUIRED` |
+
+The catalog groups discovery/pricing, patient/clinician, shopping/procurement, documents/memory, interface/observability, and declarative forms. `decorateToolDefinitions()` rejects an imperative definition with no catalog entry. `npm run evals:contracts` validates uniqueness, formats, categories, scope, and shortcut references.
+
+## Recovery and memory contracts
+
+`add_to_cart` may return a `PRESCRIPTION_REQUIRED` fulfillment gate and the recommended next tool. It does not automatically call the follow-up tool because each capability remains single-purpose and externally meaningful actions stay explicit. `prepare_prescription_follow_up` returns steps, a visible form description, and editable prompt with `externalActionTaken: false` in the runtime context.
+
+`prepare_agent_memory_packet` creates a local artifact in `human_review`. Clipboard/file export happens from the UI after a user gesture and is recorded as a later `USER_EXPORTED_MEMORY` event. Tool execution itself never writes a file or an external agent memory.
 
 ## Add a structured ping-pong exchange
 
@@ -98,6 +121,6 @@ The prepare result should include `exchangeId`, bounded context, a template-lite
 
 ## Add a tool
 
-Add a definition to `createDefaultTools.js`, use a bounded JSON Schema, validate again in executable code, set annotations accurately, and invoke a store action. The registry prefixes names, records status, and provides an `AbortSignal` so tools can be unregistered cleanly. Add direct and open-ended cases to `evals/cleardose.evals.json`, then run `npm run evals:contracts` and `npm test`.
+Add the capability catalog entry first, then add the definition to `createDefaultTools.js`, use a bounded JSON Schema, validate again in executable code, set annotations accurately, and invoke a store action. The registry prefixes names, records status, and provides an `AbortSignal` so tools can be unregistered cleanly. Add direct and open-ended cases to `evals/cleardose.evals.json`, then run `npm run evals:contracts` and `npm test`.
 
 The implementation follows the W3C Community Group draft and uses `document.modelContext.registerTool()`. See the [current WebMCP draft](https://webmachinelearning.github.io/webmcp/), [Chrome's WebMCP best practices](https://developer.chrome.com/docs/ai/webmcp/best-practices), [tool security guidance](https://developer.chrome.com/docs/ai/webmcp/secure-tools), [WebMCP evals](https://developer.chrome.com/docs/ai/webmcp/evals), and [autofill guidance](https://web.dev/learn/forms/autofill).

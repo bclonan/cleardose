@@ -11,6 +11,7 @@ const tools = createDefaultTools({
       "tool-catalog", "cart-summary", "checkout-flow", "provider-handoff", "primary-price",
       "add-to-cart-action", "agent-tools-control", "udi-search", "udi-results", "udi-lab",
       "workflow-runtime", "question-card", "failure-lab",
+      "hackathon-shortcuts", "prompt-chain", "shortcut-observatory", "machine-inspector", "agent-memory", "prescription-recovery",
     ],
   },
 }).map(({ name, title, description, inputSchema, annotations }) => ({
