@@ -1,0 +1,104 @@
+import { normalizeCapabilityTemplate, validateTemplateInput } from "../api/templates/capabilityTemplateSchema";
+import { SafeEjsTemplateEngine } from "./SafeEjsTemplateEngine";
+import { toolResponse } from "../../infrastructure/webmcp/toolResponse";
+
+function copy(value) { return value == null ? value : structuredClone(value); }
+
+const starters = Object.freeze([
+  Object.freeze({ kind: "tool", name: "visit_question_sheet", title: "Generate a visit question sheet", description: "Create a local, reviewable question sheet from user-provided medication and visit goals.", examplePrompt: "I’m getting ready for an appointment about lisinopril. Please make me a short question sheet focused on cost and monitoring, and leave it for me to review.", voiceGuide: "Name the medication, say what you want to understand, then review the generated sheet before copying it.", scope: { role: "patient", situation: "visit-preparation", step: "question-sheet" }, inputFields: [{ name: "drug_name", label: "Medication name", type: "string", required: true, description: "Fictional medication name." }, { name: "visit_goal", label: "Visit goal", type: "string", required: true, description: "What the patient wants to discuss." }], body: "# Questions about <%= input.drug_name %>\n\nVisit goal: <%= input.visit_goal %>\n\n- What should I understand before making any change?\n- Which cost, monitoring, and safety questions should we discuss?\n\nGenerated in ClearDose for human review. Not medical advice.", autoRegister: false }),
+  Object.freeze({ kind: "workflow", name: "prescription_review_loop", title: "Prescription review loop", description: "A reusable human-reviewed workflow for gathering context before an administrative prescription follow-up.", examplePrompt: "ClearDose says my fictional order needs a prescription. Please start a review workflow, help me gather the context, and stop before anyone is contacted.", voiceGuide: "Collect the fictional medication context, prepare the editable handoff, and stop for human review before completion.", scope: { role: "patient", situation: "prescription-required", step: "review-loop" }, inputFields: [{ name: "drug_name", label: "Medication name", type: "string", required: true, description: "Fictional indexed medication." }], states: ["ready", "collecting_context", "preparing_handoff", "human_review", "complete"], body: "Review workflow for <%= input.drug_name %>. Current role: <%= context.role %>. Stop at human review before any external action.", autoRegister: false }),
+]);
+
+export class CapabilityTemplateService {
+  constructor({ dao, toolRegistry, workflowRuntime, engine = new SafeEjsTemplateEngine() }) {
+    this.dao = dao; this.toolRegistry = toolRegistry; this.workflowRuntime = workflowRuntime; this.engine = engine;
+    this.templates = new Map(); this.status = new Map(); this.listeners = new Set(); this.initialized = false;
+  }
+
+  snapshot() { return Object.freeze({ initialized: this.initialized, templates: copy([...this.templates.values()].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))), statuses: Object.fromEntries(this.status) }); }
+  subscribe(listener) { this.listeners.add(listener); listener(this.snapshot()); return () => this.listeners.delete(listener); }
+  notify() { const snapshot = this.snapshot(); this.listeners.forEach((listener) => listener(snapshot)); }
+  persist() { this.dao.saveAll([...this.templates.values()]); }
+
+  async initialize() {
+    const saved = this.dao.load();
+    const source = saved.length ? saved : starters;
+    for (const record of source) {
+      try { const template = normalizeCapabilityTemplate(record); this.engine.validate(template.body); this.templates.set(template.id, template); }
+      catch { /* Ignore malformed local records instead of registering them. */ }
+    }
+    if (!saved.length) this.persist();
+    this.initialized = true;
+    for (const template of this.templates.values()) if (template.autoRegister) await this.register(template.id);
+    this.notify(); return this.snapshot();
+  }
+
+  get(id) { return this.templates.get(String(id)) ?? null; }
+
+  save(record) {
+    const prior = record?.id ? this.get(record.id) : null;
+    const autoRegister = Object.prototype.hasOwnProperty.call(record ?? {}, "autoRegister") ? record.autoRegister : prior?.autoRegister;
+    const template = normalizeCapabilityTemplate({ ...prior, ...record, autoRegister, createdAt: prior?.createdAt });
+    this.engine.validate(template.body);
+    this.templates.set(template.id, template); this.status.set(template.id, template.autoRegister ? (template.kind === "tool" ? "registered" : "loaded") : "draft"); this.persist(); this.notify();
+    return copy(template);
+  }
+
+  import(record) { return this.save({ ...record, id: undefined, autoRegister: false }); }
+
+  async remove(id) {
+    await this.unregister(id); this.templates.delete(String(id)); this.status.delete(String(id)); this.persist(); this.notify();
+  }
+
+  render(idOrTemplate, input = {}) {
+    const template = typeof idOrTemplate === "string" ? this.get(idOrTemplate) : normalizeCapabilityTemplate(idOrTemplate);
+    if (!template) throw new TypeError(`Unknown capability template: ${idOrTemplate}.`);
+    const safeInput = validateTemplateInput(template, input);
+    return this.engine.render(template.body, { input: safeInput, context: template.scope, site: { name: "ClearDose", tagline: "Transparent prescriptions, agent-ready." } });
+  }
+
+  toolDefinition(template) {
+    return {
+      name: template.name, title: template.title, description: template.description, inputSchema: template.inputSchema,
+      annotations: { readOnlyHint: false, untrustedContentHint: true },
+      capabilityId: `cleardose.user-generated.${template.name}`, category: "user-generated", interactionModel: "imperative",
+      machine: { id: `machine.dynamic.user-tool-${template.name.replaceAll("_", "-")}.v1`, kind: "dynamic", role: template.scope.role, states: ["queued", "running", "complete", "error"] },
+      examplePrompt: template.examplePrompt,
+      execute: (input) => this.executeTool(template, input),
+    };
+  }
+
+  async executeTool(template, input) {
+    const safeInput = validateTemplateInput(template, input);
+    return this.workflowRuntime.runTool(`user_${template.name}`, safeInput, async ({ flowId }) => {
+      const content = this.engine.render(template.body, { input: safeInput, context: template.scope, site: { name: "ClearDose", tagline: "Transparent prescriptions, agent-ready." } });
+      const artifact = await this.workflowRuntime.createTemplateArtifact({ flowId, template, input: safeInput, content });
+      return toolResponse({ ok: true, artifact, content, visibleState: "human_review" }, `Generated ${template.title} locally for human review.`);
+    }, { capabilityId: `cleardose.user-generated.${template.name}`, category: "user-generated", interactionModel: "imperative", machine: this.toolDefinition(template).machine });
+  }
+
+  async register(id) {
+    const template = this.get(id); if (!template) throw new TypeError(`Unknown capability template: ${id}.`);
+    if (template.kind === "tool") await this.toolRegistry.registerDefinitions([this.toolDefinition(template)], { namespace: "cleardose_user" });
+    else this.workflowRuntime.registerDynamicDefinition({ id: `user-workflow-${template.name}`, title: template.title, description: template.description, states: template.states, scope: template.scope });
+    const updated = normalizeCapabilityTemplate({ ...template, autoRegister: true, createdAt: template.createdAt });
+    this.templates.set(updated.id, updated); this.status.set(updated.id, template.kind === "tool" ? "registered" : "loaded"); this.persist(); this.notify();
+    return copy(updated);
+  }
+
+  async unregister(id) {
+    const template = this.get(id); if (!template) return;
+    if (template.kind === "tool") this.toolRegistry.unregister(`cleardose_user_${template.name}`);
+    else this.workflowRuntime.unregisterDynamicDefinition(`user-workflow-${template.name}`);
+    const updated = normalizeCapabilityTemplate({ ...template, autoRegister: false, createdAt: template.createdAt });
+    this.templates.set(updated.id, updated); this.status.set(updated.id, "draft"); this.persist(); this.notify();
+  }
+
+  async run(id, input = {}) {
+    const template = this.get(id); if (!template) throw new TypeError(`Unknown capability template: ${id}.`);
+    if (template.kind === "tool") return this.executeTool(template, input);
+    const safeInput = validateTemplateInput(template, input);
+    const guide = this.engine.render(template.body, { input: safeInput, context: template.scope, site: { name: "ClearDose" } });
+    return this.workflowRuntime.startDynamicMachine({ id: `user-workflow-${template.name}`, title: template.title, description: template.description, states: template.states, scope: template.scope, context: { templateId: template.id, input: safeInput, guide }, source: "capability-studio" });
+  }
+}

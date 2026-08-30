@@ -1,0 +1,80 @@
+# User stories
+
+## Shopper and patient
+
+- As a visitor, I can understand ClearDose's fictional/sandbox status before entering data.
+- As a visitor, I can search generic names, brand names, and categories so I can find a medication.
+- As a visitor, I can sort medications by name, lowest mock price, or largest illustrative savings.
+- As a visitor, I can search the local UDI by generic name, brand, class, category, or stable demo identifier.
+- As a visitor, I can inspect deterministic package variants and multiple fictional delivered-price offers.
+- As a visitor, I can find broadly related records without being told they are equivalent or safe substitutes.
+- As a visitor, I can run a clearly synthetic interaction review that never treats missing coverage as evidence of safety.
+- As a visitor, I can build a local procurement plan that compares fictional offers without reserving inventory or placing an order.
+- As a visitor, I can compare two exact medication variants side by side without being told they are clinical substitutes.
+- As a visitor, I can enable optional voice guidance and retain an equivalent visible transcript.
+- As a visitor, I can open a floating prompt guide, search every registered tool, read the full human example, copy it with a safe fallback, hear it aloud, and optionally filter with voice input.
+- As a visitor, I can run a patient workflow beside a live state viewer or open the patient surface in another tab.
+- As a visitor, I can inspect multiple concurrent flows, exact event ids, state history, and context at the selected step.
+- As a visitor, I can prepare a bounded agent handoff and receive a printable doctor-question card that remains a human-review draft.
+- As a visitor, I can run deterministic invalid-form, unavailable-stock, and stale-price scenarios and see the failure state instead of a silent success.
+- As a hackathon judge, I can copy a complete demo chain, run its deterministic visual analog, and inspect the same machine/event evidence side by side.
+- As a judge, I can choose focused single-step or multi-step shortcuts without memorizing tool names.
+- As a keyboard or assistive-technology user, I can navigate landmarks, forms, the comparison, and the tool dialog without a pointer.
+- As a shopper, I can inspect strengths, forms, quantities, retail comparisons, and price components before adding an item.
+- As a shopper, I can add a variant, change quantity up to the demo limit, remove it, and see totals update.
+- As a shopper, I can keep my cart while signing in or creating a fictional account.
+- As a customer, I can use the seeded demo account, update local profile/delivery details, and sign out.
+- As a customer, I can see ready, processing, and renewal-needed prescriptions and take the next appropriate action.
+- As a customer, I can complete delivery, prescription-source, mock-payment, and review steps.
+- As a customer, I can create a local order, view confirmation, track its status, and review order history.
+- As a customer, I can reset all demo state from the footer.
+
+## Provider handoff
+
+- As a patient, I can understand how an on-file, provider-sent, or transferred prescription changes fulfillment status.
+- As a patient blocked by a prescription requirement, I receive actionable administrative steps and an editable agent prompt, while prescriber contact remains under my control.
+- As a patient, I can review a memory packet and explicitly copy or save it; the site never silently retains it in another agent.
+- As a provider-demo user, I can generate an on-screen routing note without sending email, fax, or health data.
+
+## Agent user
+
+- As a browser agent, I can search compact UDI records and use the returned exact id in later calls.
+- As a browser agent, I can inspect one exact record's normalized identity, packages, and fictional offers.
+- As a browser agent, I can compare one to four fictional package prices with a clear non-clinical disclaimer.
+- As a browser agent, I can find broad related records, review incomplete synthetic interaction flags, and build a local plan without making a clinical or purchase decision.
+- As a browser agent, I can highlight a stable section and move visible keyboard focus so the patient and agent discuss the same content.
+- As a browser agent, I can read the cart without changing state.
+- As a browser agent, I can add an exact variant to the mock cart and see the human UI update through the same Pinia action.
+- As a browser agent, I can inspect local workflow state without changing it.
+- As a browser agent, I can receive a bounded site instruction and exact response schema, then submit a neutral question-card draft in a second tool call.
+- As a browser agent, I can inspect each capability's category, imperative/declarative tag, example prompt, and deterministic machine contract.
+- As a browser agent, I can recommend a follow-up tool for a recoverable error without silently invoking a new external side effect.
+- As a browser agent in a browser without WebMCP, I do not break the human experience.
+
+## Developer
+
+- As a developer, I can install one ClearDose plugin to register Pinia wiring, all shared components, adapters, and default tools.
+- As a developer, I can replace persistence or WebMCP transport through constructor options.
+- As a developer, I can pass `adapter`, `mcpTools`, `mcpContext`, and `registerMcp` to compose behavior on reusable components.
+- As a developer, I can choose imperative, declarative, or combined WebMCP composition through component props.
+- As a developer, I can replace the mock API without moving fixture, persistence, or request logic into pages.
+- As a developer, I can add a tool definition without importing it into pages.
+- As a developer, I can add one catalog record and get a validated name, category, prompt-guide entry, and static machine analog.
+- As a demo author, I can create a document tool or workflow from a safe EJS-shaped template, preview it, save it locally, and explicitly load it without writing JavaScript.
+- As a voice user, I can hear every Studio step, dictate an idea into a visible transcript, and choose where that text is applied.
+- As a reviewer, I can import an untrusted template only as an unregistered draft and inspect its closed schema, scope, machine, and sample output before loading.
+- As a browser agent, I can discover an explicitly registered `cleardose_user_*` tool and receive a local human-review artifact rather than an external side effect.
+- As a developer, I can start a dynamic machine scoped to role, situation, and step without modifying the DuckDB schema.
+- As a developer, I can verify facade and WebMCP contracts with automated tests.
+- As a developer, I can regenerate a static schema and run direct, chained, mutation, and refusal eval journeys with Chrome Labs' experimental eval CLI.
+- As a developer, I can add a two-call exchange from one reusable factory and a template-literal domain contract.
+- As a developer, I can replace the workflow DAO, inspect memory fallback status, and test every context snapshot without a browser.
+
+## Acceptance boundaries
+
+- No flow sends a network request, processes money, contacts a provider, or fulfills medication.
+- Passwords remain inside the mock persistence record and never enter DTOs or tool output.
+- Every mutation reaches persistence through the facade/repository/API/DAO path.
+- Voice, highlighting, declarative tools, and WebMCP registration are progressive enhancements with complete human fallbacks.
+- Missing interaction fixtures never produce a “safe” conclusion, and no UDI workflow presents related records as therapeutic equivalents.
+- Generated question cards accept agent-authored questions only; fictional prices are attached from the local UDI and every card requires patient review.
