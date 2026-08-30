@@ -24,6 +24,13 @@ const DEFAULT_TARGETS = Object.freeze([
   "prescription-recovery",
   "capability-studio",
   "studio-runtime",
+  "demo-lab",
+  "route-demo-scenarios",
+  "programmatic-replay",
+  "webmcp-explorer",
+  "webmcp-console",
+  "state-graph",
+  "availability-results",
 ]);
 
 export class SectionHighlightService {
@@ -44,10 +51,10 @@ export class SectionHighlightService {
     this.clear();
     this.activeElement = element;
     element.classList.add("agent-highlighted");
-    if (!element.hasAttribute("tabindex")) element.setAttribute("tabindex", "-1");
-    element.scrollIntoView({ behavior: "smooth", block: "center" });
-    element.focus({ preventScroll: true });
-    this.documentRef.dispatchEvent(new CustomEvent("cleardose:highlight", { detail: { target } }));
+    const reduceMotion = this.documentRef?.defaultView?.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    element.scrollIntoView?.({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+    const EventConstructor = this.documentRef?.defaultView?.CustomEvent ?? globalThis.CustomEvent;
+    if (EventConstructor) this.documentRef.dispatchEvent?.(new EventConstructor("cleardose:highlight", { detail: { target } }));
     this.timer = globalThis.setTimeout(() => this.clear(), this.duration);
     return { ok: true, target, message: `Highlighted ${target.replaceAll("-", " ")}.` };
   }

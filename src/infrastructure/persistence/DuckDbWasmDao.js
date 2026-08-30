@@ -17,9 +17,20 @@ function parseJson(value, fallback) {
 }
 
 export class DuckDbWasmDao {
-  constructor({ databasePath = "opfs://cleardose-flow-lab.duckdb", fallback } = {}) {
+  constructor({
+    databasePath = "opfs://cleardose-flow-lab.duckdb",
+    fallback,
+    duckDbModule = duckdb,
+    workerFactory = (url) => new Worker(url),
+    objectUrlFactory = (blob) => URL.createObjectURL(blob),
+    revokeObjectUrl = (url) => URL.revokeObjectURL(url),
+  } = {}) {
     this.databasePath = databasePath;
     this.fallback = fallback ?? new MemoryWorkflowDao({ reason: "DuckDB-Wasm was unavailable." });
+    this.duckDbModule = duckDbModule;
+    this.workerFactory = workerFactory;
+    this.objectUrlFactory = objectUrlFactory;
+    this.revokeObjectUrl = revokeObjectUrl;
     this.db = null;
     this.connection = null;
     this.worker = null;
@@ -28,18 +39,19 @@ export class DuckDbWasmDao {
 
   async initialize({ drugs = [] } = {}) {
     try {
-      const bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
-      const workerUrl = URL.createObjectURL(new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" }));
-      this.worker = new Worker(workerUrl);
-      this.db = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), this.worker);
+      const driver = this.duckDbModule;
+      const bundle = await driver.selectBundle(driver.getJsDelivrBundles());
+      const workerUrl = this.objectUrlFactory(new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" }));
       try {
+        this.worker = this.workerFactory(workerUrl);
+        this.db = new driver.AsyncDuckDB(new driver.VoidLogger(), this.worker);
         await this.db.instantiate(bundle.mainModule, bundle.pthreadWorker);
       } finally {
-        URL.revokeObjectURL(workerUrl);
+        this.revokeObjectUrl(workerUrl);
       }
       await this.db.open({
         path: this.databasePath,
-        accessMode: duckdb.DuckDBAccessMode.READ_WRITE,
+        accessMode: driver.DuckDBAccessMode.READ_WRITE,
         opfs: { fileHandling: "auto" },
         query: { castBigIntToDouble: true, castTimestampToDate: true },
       });

@@ -92,6 +92,12 @@ function placeOrder() {
     <h1>Sign in before checkout.</h1>
     <p>Your mock cart will stay here while you enter the seeded patient account or create a new one.</p>
     <RouterLink class="button button-orange" :to="{ name: 'login', query: { next: '/checkout' } }">Sign in and continue <ArrowRight :size="18" /></RouterLink>
+    <aside v-if="store.state.cart.length" class="order-summary checkout-gate-summary" data-agent-section="cart-summary" aria-label="Pre-sign-in mock cart total">
+      <h2>Cost review before sign-in</h2>
+      <div v-for="item in store.state.cart" :key="item.variantId" class="checkout-summary-item"><div><strong>{{ item.name }}</strong><span>{{ item.strength }} · {{ item.quantity }} count</span></div><strong>{{ formatMoney(item.price * item.units) }}</strong></div>
+      <div class="summary-divider"></div><div><span>Medications</span><strong>{{ formatMoney(store.cartSubtotal) }}</strong></div><div><span>Shipping</span><strong>{{ formatMoney(store.shipping) }}</strong></div><div class="summary-total"><span>Mock total</span><strong>{{ formatMoney(store.cartTotal) }}</strong></div>
+      <span class="secure-caption"><LockKeyhole :size="15" /> Sign-in and checkout remain visible human actions</span>
+    </aside>
   </div>
 
   <div v-else-if="!store.state.cart.length" class="protected-state page-width checkout-gate">
@@ -161,7 +167,7 @@ function placeOrder() {
           <button v-if="step > 1" class="button button-ghost" type="button" @click="previousStep"><ArrowLeft :size="18" /> Back</button>
           <span v-else></span>
           <button v-if="step < 4" class="button button-orange" type="button" @click="nextStep">Continue <ArrowRight :size="18" /></button>
-          <button v-else class="button button-orange" type="button" :disabled="placing" @click="placeOrder"><PackageCheck :size="18" />{{ placing ? 'Creating order…' : 'Place mock order' }}</button>
+          <button v-else class="button button-orange" type="button" :disabled="placing" @click="placeOrder"><PackageCheck :size="18" />{{ placing ? 'Creating order...' : 'Place mock order' }}</button>
         </div>
       </section>
 

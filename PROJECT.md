@@ -28,12 +28,12 @@ Deliver a complete, branded Vue 3 reference storefront that demonstrates a trans
 - Four-step checkout and order confirmation
 - Provider note preview and prescription-routing education
 - Side-by-side medication price comparison and a dedicated interactive WebMCP hackathon explainer
-- A 52-record deterministic UDI that expands to 156 packages and 468 fictional offers, with related-record, synthetic interaction-review, and local procurement examples
+- A 52-record deterministic UDI that expands to 156 packages and 624 fictional provider offers, with explicit comparison rules, three mock locations, related-record, synthetic interaction-review, and local procurement examples
 - Optional route-aware voice guidance, visible transcripts, tool inspector, shared page highlighting, autofill-ready forms, and a WCAG 2.2 AAA engineering target
 - A DuckDB-Wasm/OPFS workflow event store, cross-tab event mirroring, concurrent-flow viewer, structured site→agent→site exchange, printable doctor-question card, and negative failure fixtures
 - A dedicated prompt-shortcut workbench with seven judge-ready chains, static and dynamic machine panes, editable prescription recovery, and a user-controlled memory packet
 - A four-step Capability Studio with persistent local templates, optional voice dictation, safe EJS-shaped rendering, dynamic tool/workflow registration, preview, import/export, and live machine evidence
-- Pinia store, DTOs, isolated mock API/fixtures, browser DAOs, facade, component registry, fourteen built-in imperative WebMCP tools, eight declarative form capabilities, deterministic tests, and Chrome-compatible eval fixtures
+- Pinia store, DTOs, isolated mock API/fixtures, browser DAOs, facade, component registry, 25 built-in imperative WebMCP tools, nine declarative form capabilities, deterministic tests, and Chrome-compatible eval fixtures
 
 ## Non-goals
 

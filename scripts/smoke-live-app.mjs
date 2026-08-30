@@ -11,7 +11,10 @@ async function fetchText(path) {
 }
 
 try {
-  await fetchText("/");
+  const root = await fetchText("/");
+  const entry = await fetchText("/src/main.js");
+  assert.match(root, /id="app"/, "The fixed-port server is not the ClearDose app.");
+  assert.match(entry, /createApp/, "The fixed-port server is not serving the ClearDose entry module.");
 } catch {
   server = await createServer({ server: { host: "127.0.0.1", port: 0 }, logLevel: "error" });
   await server.listen();
@@ -21,7 +24,7 @@ try {
 
 const checks = [
   ["/src/main.js", /createApp/],
-  ["/src/views/FlowLabView.vue", /DuckDB-Wasm workflow observatory/],
+  ["/src/views/FlowLabView.vue", /DuckDB-Wasm state lab/],
   ["/src/components/PromptGuide.vue", /Prompt guide/],
   ["/src/infrastructure/persistence/DuckDbWasmDao.js", /cleardose-flow-lab\.duckdb/],
   ["/src/infrastructure/webmcp/tools/createDefaultTools.js", /createStructuredExchangeToolPair/],
@@ -32,7 +35,7 @@ const checks = [
   ["/src/views/MedicationsView.vue", /Find your medication/],
   ["/src/views/CartView.vue", /Your cart/],
   ["/src/views/CheckoutView.vue", /Complete your order/],
-  ["/src/views/CompareView.vue", /Two medications/],
+  ["/src/views/CompareView.vue", /Same drug pricing/],
   ["/src/views/DrugIndexView.vue", /Universal Drug Index/],
   ["/src/views/CapabilityStudioView.vue", /Create a workflow or WebMCP tool/],
   ["/src/services/templates/SafeEjsTemplateEngine.js", /Nested template conditionals are disabled/],

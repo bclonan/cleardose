@@ -6,18 +6,23 @@
 - As a visitor, I can search generic names, brand names, and categories so I can find a medication.
 - As a visitor, I can sort medications by name, lowest mock price, or largest illustrative savings.
 - As a visitor, I can search the local UDI by generic name, brand, class, category, or stable demo identifier.
-- As a visitor, I can inspect deterministic package variants and multiple fictional delivered-price offers.
+- As a visitor, I can inspect deterministic package variants and provider offers with cash, insurance estimate, cost-plus style, shipping, and savings facts.
+- As a visitor, I can change among three mock locations and see seeded inventory, pickup, shipping, and delivery windows change.
 - As a visitor, I can find broadly related records without being told they are equivalent or safe substitutes.
 - As a visitor, I can run a clearly synthetic interaction review that never treats missing coverage as evidence of safety.
 - As a visitor, I can build a local procurement plan that compares fictional offers without reserving inventory or placing an order.
-- As a visitor, I can compare two exact medication variants side by side without being told they are clinical substitutes.
+- As a visitor, I can start a comparison from explicit compatibility data and read why each option is or is not eligible for the chosen purpose.
+- As a visitor, I cannot rank unrelated medications or discussion-only alternatives as equivalent options.
 - As a visitor, I can enable optional voice guidance and retain an equivalent visible transcript.
-- As a visitor, I can open a floating prompt guide, search every registered tool, read the full human example, copy it with a safe fallback, hear it aloud, and optionally filter with voice input.
-- As a visitor, I can run a patient workflow beside a live state viewer or open the patient surface in another tab.
-- As a visitor, I can inspect multiple concurrent flows, exact event ids, state history, and context at the selected step.
+- As a visitor, I can open the persistent Demo Lab and see the prompt scenarios that match the current route.
+- As a visitor, I can choose a human, voice, or advanced prompt, copy it with a safe fallback, run it programmatically, or inspect its calls.
+- As a visitor, I can pause, resume, single-step, restart, and reset a replay while keeping its failure and recovery steps visible.
+- As a visitor, I can search the WebMCP Explorer, edit a request, run it, and inspect the schema, structured response, timing, permissions, state change, errors, and related scenarios.
+- As a visitor, I can run a patient workflow beside a branching Live State Inspector or open the patient surface in another tab.
+- As a visitor, I can inspect multiple concurrent flows, exact event ids, chronological history, valid and disabled branches, human-only actions, and context at the selected step.
 - As a visitor, I can prepare a bounded agent handoff and receive a printable doctor-question card that remains a human-review draft.
-- As a visitor, I can run deterministic invalid-form, unavailable-stock, and stale-price scenarios and see the failure state instead of a silent success.
-- As a hackathon judge, I can copy a complete demo chain, run its deterministic visual analog, and inspect the same machine/event evidence side by side.
+- As a visitor, I can run deterministic invalid-form, incompatible-comparison, unavailable-location, unavailable-stock, delivery-window, service, and stale-price scenarios and see the failure state instead of a silent success.
+- As a hackathon judge, I can run a deterministic scenario through the same local handlers WebMCP uses and inspect the resulting calls and machine events side by side.
 - As a judge, I can choose focused single-step or multi-step shortcuts without memorizing tool names.
 - As a keyboard or assistive-technology user, I can navigate landmarks, forms, the comparison, and the tool dialog without a pointer.
 - As a shopper, I can inspect strengths, forms, quantities, retail comparisons, and price components before adding an item.
@@ -40,14 +45,21 @@
 
 - As a browser agent, I can search compact UDI records and use the returned exact id in later calls.
 - As a browser agent, I can inspect one exact record's normalized identity, packages, and fictional offers.
-- As a browser agent, I can compare one to four fictional package prices with a clear non-clinical disclaimer.
+- As a browser agent, I can list compatible options for facts, price, fulfillment, or doctor discussion before comparing them.
+- As a browser agent, I receive `INCOMPATIBLE_COMPARISON` plus a bounded recovery path when two records are not eligible for the requested comparison.
+- As a browser agent, I can compare compatible fictional package or provider prices with a clear non-clinical disclaimer.
+- As a browser agent, I can inspect one package's provider inventory, compare delivery-constrained offers, and estimate pickup or shipping for a seeded mock location.
 - As a browser agent, I can find broad related records, review incomplete synthetic interaction flags, and build a local plan without making a clinical or purchase decision.
 - As a browser agent, I can highlight a stable section and move visible keyboard focus so the patient and agent discuss the same content.
 - As a browser agent, I can read the cart without changing state.
 - As a browser agent, I can add an exact variant to the mock cart and see the human UI update through the same Pinia action.
-- As a browser agent, I can inspect local workflow state without changing it.
+- As a browser agent, I can inspect one workflow's current truth and version without changing it.
+- As a browser agent, I can list valid, human-only, and unavailable actions, then inspect one transition before deciding whether to dispatch it.
+- As a browser agent, I can dispatch one declared non-human action with the observed version and a unique request id.
+- As a browser agent, I cannot force checkout, patient review, export, or another human-only transition.
+- As a browser agent, I can reset one workflow to its initial state without erasing its event history.
 - As a browser agent, I can receive a bounded site instruction and exact response schema, then submit a neutral question-card draft in a second tool call.
-- As a browser agent, I can inspect each capability's category, imperative/declarative tag, example prompt, and deterministic machine contract.
+- As a browser agent, I can inspect each capability's category, interaction tag, prompt variants, routes, permissions, schemas, errors, related tools, scenarios, and machine id.
 - As a browser agent, I can recommend a follow-up tool for a recoverable error without silently invoking a new external side effect.
 - As a browser agent in a browser without WebMCP, I do not break the human experience.
 
@@ -60,6 +72,8 @@
 - As a developer, I can replace the mock API without moving fixture, persistence, or request logic into pages.
 - As a developer, I can add a tool definition without importing it into pages.
 - As a developer, I can add one catalog record and get a validated name, category, prompt-guide entry, and static machine analog.
+- As a developer, I can define a replay scenario with structured steps and named bounded observers, then invoke the same registry handler used by browser WebMCP.
+- As a developer, I can add explicit comparison or availability fixtures under the UDI service without putting compatibility rules in a page or tool definition.
 - As a demo author, I can create a document tool or workflow from a safe EJS-shaped template, preview it, save it locally, and explicitly load it without writing JavaScript.
 - As a voice user, I can hear every Studio step, dictate an idea into a visible transcript, and choose where that text is applied.
 - As a reviewer, I can import an untrusted template only as an unregistered draft and inspect its closed schema, scope, machine, and sample output before loading.
@@ -76,5 +90,7 @@
 - Passwords remain inside the mock persistence record and never enter DTOs or tool output.
 - Every mutation reaches persistence through the facade/repository/API/DAO path.
 - Voice, highlighting, declarative tools, and WebMCP registration are progressive enhancements with complete human fallbacks.
-- Missing interaction fixtures never produce a “safe” conclusion, and no UDI workflow presents related records as therapeutic equivalents.
+- Missing interaction fixtures never produce a "safe" conclusion, and no UDI workflow presents related records as therapeutic equivalents.
 - Generated question cards accept agent-authored questions only; fictional prices are attached from the local UDI and every card requires patient review.
+- Replay observations are limited to named application summaries and stable DOM targets. They exclude form values and unrestricted page text.
+- State mutation requires the observed version and a unique request id. Human-only actions stay visible but unavailable to agent dispatch.

@@ -47,9 +47,9 @@ function submitSearch() {
           <h1>Know the medication.<br /><em>Know the price.</em><br />Know what happens next.</h1>
           <p class="hero-lede">ClearDose turns prescription shopping into one understandable path, with visible prices, explicit clinical handoffs, and actions ready for either the patient or their agent.</p>
 
-          <form class="hero-search" role="search" data-agent-section="medication-search" toolname="navigate_to_home_drug_search" tooldescription="Populate the home search and navigate the visible ClearDose interface to matching fictional drug records." toolautosubmit @submit.prevent="submitSearch">
+          <form class="hero-search" role="search" data-agent-section="medication-search" toolname="cleardose_navigate_to_home_drug_search" tooldescription="Populate the home search and navigate the visible ClearDose interface to matching fictional drug records." toolautosubmit @submit.prevent="submitSearch">
             <Search :size="22" aria-hidden="true" />
-            <input v-model="search" name="query" role="combobox" aria-autocomplete="list" aria-controls="home-search-suggestions" :aria-expanded="suggestions.length > 0" placeholder="Try “Lisinopril” or “cholesterol”" aria-label="Find a medication" autocomplete="off" toolparamdescription="Generic medication, brand, condition, or category search text" />
+            <input v-model="search" name="query" role="combobox" aria-autocomplete="list" aria-controls="home-search-suggestions" :aria-expanded="suggestions.length > 0" placeholder="Try Lisinopril or cholesterol" aria-label="Find a medication" autocomplete="off" toolparamdescription="Generic medication, brand, condition, or category search text" />
             <button type="submit">Find my medication <ArrowRight :size="18" /></button>
             <div v-if="suggestions.length" id="home-search-suggestions" class="search-suggestions" role="listbox" aria-label="Medication suggestions">
               <RouterLink v-for="item in suggestions" :key="item.id" role="option" :to="`/medications/${item.slug}`">
@@ -61,7 +61,7 @@ function submitSearch() {
           <div class="hero-trust-row">
             <span><Check :size="16" /> Price shown before checkout</span>
             <span><Check :size="16" /> Delivered to your door</span>
-            <span><Check :size="16" /> Mock checkout—no charge</span>
+            <span><Check :size="16" /> Mock checkout, no charge</span>
           </div>
         </div>
 

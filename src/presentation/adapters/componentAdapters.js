@@ -46,8 +46,8 @@ export const agentControlCenterAdapter = Object.freeze({
 });
 
 export const comparisonPanelAdapter = Object.freeze({
-  defaultLeft(medications) { return medications.find((item) => item.id === "med_atorvastatin")?.id ?? medications[0]?.id ?? ""; },
-  defaultRight(medications) { return medications.find((item) => item.id === "med_lisinopril")?.id ?? medications[1]?.id ?? medications[0]?.id ?? ""; },
+  defaultLeft(medications) { return medications.find((item) => item.id === "med_lisinopril")?.id ?? medications[0]?.id ?? ""; },
+  defaultRight(medications) { return medications.find((item) => item.id === "med_lisinopril")?.id ?? medications[0]?.id ?? ""; },
   variantFor(medication, variantId) { return medication?.variants.find((item) => item.id === variantId) ?? medication?.variants[0]; },
 });
 

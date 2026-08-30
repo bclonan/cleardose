@@ -1,6 +1,31 @@
 # Changelog
 
-## 0.3.0 — 2026-08-30
+## Unreleased
+
+### Added
+
+- Programmatic Replay controls on demo cards, including run, pause, resume, single-step, restart, reset, request and response inspection, timing, highlights, and bounded state changes.
+- A WebMCP Explorer at `/#/demo` with live registration status, schemas, example requests, typed errors, related tools, linked scenarios, and a local Try It console.
+- A persistent Live State Inspector with branching graphs, chronological event history, valid and human-only actions, versioned dispatch, transition explanations, and reset without erasing history.
+- Explicit comparison relationships plus seeded provider, location, inventory, pricing, and delivery data. Unrelated medications now fail with a structured recovery path.
+- Human, voice, and advanced prompt variants for each programmatic scenario.
+- Eleven built-in imperative tools for compatibility, availability, delivery, and workflow state interaction.
+
+### Changed
+
+- Replaced the timed shortcut simulation with replay calls that use the same local tool handlers as WebMCP registration.
+- Expanded the canonical catalog from 22 to 34 built-in capabilities: 25 imperative tools and nine declarative forms.
+- Price and fulfillment comparisons now start from explicit compatibility data and explain why each option may be compared.
+- Demo failures return typed codes, retryability, a recommended next tool, and bounded recovery input when recovery is possible.
+
+### Safety
+
+- All provider, location, inventory, delivery, insurance estimate, price, and clinical sample data remains fictional and local.
+- Comparison relationships never claim therapeutic equivalence or recommend substitution.
+- Workflow dispatch rejects stale versions, duplicate request ids, invalid transitions, and human-only actions. Checkout, review, export, and external contact remain under visible human control.
+- Replay observations are bounded to declared application state and stable DOM targets. They do not capture page text, passwords, real health information, or external browser state.
+
+## 0.3.0, 2026-08-30
 
 ### Added
 
@@ -25,7 +50,7 @@
 - Saving or previewing a user template never registers it; imports always return to draft and registration requires a separate visible action.
 - User templates cannot run raw EJS or JavaScript and generated documents stop in human review.
 
-## 0.2.0 — 2026-08-30
+## 0.2.0, 2026-08-30
 
 ### Added
 

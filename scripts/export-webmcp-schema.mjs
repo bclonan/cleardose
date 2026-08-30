@@ -1,24 +1,20 @@
 import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { createDefaultTools } from "../src/infrastructure/webmcp/tools/createDefaultTools.js";
+import { SectionHighlightService } from "../src/services/ui/SectionHighlightService.js";
 
 const destination = fileURLToPath(new URL("../evals/schema.json", import.meta.url));
 const tools = createDefaultTools({
   store: {},
   highlightService: {
-    listTargets: () => [
-      "medication-search", "comparison-results", "demo-side-by-side", "how-webmcp-works",
-      "tool-catalog", "cart-summary", "checkout-flow", "provider-handoff", "primary-price",
-      "add-to-cart-action", "agent-tools-control", "udi-search", "udi-results", "udi-lab",
-      "workflow-runtime", "question-card", "failure-lab",
-      "hackathon-shortcuts", "prompt-chain", "shortcut-observatory", "machine-inspector", "agent-memory", "prescription-recovery",
-    ],
+    listTargets: () => new SectionHighlightService({ documentRef: null }).listTargets(),
   },
-}).map(({ name, title, description, inputSchema, annotations }) => ({
+}).map(({ name, title, description, inputSchema, outputSchema, annotations }) => ({
   name: `cleardose_${name}`,
   title,
   description,
   inputSchema,
+  outputSchema,
   annotations,
 }));
 

@@ -23,7 +23,7 @@ createApp(App).use(pinia).use(clearDose).mount("#app");
 
 ## Registered components
 
-`CdAccountNav`, `CdAgentControlCenter`, `CdAgentReadyForm`, `CdAgentReadyHost`, `CdComparisonPanel`, `CdMedicationCard`, `CdStatusBadge`, `CdWebMcpStatus`, `CdWorkflowLiveViewer`, `CdDoctorQuestionCard`, `CdPromptGuide`, `CdCapabilityMachinePane`, `CdPrescriptionRecoveryPanel`, `CdHackathonLauncher`, and `CdCapabilityStudioVoiceGuide` are registered globally. Every reusable component accepts:
+The plugin registers the commerce, agent-ready form, workflow, Studio, and demo components globally. The demo set includes `CdDemoScenarioCard`, `CdProgrammaticReplayPanel`, `CdDemoLabDock`, `CdRouteDemoSection`, and `CdWebMcpExplorer`. Every reusable agent-ready component accepts:
 
 | Prop | Type | Purpose |
 |---|---|---|
@@ -49,7 +49,7 @@ A component tool receives `(input, context)`. `context` contains the facade plus
 
 `CdAgentReadyForm` emits standards-based `toolname`, `tooldescription`, `toolautosubmit`, and slotted `toolparamdescription` attributes while remaining a normal accessible form when WebMCP is absent.
 
-Declarative form names describe visible UI effects such as `populate_visible_price_comparison`. Imperative tools describe structured data operations such as `compare_drug_prices`. This distinction avoids two tools competing for the same user intent.
+Declarative form names describe visible UI effects such as `cleardose_populate_visible_price_comparison`. Imperative tools describe structured data operations such as `cleardose_compare_drug_prices`. Both use the shared `cleardose_` prefix, while their interaction tags keep their purposes distinct.
 
 ## Default tools
 
@@ -57,11 +57,22 @@ Declarative form names describe visible UI effects such as `populate_visible_pri
 |---|---:|---|
 | `cleardose_search_drug_index` | No | Return compact UDI records and exact ids for later calls |
 | `cleardose_get_drug_index_entry` | No | Return normalized identity, packages, and fictional offers for one exact id |
+| `cleardose_find_compatible_options` | No | List explicit comparison relationships and purpose-specific eligibility for one exact drug |
+| `cleardose_compare_medication_options` | No | Compare only explicitly eligible medication records or provider offers and explain the relationship |
 | `cleardose_compare_drug_prices` | No | Compare fictional package totals for one to four ids without implying substitution |
 | `cleardose_find_related_drugs` | No | Return broad related records for clinician discussion, never equivalence |
+| `cleardose_get_drug_availability` | No | Return provider inventory and fulfillment facts for one exact package and mock location |
+| `cleardose_compare_drug_availability` | No | Rank eligible seeded pickup or shipping offers against a delivery limit |
+| `cleardose_estimate_delivery` | No | Estimate pickup or shipping for one exact provider offer using deterministic local data |
 | `cleardose_review_demo_interaction_flags` | No | Review intentionally incomplete synthetic fixtures and require professional verification |
 | `cleardose_build_procurement_plan` | No | Select fictional offers for a local plan without reserving or ordering |
 | `cleardose_inspect_workflow_runtime` | No | Read concurrent flows, recent event ids, state/context snapshots, cards, and local database status |
+| `cleardose_inspect_workflow_state` | No | Read one flow's current truth, version, state metadata, valid actions, human-only actions, and disabled actions |
+| `cleardose_get_workflow_history` | No | Return bounded chronological events for one exact flow |
+| `cleardose_get_available_workflow_actions` | No | List valid agent actions, human-only actions, and unavailable actions without dispatching |
+| `cleardose_get_workflow_transition` | No | Explain one branch, its input schema, target, recovery status, and human-control status |
+| `cleardose_dispatch_workflow_transition` | Yes, local | Dispatch one declared agent action with the observed version and a unique request id |
+| `cleardose_reset_workflow_state` | Yes, local | Return one flow to its declared initial state while preserving its history |
 | `cleardose_prepare_doctor_question_card_request` | Yes, local | Create a bounded site-to-agent exchange with an instruction and exact response schema |
 | `cleardose_submit_doctor_question_card_draft` | Yes, local | Validate structured questions and render a patient-reviewable local card |
 | `cleardose_prepare_prescription_follow_up` | Yes, local | Prepare actionable administrative steps and an editable prompt without contacting a prescriber |
@@ -76,14 +87,16 @@ Declarative form names describe visible UI effects such as `populate_visible_pri
 - Names use exact verbs and each tool has one purpose. Search returns compact ids; detail returns the fuller record; planning never orders.
 - Schemas are descriptive and bounded. Executable code separately rejects invalid types, missing fields, ranges, unknown properties, invalid nested objects, and unknown ids.
 - Read-only and untrusted-content annotations are explicit. Cross-origin exposure remains disabled unless a host supplies an exact `exposedTo` allowlist.
-- Results contain the minimum structured context needed for a next call. Errors return `INVALID_INPUT` or `TOOL_FAILURE` plus a `retryable` signal.
+- Results contain the minimum structured context needed for a next call. Validation failures return `INVALID_INPUT`. Domain and state failures preserve their typed code, retryability, recommended tool, recovery input, and bounded details.
 - Interaction and related-record outputs include domain boundaries in structured content instead of depending only on UI disclaimers.
 - Every imperative execution is wrapped by the workflow runtime. The wrapper records queued, running, complete/error, input, and compact structured result states without changing the tool's return contract.
 - Browser registration receives only standard WebMCP fields. Category, prompt, interaction tag, and machine metadata remain in the ClearDose registry and never depend on a browser accepting extension keys.
+- Human-only workflow actions never appear as dispatchable agent actions. A direct attempt returns `ACTION_REQUIRES_HUMAN`.
+- Versioned dispatch rejects stale observations with `STALE_STATE_VERSION`. Unique request ids make retries idempotent and expose duplicate conflicts.
 
 ## Canonical capability catalog and naming
 
-`src/infrastructure/webmcp/catalog/capabilityCatalog.js` is the source of truth for fourteen built-in imperative and eight declarative capabilities. Explicitly loaded local templates are appended to the runtime registry rather than mutating this static manifest. Use these formats:
+`src/infrastructure/webmcp/catalog/capabilityCatalog.js` is the source of truth for 25 built-in imperative and nine declarative capabilities. Explicitly loaded local templates are appended to the runtime registry rather than mutating this static manifest. Use these formats:
 
 | Artifact | Format | Example |
 |---|---|---|
@@ -95,11 +108,23 @@ Declarative form names describe visible UI effects such as `populate_visible_pri
 | User workflow | `machine.dynamic.user-workflow-<name>.v1` | `machine.dynamic.user-workflow-prescription-review-loop.v1` |
 | Events | `UPPER_SNAKE_CASE` | `HUMAN_REVIEW_REQUIRED` |
 
-The catalog groups discovery/pricing, patient/clinician, shopping/procurement, documents/memory, interface/observability, declarative forms, and user-generated capabilities. `decorateToolDefinitions()` rejects a built-in imperative definition with no catalog entry. `npm run evals:contracts` validates uniqueness, formats, categories, scope, and shortcut references.
+The catalog groups discovery and pricing, patient and clinician, shopping and procurement, documents and memory, interface and observability, declarative forms, and user-generated capabilities. Each record also declares input and output schemas, routes, permissions, human, voice, and advanced prompts, expected results, deterministic errors, related tools, and scenario ids. `decorateToolDefinitions()` rejects a built-in imperative definition with no catalog entry. `npm run evals:contracts` validates uniqueness, formats, schemas, metadata, scope, and shortcut references.
+
+## Explorer and local invocation
+
+Open `/#/demo` to inspect the catalog beside the live registry. The WebMCP Explorer shows whether each imperative tool is registered in the browser and whether its handler can be invoked locally. Try It sends the edited request through `WebMcpToolRegistry.invoke()`, then displays the structured response, elapsed time, and bounded state difference. Declarative Try It requests populate the named visible form and use its normal submission behavior.
+
+The selected handler receives a bounded transient copy of the edited request. The Explorer does not retain that copy. Its saved receipt redacts credentials, identity and location fields, user-authored health text, and generated document content. Workflow events apply their own allowlist before they enter DuckDB or the memory fallback.
+
+Doctor-card concern prompts are transient. The exchange record stores only their count and a flag confirming that ClearDose omitted the authored text.
+
+Local invocation does not add a new business layer. Browser WebMCP, the Explorer, and Programmatic Replay all reach the same registered executor. The registry still removes component-scoped executors when their `AbortSignal` ends.
+
+Each scenario in `src/services/api/demos/demoScenarios.js` has a human prompt, voice prompt, advanced prompt, expected result, mock disclosure, tool steps, stable highlight targets, bounded observation names, and optional recovery links. Replay resolves structured references to earlier step output. It never parses visible prose to decide a later call.
 
 ## Add a safe local capability
 
-Use `/#/studio` or call `CapabilityTemplateService` through Pinia. Templates declare a kind, stable snake_case name, closed input fields, scope, visible example prompt, voice transcript, body, and workflow states. The body may use `<%= input.field %>`, `<%= context.role %>`, comments, and non-nested `<% if input.field %>…<% endif %>` blocks. Raw output, arbitrary EJS/JavaScript, prototype paths, nested or unmatched blocks, extra input properties, and templates over 12,000 characters are rejected.
+Use `/#/studio` or call `CapabilityTemplateService` through Pinia. Templates declare a kind, stable snake_case name, closed input fields, scope, visible example prompt, voice transcript, body, and workflow states. The body may use `<%= input.field %>`, `<%= context.role %>`, comments, and non-nested `<% if input.field %>...<% endif %>` blocks. Raw output, arbitrary EJS/JavaScript, prototype paths, nested or unmatched blocks, extra input properties, and templates over 12,000 characters are rejected.
 
 `save()` and `render()` never register. `register()` is explicit and persists that local choice. `import()` always clears registration. A generated tool artifact remains in human review. See `docs/CAPABILITY_STUDIO.md` and ADR 0003.
 

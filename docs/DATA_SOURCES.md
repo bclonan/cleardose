@@ -1,6 +1,8 @@
 # Universal Drug Index data sources
 
-The checked-in ClearDose UDI is intentionally generated and fictional. It has 52 recognizable drug records, 156 package variants, and 468 fictional offers so the demo works offline and never presents a scraped cash price or mock interaction as current medical information.
+The checked-in ClearDose UDI is generated and fictional. It has 52 recognizable drug records, 156 package variants, and 624 provider offers across four providers and three mock locations. The demo works offline and never presents a scraped cash price, inventory check, delivery promise, insurance quote, or interaction result as current information.
+
+Comparison eligibility is also seeded data. Each explicit relationship declares its kind, reason code, plain explanation, purpose-specific permissions, professional-review flag, and `clinicallyEquivalent: false`. If no relationship allows the requested purpose, the UDI returns `INCOMPATIBLE_COMPARISON` and recommends `cleardose_find_compatible_options`.
 
 ## Recommended bulk inputs
 
@@ -35,12 +37,23 @@ The checked-in ClearDose UDI is intentionally generated and fictional. It has 52
   name: "Lisinopril",
   drugClass: "ACE inhibitor",
   comparisonGroup: "blood-pressure",
+  activeIngredient: { name: "lisinopril", fictional: true },
+  manufacturer: { id: "maker_north_harbor", name: "North Harbor Generics", fictional: true },
+  clinicalSample: { coverage: "sample-and-incomplete" },
   variants: [{
     strength: "10mg",
     quantity: 60,
-    offers: [{ channel, packagePrice, shipping, total, unitPrice, availability, etaDays }]
+    offers: [{ providerId, cashPrice, estimatedInsurancePrice, costPlusStylePrice, shippingCost, deliveredCashTotal, inventory, fulfillment }]
   }]
 }
 ```
 
 The empty `rxCui` and `ndc` fields are deliberate extension points. The demo UDI remains useful before an authoritative import and makes missing identity explicit instead of fabricating codes.
+
+## Seeded provider and location model
+
+Provider fixtures declare the pricing model, provider fee, base shipping cost, pickup and shipping support, and a deterministic delivery range. Location fixtures declare a fictional postal code, shipping adjustment, surcharge, and provider distance. Exact overrides create stable examples for mixed inventory, a package unavailable at one location, a missed delivery deadline, and one unavailable provider.
+
+The availability clock is fixed at `2026-08-29T12:00:00.000Z`. Inventory versions, quote versions, pickup windows, and delivery dates are reproducible. Changing the mock location can change availability, distance, shipping cost, and arrival date. It never performs geolocation or contacts a provider.
+
+Clinical sample facts contain common uses, common side effects, warnings, and discussion points for the demo. The UI labels this coverage as informational sample data. It is not a drug label, complete safety review, diagnosis, or recommendation.

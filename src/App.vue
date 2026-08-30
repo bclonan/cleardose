@@ -65,15 +65,15 @@ function signOut() {
           <RouterLink to="/udi">Drug index</RouterLink>
           <RouterLink to="/compare">Compare</RouterLink>
           <RouterLink to="/contact-doctor">Contact your doctor</RouterLink>
-          <RouterLink to="/demo">WebMCP demo</RouterLink>
-          <RouterLink to="/flow-lab">Flow lab</RouterLink>
+          <RouterLink to="/demo">WebMCP Explorer</RouterLink>
+          <RouterLink to="/flow-lab">State lab</RouterLink>
           <RouterLink to="/shortcuts">Shortcuts</RouterLink>
           <RouterLink to="/studio">Studio</RouterLink>
         </nav>
 
         <div class="header-actions">
           <CdAgentControlCenter />
-          <form class="header-search" role="search" toolname="navigate_to_drug_search" tooldescription="Populate the header search and navigate the visible ClearDose interface to matching fictional drug records." toolautosubmit @submit.prevent="submitHeaderSearch">
+          <form class="header-search" role="search" toolname="cleardose_navigate_to_drug_search" tooldescription="Populate the header search and navigate the visible ClearDose interface to matching fictional drug records." toolautosubmit @submit.prevent="submitHeaderSearch">
             <Search :size="17" aria-hidden="true" />
             <input v-model="headerSearch" name="query" aria-label="Search medications" autocomplete="off" toolparamdescription="Generic medication, brand, or category search text" placeholder="Search medications" />
           </form>
@@ -108,7 +108,7 @@ function signOut() {
       </div>
 
       <div v-if="mobileOpen" id="mobile-navigation" class="mobile-nav">
-        <form class="mobile-search" role="search" toolname="navigate_to_mobile_drug_search" tooldescription="Populate the mobile search and navigate the visible ClearDose interface to matching fictional drug records." toolautosubmit @submit.prevent="submitHeaderSearch">
+        <form class="mobile-search" role="search" toolname="cleardose_navigate_to_mobile_drug_search" tooldescription="Populate the mobile search and navigate the visible ClearDose interface to matching fictional drug records." toolautosubmit @submit.prevent="submitHeaderSearch">
           <Search :size="18" />
           <input v-model="headerSearch" name="query" aria-label="Search medications" autocomplete="off" toolparamdescription="Generic medication, brand, or category search text" placeholder="Search medications" />
         </form>
@@ -117,8 +117,8 @@ function signOut() {
         <RouterLink to="/compare">Compare prices</RouterLink>
         <RouterLink to="/contact-doctor">Contact your doctor</RouterLink>
         <RouterLink to="/contact-doctor#providers">For providers</RouterLink>
-        <RouterLink to="/demo">WebMCP demo</RouterLink>
-        <RouterLink to="/flow-lab">Live flow lab</RouterLink>
+        <RouterLink to="/demo">WebMCP Explorer</RouterLink>
+        <RouterLink to="/flow-lab">Live state lab</RouterLink>
         <RouterLink to="/shortcuts">Hackathon shortcuts</RouterLink>
         <RouterLink to="/studio">Capability Studio</RouterLink>
         <RouterLink v-if="store.currentCustomer" to="/account">My account</RouterLink>
@@ -128,6 +128,7 @@ function signOut() {
 
     <main id="main-content" tabindex="-1">
       <RouterView />
+      <CdRouteDemoSection />
     </main>
 
     <footer class="site-footer">
@@ -150,13 +151,14 @@ function signOut() {
           <h3>Patients</h3>
           <RouterLink to="/medications">Medications</RouterLink>
           <RouterLink to="/udi">Universal Drug Index</RouterLink>
-          <RouterLink to="/contact-doctor">Send a prescription</RouterLink>
+          <RouterLink to="/contact-doctor">Prepare a provider note</RouterLink>
           <RouterLink to="/account/orders">Order status</RouterLink>
         </div>
         <div>
           <h3>Demo</h3>
           <RouterLink to="/login">Demo account</RouterLink>
           <RouterLink to="/cart">Mock cart</RouterLink>
+          <RouterLink to="/demo">WebMCP Explorer</RouterLink>
           <RouterLink to="/flow-lab">Live flow lab</RouterLink>
           <RouterLink to="/shortcuts">Prompt shortcuts</RouterLink>
           <RouterLink to="/studio">Capability Studio</RouterLink>
@@ -173,7 +175,6 @@ function signOut() {
         <span>Not for medical use</span>
       </div>
     </footer>
-    <CdPromptGuide />
-    <CdHackathonLauncher />
+    <CdDemoLabDock />
   </div>
 </template>

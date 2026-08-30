@@ -2,7 +2,7 @@
 
 **Transparent prescriptions, agent-ready.**
 
-A complete Vue 3 prescription-commerce sandbox with a local Universal Drug Index, fictional prices, customer and checkout flows, a Pinia application store, clean DTO/DAO boundaries, replaceable adapters, an extensible WebMCP plugin, a judge-ready prompt shortcut runner, a safe user-authored Capability Studio, and a live local-first workflow observatory.
+A Vue 3 prescription-commerce sandbox with a local Universal Drug Index, fictional provider offers, customer and checkout flows, a WebMCP Explorer, deterministic Programmatic Replay, and a branching Live State Inspector. A safe Capability Studio supports local user-authored tools without turning templates into executable code.
 
 ## Run
 
@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Use `demo@patient.test` / `demo1234`, or create a fictional local account. Run `npm test` for deterministic behavior, `npm run evals:contracts` for the exported tool/eval contract gate, and `npm run build` for the production bundle. With the dev server on port 4173, `npm run smoke:app` verifies the live shell and compiled feature modules; `npm run evals:smoke` additionally requires Chrome Canary.
+Use `demo@patient.test` / `demo1234`, or create a fictional local account. Run `npm test` for deterministic behavior, `npm run evals:contracts` for the exported tool/eval contract gate, and `npm run build` for the production bundle. With the dev server on port 4173, `npm run smoke:app` verifies the live shell and compiled feature modules. `npm run evals:smoke` requires Chrome Canary.
 
 ## Architecture
 
@@ -21,23 +21,33 @@ The project keeps one readable local-first path:
 
 `UI, WebMCP, or scenario → WorkflowRuntime → DuckDB-Wasm / OPFS → BroadcastChannel → live viewer`
 
+`Demo card → ProgrammaticReplayRuntime → WebMcpToolRegistry.invoke() → the same tool handler → bounded observations`
+
 Pages contain no persistence or seed-data access. DTOs sanitize and freeze records before they enter the store; the customer DTO deliberately omits the demo password. The composition root at `src/app/createClearDosePlugin.js` wires Pinia, adapters, facade, globally registered components, and default WebMCP tools.
 
 Host apps can import the supported extension API from `src/cleardose.js`.
 
 ## Local flow lab
 
-Open `/#/flow-lab` to run multiple workflows next to a Stately-style live inspector. It exposes exact event ids, current states, transition history, and the bounded context at each step. DuckDB-Wasm boots from its official jsDelivr distribution and seeds all 52 fictional drug records into a browser-local OPFS database alongside workflow instances, events, structured exchanges, and generated cards. After the engine assets load, queries and stored data remain on the device. If the engine, OPFS, or a writable file is unavailable, the affected tab reports a visible in-memory fallback while `BroadcastChannel` continues mirroring live events.
+Open `/#/flow-lab` to run multiple workflows beside the Live State Inspector. The inspector shows the application's current truth, a branching graph, valid agent actions, human-only actions, disabled branches, event ids, chronological history, and bounded context. Its interaction tools inspect one flow, explain a transition, dispatch one versioned action, or reset state while preserving history. They do not solve a workflow in one call.
+
+DuckDB-Wasm boots from its official jsDelivr distribution and seeds all 52 fictional drug records into a browser-local OPFS database alongside workflow instances, events, structured exchanges, and generated cards. The UDI expands to 156 packages and 624 fictional provider offers across four providers and three mock locations. After the engine assets load, queries and stored data remain on the device. If the engine, OPFS, or a writable file is unavailable, the affected tab reports a visible memory fallback while `BroadcastChannel` continues mirroring live events.
 
 The question-card demo implements a two-call exchange: `prepare_doctor_question_card_request` returns bounded UDI facts, a template-literal instruction, and an exact expected response schema; `submit_doctor_question_card_draft` accepts only structured neutral questions and produces a printable patient-reviewable card. ClearDose derives displayed price facts from its UDI rather than accepting agent-authored prices.
 
-The same page contains deterministic negative fixtures for invalid health-data-style forms, unavailable demo stock, stale fictional prices that require reconfirmation, and prescription-required recovery that ends in human review.
+The same page contains executable negative fixtures for invalid health-data-style forms, incompatible comparisons, unavailable locations, provider failures, missed delivery windows, stale fictional prices, prescription-required recovery, denied permission, timeout, duplicate action, unsupported external fulfillment, and no seeded equivalent. Each fixture runs a bounded seeded operation before recording its observed error in the workflow history. Permission, timeout, and the mock-service outage are explicit injected failures. The duplicate and no-equivalent cases exercise the real state guard and compatibility model. Recoverable errors return a code, retryability, the next tool to consider, and bounded recovery input.
+
+## Demo lab
+
+Programmatic Replay, the WebMCP Explorer, and the Live State Inspector recur across the site. Every route-aware demo card includes Run demo, Copy prompt, and Inspect calls actions plus human, voice, and advanced prompt variants. A replay calls the same local registry handlers used by WebMCP. It records structured requests, responses, timing, stable highlights, and bounded application or DOM changes. Pause, resume, single-step, restart, and reset are real controls.
+
+Open `/#/demo` for the WebMCP Explorer. It lists the canonical capabilities with live browser-registration status, input and output schemas, example requests, typed errors, permissions, routes, related tools, and linked scenarios. Try It invokes the chosen local handler and shows its response, elapsed time, and state change. Malformed examples are included so errors and recovery can be demonstrated instead of hidden.
 
 ## Hackathon prompt shortcuts
 
-Open `/#/shortcuts` or use the floating **Demo shortcuts** CTA. Seven copyable single- and multi-step chains cover the end-to-end judge tour, price comparison, prescription recovery, doctor question cards, negative paths, runtime inspection, and declarative form autofill. Each shortcut has a dynamic deterministic machine scoped by `role`, `situation`, and `step`; its timed visual analog writes real local events without falsely claiming that an external agent ran.
+Open `/#/shortcuts` for the judge workbench. Its scenario cards use Programmatic Replay, so each displayed step invokes a registered local tool handler and writes real workflow evidence. The workbench still distinguishes local replay from an external browser agent.
 
-Every shortcut card shows the full conversational prompt for voice-mode users, offers read-aloud, and copies through a permission-aware selection fallback. The page also contains reusable prescription-recovery and agent-memory surfaces. A prescription gate returns actionable administrative steps plus an editable prompt. A memory packet can be reviewed, copied, or saved as Markdown using the File System Access API when supported and an ordinary download otherwise. ClearDose never silently sends context to an external agent or writes a file.
+Every demo card keeps the complete prompt visible and offers human, voice, and advanced wording. Copy uses a permission-aware fallback. The page also contains prescription-recovery and agent-memory surfaces. A prescription gate returns administrative steps plus an editable prompt. A memory packet can be reviewed, copied, or saved as Markdown using the File System Access API when supported and a download otherwise. ClearDose never sends context to an external agent or writes a file without a visible human action.
 
 ## Capability Studio
 
@@ -45,9 +55,9 @@ Open `/#/studio` to create a local WebMCP document tool or deterministic workflo
 
 ## WebMCP
 
-The plugin progressively registers fourteen single-purpose imperative tools through `document.modelContext` and catalogs eight declarative forms. The 22-capability catalog owns names, categories, imperative/declarative tags, human-readable example prompts, and deterministic machine analogs. Explicitly approved user-authored tools are added under `cleardose_user_*` at runtime. UI and agents call the same Pinia actions, so state stays synchronized. Browsers without WebMCP continue to work normally.
+The plugin progressively registers 25 single-purpose imperative tools through `document.modelContext` and catalogs nine declarative forms. The 34-capability catalog owns names, categories, schemas, permissions, prompts, errors, routes, related tools, and machine ids. Explicitly approved user-authored tools are added under `cleardose_user_*` at runtime. UI, WebMCP, Explorer calls, and replay calls meet at the same application services. Browsers without WebMCP still receive the complete human interface and local replay.
 
-Reusable components accept adapter overrides plus imperative and declarative WebMCP configuration. The global agent center exposes the live tool manifest and an optional route-aware voice journey with a persistent transcript. A floating prompt guide documents every registered tool, offers copyable examples, and uses browser speech recognition as an optional voice-search enhancement. See [docs/WEBMCP_PLUGIN.md](docs/WEBMCP_PLUGIN.md) for extension examples.
+Reusable components accept adapter overrides plus imperative and declarative WebMCP configuration. The persistent Demo Lab exposes route prompts, replay, and state inspection without making WebMCP support mandatory. See [docs/WEBMCP_PLUGIN.md](docs/WEBMCP_PLUGIN.md) for extension examples.
 
 ## Project documentation
 
@@ -66,6 +76,7 @@ Reusable components accept adapter overrides plus imperative and declarative Web
 - [Capability naming ADR](docs/adr/0001-capability-naming-and-machine-scope.md)
 - [Human-controlled memory ADR](docs/adr/0002-human-controlled-agent-memory-files.md)
 - [Safe capability templates ADR](docs/adr/0003-safe-user-authored-capability-templates.md)
+- [Shared demo runtime ADR](docs/adr/0004-shared-demo-runtime-and-explicit-domain-contracts.md)
 - [Hackathon entry](HACKATHON_ENTRY.md)
 - [Changelog](CHANGELOG.md)
 - [Agent/contributor instructions](AGENTS.md)

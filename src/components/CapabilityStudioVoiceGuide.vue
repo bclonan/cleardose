@@ -35,10 +35,9 @@ onBeforeUnmount(() => voice.cancel());
 <template>
   <section class="studio-voice-guide" aria-labelledby="studio-voice-title">
     <header><span><Volume2 :size="18" /></span><div><small>Optional voice guide</small><h2 id="studio-voice-title">{{ current.title }}</h2><p>{{ current.guide }}</p></div></header>
-    <div class="studio-voice-controls"><button v-if="speaking" type="button" @click="stop"><Pause :size="16" /> Stop</button><button v-else type="button" :disabled="!voice.isSupported()" @click="speak"><Play :size="16" /> Read this step</button><button type="button" :disabled="!Recognition || listening" @click="dictate"><Mic :size="16" /> {{ listening ? 'Listening…' : 'Dictate an idea' }}</button></div>
+    <div class="studio-voice-controls"><button v-if="speaking" type="button" @click="stop"><Pause :size="16" /> Stop</button><button v-else type="button" :disabled="!voice.isSupported()" @click="speak"><Play :size="16" /> Read this step</button><button type="button" :disabled="!Recognition || listening" @click="dictate"><Mic :size="16" /> {{ listening ? 'Listening...' : 'Dictate an idea' }}</button></div>
     <blockquote v-if="transcript"><strong>You said</strong><span>{{ transcript }}</span></blockquote>
     <p v-if="error" class="studio-inline-error" role="status">{{ error }}</p>
     <ol class="studio-voice-transcript"><li v-for="(item, index) in steps" :key="item.title" :class="{ current: index === stepIndex }"><span>{{ index + 1 }}</span><div><strong>{{ item.title }}</strong><small>{{ item.guide }}</small></div></li></ol>
   </section>
 </template>
-

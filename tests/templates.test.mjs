@@ -49,18 +49,48 @@ test("capability templates use closed schemas and require explicit local registr
     inputFields: [{ name: "drug_name", label: "Medication", type: "string", required: true }],
   });
   assert.equal(record.inputSchema.additionalProperties, false);
+  assert.equal(record.inputSchema.properties.drug_name.maxLength, 2000);
   assert.throws(() => service.render(record.id, { drug_name: "Lisinopril", hidden: true }), /Unknown template input/);
+  assert.throws(() => service.render(record.id, { drug_name: "x".repeat(2001) }), /2000 characters or fewer/);
   await service.register(record.id);
   assert.equal(registrations[0].options.namespace, "cleardose_user");
-  assert.equal(registrations[0].definitions[0].annotations.untrustedContentHint, true);
+  const registeredDefinition = registrations[0].definitions[0];
+  assert.equal(registeredDefinition.annotations.untrustedContentHint, true);
+  assert.equal(registeredDefinition.outputSchema.additionalProperties, false);
+  assert.equal(registeredDefinition.outputSchema.properties.artifact.additionalProperties, false);
+  assert.equal(registeredDefinition.outputSchema.properties.content.maxLength, 20000);
+  assert.equal(registeredDefinition.exampleRequests.length, 1);
+  assert.equal(registeredDefinition.exampleResponse.visibleState, "human_review");
+  assert.match(registeredDefinition.voicePrompt, /fictional data/);
+  assert.match(registeredDefinition.advancedPrompt, /cleardose_user_make_visit_note/);
+  assert.match(registeredDefinition.expectedResult, /human review/);
+  assert.deepEqual(registeredDefinition.routes, ["*"]);
+  assert.deepEqual(registeredDefinition.permissions, ["local-document-draft", "human-review"]);
+  assert.equal(registeredDefinition.deterministicErrors[0].code, "INVALID_INPUT");
+  assert.deepEqual(registeredDefinition.relatedTools, ["inspect_workflow_runtime"]);
+  assert.deepEqual(registeredDefinition.scenarioIds, ["capability-user-make-visit-note"]);
+  assert.deepEqual(registeredDefinition.machine.scope, record.scope);
   const savedAgain = service.save({ id: record.id, kind: record.kind, name: record.name, title: record.title, description: record.description, examplePrompt: record.examplePrompt, body: record.body, scope: record.scope, inputFields: record.inputFields });
   assert.equal(savedAgain.autoRegister, true);
   assert.equal(service.snapshot().statuses[record.id], "registered");
   const result = await service.run(record.id, { drug_name: "<Lisinopril>" });
   assert.equal(result.structuredContent.visibleState, "human_review");
   assert.match(result.structuredContent.content, /&lt;Lisinopril&gt;/);
+  assert.equal(result.structuredContent.artifact.contentStored, false);
   assert.equal(artifacts[0].template.name, "make_visit_note");
   assert.ok(saved.some((item) => item.name === "make_visit_note" && item.autoRegister));
+
+  const numeric = service.save({
+    kind: "tool", name: "make_cost_note", title: "Make a cost note", description: "Create a bounded cost note.",
+    body: "Cost <%= input.amount %>", scope: { role: "patient", situation: "cost", step: "note" },
+    inputFields: [{ name: "amount", label: "Amount", type: "number", required: true }],
+  });
+  assert.deepEqual(
+    { minimum: numeric.inputSchema.properties.amount.minimum, maximum: numeric.inputSchema.properties.amount.maximum },
+    { minimum: -1000000, maximum: 1000000 },
+  );
+  assert.throws(() => service.render(numeric.id, { amount: Number.POSITIVE_INFINITY }), /finite number/);
+  assert.throws(() => service.render(numeric.id, { amount: 1000001 }), /between -1000000 and 1000000/);
 });
 
 test("clipboard service falls back to a temporary selection when permission is denied", async () => {

@@ -249,5 +249,80 @@
         }
       }
     ]
+  },
+  {
+    "name": "Find and compare only eligible medication options",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Find the seeded options that ClearDose explicitly allows me to compare with lisinopril for price, then compare its provider offers at the Baltimore demo location. Explain the relationship and do not call anything a substitute."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "cleardose_find_compatible_options",
+        "arguments": {
+          "drugId": "med_lisinopril",
+          "purpose": "price"
+        }
+      },
+      {
+        "functionName": "cleardose_compare_medication_options",
+        "arguments": {
+          "drugIds": [
+            "med_lisinopril"
+          ],
+          "purpose": "price",
+          "postalCode": "21201"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Recover from an unavailable mock location",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Check the lisinopril 10 mg quantity 60 demo package at location demo-unknown. If ClearDose returns LOCATION_UNAVAILABLE, keep that failure visible and make a separate recovery call with the recommended demo-baltimore location."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "cleardose_get_drug_availability",
+        "arguments": {
+          "drugId": "med_lisinopril",
+          "variantId": "lisinopril-10mg-60",
+          "locationId": "demo-unknown"
+        }
+      },
+      {
+        "functionName": "cleardose_get_drug_availability",
+        "arguments": {
+          "drugId": "med_lisinopril",
+          "variantId": "lisinopril-10mg-60",
+          "locationId": "demo-baltimore"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Recover from stale state by inspecting before retry",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "A ClearDose state dispatch returned STALE_STATE_VERSION. Show the current workflow instances and recent events so I can choose the exact flow and version. Do not guess a version or retry the transition yet."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "cleardose_inspect_workflow_runtime",
+        "arguments": {
+          "limit": 25
+        }
+      }
+    ]
   }
 ]

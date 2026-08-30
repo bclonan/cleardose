@@ -15,6 +15,9 @@ export { VoiceGuidanceService } from "./services/accessibility/VoiceGuidanceServ
 export { getVoiceJourney } from "./services/accessibility/voiceJourneys";
 export * from "./domain/dto";
 export { WorkflowRuntime } from "./services/workflows/WorkflowRuntime";
+export { ProgrammaticReplayRuntime } from "./services/workflows/ProgrammaticReplayRuntime";
+export { BoundedObservationService } from "./services/ui/BoundedObservationService";
+export { DeclarativeToolRunner } from "./services/ui/DeclarativeToolRunner";
 export { DuckDbWasmDao } from "./infrastructure/persistence/DuckDbWasmDao";
 export { MemoryWorkflowDao } from "./infrastructure/persistence/MemoryWorkflowDao";
 export { createStructuredExchangeToolPair } from "./infrastructure/webmcp/templates/createStructuredExchangeToolPair";
@@ -22,6 +25,7 @@ export { doctorQuestionCardExchange, doctorQuestionCardResponseSchema } from "./
 export { workflowDefinitions } from "./services/api/workflows/workflowDefinitions";
 export { capabilityCatalog, capabilityCategories, getCapability, groupCapabilities, decorateToolDefinitions } from "./infrastructure/webmcp/catalog/capabilityCatalog";
 export { hackathonShortcuts, getHackathonShortcut } from "./services/api/shortcuts/hackathonShortcuts";
+export { demoScenarios, getDemoScenario, getDemoScenariosForRoute } from "./services/api/demos/demoScenarios";
 export { LocalDrugIndexApi } from "./services/api/local/LocalDrugIndexApi";
 export { getRecoveryGuidance, buildPrescriptionFollowUp } from "./services/api/recovery/recoveryGuidance";
 export { createAgentMemoryPacket } from "./services/api/documents/agentMemoryPacket";

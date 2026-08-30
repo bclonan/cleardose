@@ -1,17 +1,22 @@
 <script setup>
-import { ArrowRight, Bot, Scale, ShieldCheck } from "@lucide/vue";
+import { Scale, ShieldCheck } from "@lucide/vue";
 import ComparisonPanel from "../components/ComparisonPanel.vue";
+import DemoScenarioCard from "../components/DemoScenarioCard.vue";
+import { usePharmacyStore } from "../composables/usePharmacyStore";
+
+const store = usePharmacyStore();
+const scenario = store.demoScenario("semantic-comparison");
 </script>
 
 <template>
   <div class="compare-page">
     <section class="compare-hero">
       <div class="page-width compare-hero-grid">
-        <div><span class="eyebrow"><Scale :size="17" /> Like-for-like price facts</span><h1>Two medications.<br />One clear view.</h1><p>Choose two fictional catalog entries and exact variants. ClearDose lines up the same price fields without implying that one medicine can replace another.</p></div>
-        <div class="compare-agent-card"><Bot :size="26" /><span>Try with an agent</span><strong>“Compare atorvastatin and lisinopril, then highlight the results.”</strong><p>The agent uses typed catalog and highlight tools while the patient sees the same state.</p><RouterLink to="/demo">See how it works <ArrowRight :size="17" /></RouterLink></div>
+        <div><span class="eyebrow"><Scale :size="17" /> Explicit comparison rules</span><h1>Same drug pricing.<br />Seeded discussion pairs.</h1><p>Compare one exact package across fictional providers, or review a relationship that ClearDose explicitly marks for clinician discussion. Unrelated records are rejected.</p></div>
+        <DemoScenarioCard :scenario="scenario" compact />
       </div>
     </section>
     <div class="page-width compare-workspace"><ComparisonPanel /></div>
-    <section class="page-width comparison-boundary"><ShieldCheck :size="25" /><div><h2>Designed around a safe boundary.</h2><p>This demo compares catalog and price data only. It does not identify therapeutic equivalents, recommend switching, or replace a clinician.</p></div></section>
+    <section class="page-width comparison-boundary"><ShieldCheck :size="25" /><div><h2>The boundary is part of the data model.</h2><p>Only same-drug provider offers can be price-ranked. Discussion-only records show structured sample facts without claiming equivalence or recommending a switch.</p></div></section>
   </div>
 </template>

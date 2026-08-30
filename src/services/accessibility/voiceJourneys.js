@@ -61,7 +61,7 @@ const journeys = {
     intro: "Choose a prompt chain, copy it to your compatible agent, and inspect the deterministic machine analog beside the live workflow runtime.",
     steps: [
       "Choose a single-step or multi-step shortcut and review its role, situation, and step scope.",
-      "Copy the full chain or one step, or run the visual analog without invoking an external agent.",
+      "Copy the full chain or one step, or run the local trace without invoking an external agent.",
       "Inspect event ids and context, then explicitly review, copy, or save an optional memory packet.",
     ],
   },

@@ -7,11 +7,13 @@ import {
   ChevronRight,
   CircleDollarSign,
   Info,
+  MapPin,
   Package,
   Pill,
   ShieldCheck,
   ShoppingCart,
   Stethoscope,
+  Truck,
 } from "@lucide/vue";
 import { formatMoney, usePharmacyStore } from "../composables/usePharmacyStore";
 
@@ -21,6 +23,10 @@ const store = usePharmacyStore();
 const medication = computed(() => store.medicationBySlug(route.params.slug));
 const selectedVariantId = ref(medication.value?.variants[0]?.id ?? "");
 const added = ref(false);
+const locationId = ref("demo-baltimore");
+const selectedOfferId = ref("");
+const availability = ref(null);
+const availabilityError = ref("");
 
 watch(medication, (value) => { selectedVariantId.value = value?.variants[0]?.id ?? ""; });
 
@@ -28,11 +34,34 @@ const selectedVariant = computed(() => medication.value?.variants.find((variant)
 const baseCost = computed(() => Math.max(0, (selectedVariant.value.price - 5) / 1.15));
 const markup = computed(() => baseCost.value * 0.15);
 const savings = computed(() => selectedVariant.value.retail - selectedVariant.value.price);
+const demoLocations = computed(() => store.state.drugIndexSummary?.demoLocations ?? []);
+const selectedOffer = computed(() => availability.value?.offers.find((offer) => offer.id === selectedOfferId.value) ?? null);
+
+watch([selectedVariantId, locationId], () => checkAvailability(), { immediate: true });
 
 function addItem() {
   store.addToCart(medication.value.id, selectedVariantId.value);
   added.value = true;
   window.setTimeout(() => { added.value = false; }, 2400);
+}
+
+function checkAvailability() {
+  if (!medication.value?.id || !selectedVariantId.value) return;
+  availabilityError.value = "";
+  try {
+    availability.value = store.getDrugAvailability({ drugId: medication.value.id, variantId: selectedVariantId.value, locationId: locationId.value });
+    selectedOfferId.value = availability.value.offers.find((offer) => offer.inventory.status !== "unavailable")?.id ?? availability.value.offers[0]?.id ?? "";
+  } catch (error) {
+    availability.value = null;
+    availabilityError.value = error instanceof Error ? error.message : "Availability check failed.";
+  }
+}
+
+function deliveryLabel(offer) {
+  const window = offer.fulfillment.shipping.deliveryWindow;
+  if (offer.fulfillment.shipping.available && window) return `${window.minDays} to ${window.maxDays} demo days`;
+  if (offer.fulfillment.pickup.available) return `Pickup in ${offer.fulfillment.pickup.estimatedFulfillmentMinutes} minutes`;
+  return offer.inventory.estimatedRestockOn ? `Restock ${offer.inventory.estimatedRestockOn}` : "Unavailable";
 }
 </script>
 
@@ -75,6 +104,21 @@ function addItem() {
             </label>
           </div>
         </div>
+
+        <section class="detail-provider-picker" data-agent-section="availability-results" aria-labelledby="detail-provider-title">
+          <div><span class="eyebrow"><MapPin :size="16" /> Fictional provider check</span><h2 id="detail-provider-title">Choose a mock location and review one offer.</h2></div>
+          <label>Mock location<select v-model="locationId" name="detailLocationId"><option v-for="location in demoLocations" :key="location.id" :value="location.id">{{ location.label }} · {{ location.postalCode }}</option></select></label>
+          <div v-if="availability" class="detail-provider-options">
+            <label v-for="offer in availability.offers" :key="offer.id" :class="{ selected: selectedOfferId === offer.id, unavailable: offer.inventory.status === 'unavailable' }" data-availability-offer>
+              <input v-model="selectedOfferId" type="radio" name="providerOffer" :value="offer.id" />
+              <span><strong>{{ offer.providerName }}</strong><small>{{ offer.inventory.status.replaceAll('_', ' ') }} · {{ deliveryLabel(offer) }}</small></span>
+              <em>{{ offer.deliveredCashTotal == null ? 'Unavailable' : formatMoney(offer.deliveredCashTotal) }}</em>
+            </label>
+          </div>
+          <div v-if="selectedOffer" class="detail-selected-offer"><Truck :size="17" /><span><strong>{{ selectedOffer.providerName }}</strong> {{ deliveryLabel(selectedOffer) }}. Cash package {{ formatMoney(selectedOffer.cashPrice) }}, shipping {{ formatMoney(selectedOffer.shipping) }}.</span></div>
+          <p v-if="availabilityError" class="inline-error" role="alert">{{ availabilityError }}</p>
+          <small>Provider selection is for review only. Adding the package does not reserve stock or contact a provider.</small>
+        </section>
 
         <div class="purchase-panel" data-agent-section="primary-price">
           <div class="purchase-price">

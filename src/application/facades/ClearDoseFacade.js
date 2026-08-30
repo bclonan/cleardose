@@ -26,14 +26,32 @@ export class ClearDoseFacade {
   searchMedications(filters) { return this.adapter.catalog.list(filters); }
   medicationById(id) { return this.adapter.catalog.findById(id); }
   medicationBySlug(slug) { return this.adapter.catalog.findBySlug(slug); }
-  searchDrugIndex(input) { return this.adapter.api.searchDrugIndex(input); }
-  drugIndexEntry(drugId) { return this.adapter.api.getDrugIndexEntry(drugId); }
-  compareDrugPrices(input) { return this.adapter.api.compareDrugPrices(input); }
-  findRelatedDrugs(input) { return this.adapter.api.findRelatedDrugs(input); }
-  reviewInteractionFlags(input) { return this.adapter.api.reviewInteractionFlags(input); }
-  buildProcurementPlan(input) { return this.adapter.api.buildProcurementPlan(input); }
+  searchDrugIndex(input) { return this.adapter.catalog.searchDrugIndex(input); }
+  drugIndexEntry(drugId) { return this.adapter.catalog.drugIndexEntry(drugId); }
+  compareDrugPrices(input) { return this.adapter.catalog.compareDrugPrices(input); }
+  findRelatedDrugs(input) { return this.adapter.catalog.findRelatedDrugs(input); }
+  listCompatibleOptions(input) { return this.adapter.catalog.listCompatibleOptions(input); }
+  compareMedicationOptions(input) { return this.adapter.catalog.compareMedicationOptions(input); }
+  getDrugAvailability(input) { return this.adapter.catalog.getDrugAvailability(input); }
+  compareDrugAvailability(input) { return this.adapter.catalog.compareDrugAvailability(input); }
+  estimateDelivery(input) { return this.adapter.catalog.estimateDelivery(input); }
+  reviewInteractionFlags(input) { return this.adapter.catalog.reviewInteractionFlags(input); }
+  buildProcurementPlan(input) { return this.adapter.catalog.buildProcurementPlan(input); }
 
   compareMedications({ leftMedicationId, rightMedicationId, leftVariantId, rightVariantId }) {
+    let semanticComparison;
+    try {
+      semanticComparison = this.compareMedicationOptions({
+        leftDrugId: leftMedicationId,
+        rightDrugId: rightMedicationId,
+        leftVariantId,
+        rightVariantId,
+        purpose: "facts",
+      });
+    } catch (error) {
+      if (error?.code === "INCOMPATIBLE_COMPARISON") return null;
+      throw error;
+    }
     const buildSide = (medicationId, variantId) => {
       const medication = this.medicationById(medicationId);
       if (!medication) return null;
@@ -52,8 +70,10 @@ export class ClearDoseFacade {
     return Object.freeze({
       left,
       right,
-      priceDifference: Number(Math.abs(left.variant.price - right.variant.price).toFixed(2)),
-      disclaimer: "Illustrative price comparison only. These medications are not presented as therapeutic alternatives.",
+      relationship: semanticComparison.relationships[0] ?? null,
+      rankable: semanticComparison.rankable,
+      priceDifference: semanticComparison.rankable ? Number(Math.abs(left.variant.price - right.variant.price).toFixed(2)) : null,
+      disclaimer: semanticComparison.disclaimer,
     });
   }
 

@@ -13,6 +13,11 @@ import CapabilityMachinePane from "../components/CapabilityMachinePane.vue";
 import HackathonLauncher from "../components/HackathonLauncher.vue";
 import PrescriptionRecoveryPanel from "../components/PrescriptionRecoveryPanel.vue";
 import CapabilityStudioVoiceGuide from "../components/CapabilityStudioVoiceGuide.vue";
+import DemoScenarioCard from "../components/DemoScenarioCard.vue";
+import ProgrammaticReplayPanel from "../components/ProgrammaticReplayPanel.vue";
+import DemoLabDock from "../components/DemoLabDock.vue";
+import RouteDemoSection from "../components/RouteDemoSection.vue";
+import WebMcpExplorer from "../components/WebMcpExplorer.vue";
 
 export const clearDoseComponents = Object.freeze({
   AccountNav,
@@ -30,6 +35,11 @@ export const clearDoseComponents = Object.freeze({
   HackathonLauncher,
   PrescriptionRecoveryPanel,
   CapabilityStudioVoiceGuide,
+  DemoScenarioCard,
+  ProgrammaticReplayPanel,
+  DemoLabDock,
+  RouteDemoSection,
+  WebMcpExplorer,
 });
 
 export function registerClearDoseComponents(app, { prefix = "Cd" } = {}) {

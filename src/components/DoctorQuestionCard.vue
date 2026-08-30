@@ -21,7 +21,12 @@ const plainText = computed(() => [
   "Questions:",
   ...props.card.questions.map((question, index) => `${index + 1}. ${question}`),
   "Fictional price facts:",
-  ...props.card.priceFacts.map((fact) => `- ${fact}`),
+  ...(props.card.priceFacts ?? []).map((fact) => `- ${fact}`),
+  "Fictional availability facts:",
+  ...(props.card.availabilityFacts ?? []).map((fact) => `- ${fact}`),
+  props.card.clinicalFacts?.label ?? "",
+  ...(props.card.clinicalFacts?.commonSideEffects ?? []).map((fact) => `- Common side effect in sample: ${fact}`),
+  ...(props.card.clinicalFacts?.importantWarnings ?? []).map((fact) => `- Warning in sample: ${fact}`),
   props.card.disclaimer,
 ].join("\n"));
 
@@ -42,7 +47,9 @@ async function copyCard() {
     <header><div><span>Patient → clinician discussion card</span><h2 :id="titleId">{{ card.title }}</h2></div><span class="card-status"><Check v-if="card.status === 'reviewed'" :size="15" />{{ card.status === 'reviewed' ? 'Patient reviewed' : 'Draft for review' }}</span></header>
     <p>{{ card.summary }}</p>
     <section><h3>Questions I may want to ask</h3><ol><li v-for="question in card.questions" :key="question">{{ question }}</li></ol></section>
-    <section><h3>ClearDose fictional price facts</h3><ul><li v-for="fact in card.priceFacts" :key="fact">{{ fact }}</li></ul></section>
+    <section><h3>ClearDose fictional price facts</h3><ul><li v-for="fact in (card.priceFacts ?? [])" :key="fact">{{ fact }}</li></ul></section>
+    <section v-if="card.availabilityFacts?.length"><h3>Seeded provider availability</h3><ul><li v-for="fact in card.availabilityFacts" :key="fact">{{ fact }}</li></ul></section>
+    <section v-if="card.clinicalFacts" class="doctor-clinical-sample"><span>{{ card.clinicalFacts.label }}</span><h3>{{ card.clinicalFacts.activeIngredient }} · {{ card.clinicalFacts.manufacturer }}</h3><div><div><strong>Common side effects in sample</strong><ul><li v-for="fact in card.clinicalFacts.commonSideEffects" :key="fact">{{ fact }}</li></ul></div><div><strong>Important warnings in sample</strong><ul><li v-for="fact in card.clinicalFacts.importantWarnings" :key="fact">{{ fact }}</li></ul></div></div><p>Coverage: {{ card.clinicalFacts.coverage }}. A licensed clinician or pharmacist must verify these facts.</p></section>
     <div class="doctor-card-boundary"><ShieldCheck :size="18" /><span>{{ card.disclaimer }}</span></div>
     <footer class="doctor-card-actions">
       <button class="button button-dark" type="button" @click="adapter.print()"><Printer :size="17" /> Print card</button>

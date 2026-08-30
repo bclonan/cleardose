@@ -9,14 +9,17 @@
         "properties": {
           "query": {
             "type": "string",
+            "maxLength": 120,
             "description": "Raw search text such as lisinopril, Lipitor, Statin, or udi:cleardose:lisinopril."
           },
           "category": {
             "type": "string",
+            "maxLength": 80,
             "description": "Optional exact category returned by a prior search."
           },
           "drugClass": {
             "type": "string",
+            "maxLength": 80,
             "description": "Optional exact drug class returned by a prior search."
           },
           "limit": {
@@ -28,6 +31,129 @@
           }
         },
         "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_search_drug_index.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "drugs": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "type": "object",
+              "maxProperties": 64,
+              "additionalProperties": true
+            }
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
       },
       "annotations": {
         "readOnlyHint": true,
@@ -43,6 +169,7 @@
         "properties": {
           "drugId": {
             "type": "string",
+            "maxLength": 100,
             "description": "Exact ClearDose UDI drug id such as med_lisinopril."
           }
         },
@@ -50,6 +177,449 @@
           "drugId"
         ],
         "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_get_drug_index_entry.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "drug": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_find_compatible_options",
+      "title": "Find explicitly compatible medication options",
+      "description": "Return the seeded ClearDose relationships that permit a same-medication provider comparison or a discussion-only clinician handoff. The result does not claim therapeutic equivalence or recommend substitution.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "drugId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Exact ClearDose UDI drug id returned by search_drug_index."
+          },
+          "purpose": {
+            "type": "string",
+            "maxLength": 17,
+            "enum": [
+              "facts",
+              "price",
+              "fulfillment",
+              "doctor_discussion"
+            ],
+            "default": "facts",
+            "description": "The reason for checking compatibility. Eligibility differs by purpose."
+          }
+        },
+        "required": [
+          "drugId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_find_compatible_options.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "compatibility": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_compare_medication_options",
+      "title": "Compare explicitly compatible medication options",
+      "description": "Compare structured facts and fictional provider offers for one to four exact UDI records after ClearDose confirms the requested relationship. Discussion-only records are not ranked as substitutes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "drugIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "description": "One to four exact UDI drug ids. A single id compares providers for the same medication."
+          },
+          "variantIds": {
+            "type": "object",
+            "maxProperties": 4,
+            "propertyNames": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "additionalProperties": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 140
+            },
+            "description": "Optional exact variant ids keyed by an id in drugIds."
+          },
+          "purpose": {
+            "type": "string",
+            "maxLength": 17,
+            "enum": [
+              "facts",
+              "price",
+              "fulfillment",
+              "doctor_discussion"
+            ],
+            "default": "facts"
+          },
+          "locationId": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Optional seeded demo location id."
+          },
+          "postalCode": {
+            "type": "string",
+            "maxLength": 16,
+            "description": "Optional seeded demo postal code."
+          }
+        },
+        "required": [
+          "drugIds"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_compare_medication_options.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "comparison": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
       },
       "annotations": {
         "readOnlyHint": true,
@@ -69,11 +639,13 @@
             "minItems": 1,
             "maxItems": 4,
             "items": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 100
             }
           },
           "strength": {
             "type": "string",
+            "maxLength": 40,
             "description": "Optional exact strength, such as 10mg. If unavailable, the tool returns the closest indexed package and names it explicitly."
           },
           "quantity": {
@@ -87,6 +659,120 @@
           "drugIds"
         ],
         "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_compare_drug_prices.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "comparison": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
       },
       "annotations": {
         "readOnlyHint": true,
@@ -102,6 +788,7 @@
         "properties": {
           "drugId": {
             "type": "string",
+            "maxLength": 100,
             "description": "Exact ClearDose UDI drug id returned by search_drug_index."
           },
           "limit": {
@@ -116,6 +803,657 @@
           "drugId"
         ],
         "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_find_related_drugs.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "related": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "maxProperties": 64,
+              "additionalProperties": true
+            }
+          },
+          "source": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "relationship": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "coverage": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "disclaimer": {
+            "type": "string",
+            "maxLength": 800
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_get_drug_availability",
+      "title": "Get fictional provider availability",
+      "description": "Return deterministic stock, provider, pickup, shipping, and delivery facts for one exact indexed package at a seeded demo location. This does not contact a pharmacy or reserve inventory.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "drugId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Exact ClearDose UDI drug id."
+          },
+          "variantId": {
+            "type": "string",
+            "maxLength": 140,
+            "description": "Preferred exact package variant id."
+          },
+          "strength": {
+            "type": "string",
+            "maxLength": 40,
+            "description": "Exact strength when variantId is omitted."
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 365,
+            "description": "Exact package quantity when variantId is omitted."
+          },
+          "locationId": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Seeded demo location id."
+          },
+          "postalCode": {
+            "type": "string",
+            "maxLength": 16,
+            "description": "Seeded demo postal code."
+          }
+        },
+        "required": [
+          "drugId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_get_drug_availability.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "availability": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_compare_drug_availability",
+      "title": "Compare fictional availability and delivery",
+      "description": "Rank seeded provider offers for one exact medication package by fictional price and fulfillment timing. Cross-medication candidates must pass the explicit fulfillment compatibility rules.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "drugId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Exact source UDI drug id."
+          },
+          "variantId": {
+            "type": "string",
+            "maxLength": 140,
+            "description": "Exact source package variant id."
+          },
+          "compatibleDrugIds": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 3,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "description": "Optional candidates returned by find_compatible_options for fulfillment."
+          },
+          "locationId": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Seeded demo location id."
+          },
+          "postalCode": {
+            "type": "string",
+            "maxLength": 16,
+            "description": "Seeded demo postal code."
+          },
+          "fulfillmentMode": {
+            "type": "string",
+            "maxLength": 8,
+            "enum": [
+              "shipping",
+              "pickup",
+              "either"
+            ],
+            "default": "shipping"
+          },
+          "maxDeliveryDays": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30,
+            "description": "Optional latest acceptable fictional delivery day."
+          }
+        },
+        "required": [
+          "drugId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_compare_drug_availability.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "comparison": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_estimate_delivery",
+      "title": "Estimate fictional package delivery",
+      "description": "Return one deterministic pickup or shipping estimate for an exact indexed package and seeded provider offer. The estimate is not a fulfillment promise.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "drugId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Exact ClearDose UDI drug id."
+          },
+          "variantId": {
+            "type": "string",
+            "maxLength": 140,
+            "description": "Exact package variant id."
+          },
+          "offerId": {
+            "type": "string",
+            "maxLength": 140,
+            "description": "Optional exact offer id returned by get_drug_availability."
+          },
+          "providerId": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Optional seeded provider id. Do not combine with offerId."
+          },
+          "locationId": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Seeded demo location id."
+          },
+          "postalCode": {
+            "type": "string",
+            "maxLength": 16,
+            "description": "Seeded demo postal code."
+          },
+          "fulfillmentMode": {
+            "type": "string",
+            "maxLength": 8,
+            "enum": [
+              "shipping",
+              "pickup"
+            ],
+            "default": "shipping"
+          }
+        },
+        "required": [
+          "drugId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_estimate_delivery.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "estimate": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
       },
       "annotations": {
         "readOnlyHint": true,
@@ -135,7 +1473,8 @@
             "minItems": 2,
             "maxItems": 10,
             "items": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 100
             }
           }
         },
@@ -143,6 +1482,120 @@
           "drugIds"
         ],
         "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_review_demo_interaction_flags.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "review": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
       },
       "annotations": {
         "readOnlyHint": true,
@@ -166,10 +1619,12 @@
               "properties": {
                 "drugId": {
                   "type": "string",
+                  "maxLength": 100,
                   "description": "Exact UDI drug id returned by search_drug_index."
                 },
                 "strength": {
                   "type": "string",
+                  "maxLength": 40,
                   "description": "Optional exact indexed strength."
                 },
                 "quantity": {
@@ -187,6 +1642,7 @@
           },
           "strategy": {
             "type": "string",
+            "maxLength": 30,
             "description": "How to select fictional offers: lowest delivered total, fewest channels, or a simple cost-and-speed balance.",
             "enum": [
               "lowest_total",
@@ -201,35 +1657,123 @@
         ],
         "additionalProperties": false
       },
-      "annotations": {
-        "readOnlyHint": true,
-        "untrustedContentHint": false
-      }
-    },
-    {
-      "name": "cleardose_inspect_workflow_runtime",
-      "title": "Inspect local workflow runtime",
-      "description": "Read recent ClearDose workflow instances, transitions, bounded context snapshots, generated cards, and the local DuckDB-Wasm status. Use this to explain what the site and agent have completed without changing state.",
-      "inputSchema": {
+      "outputSchema": {
         "type": "object",
+        "description": "Structured response for cleardose_build_procurement_plan.",
+        "maxProperties": 32,
         "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
           "flowId": {
             "type": "string",
-            "description": "Optional exact flow id. Omit it to inspect concurrent recent flows."
+            "maxLength": 120
           },
-          "limit": {
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
             "type": "integer",
-            "description": "Maximum recent events to return.",
-            "minimum": 1,
-            "maximum": 100,
-            "default": 40
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "plan": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
           }
         },
-        "additionalProperties": false
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
       },
       "annotations": {
         "readOnlyHint": true,
-        "untrustedContentHint": true
+        "untrustedContentHint": false
       }
     },
     {
@@ -241,6 +1785,7 @@
         "properties": {
           "drugId": {
             "type": "string",
+            "maxLength": 100,
             "description": "Exact primary ClearDose UDI drug id."
           },
           "relatedDrugIds": {
@@ -249,12 +1794,13 @@
             "minItems": 0,
             "maxItems": 3,
             "items": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 100
             }
           },
           "concerns": {
             "type": "array",
-            "description": "Zero to six short patient concerns to transform into neutral questions, not instructions or diagnoses.",
+            "description": "Zero to six short fictional concern prompts used only during this call. Never enter real health information. ClearDose persists only the count, not the authored text.",
             "minItems": 0,
             "maxItems": 6,
             "items": {
@@ -265,6 +1811,133 @@
         },
         "required": [
           "drugId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Prepared doctor question-card exchange contract.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "exchangeId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "context": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "instruction": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "expectedResponse": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "ok"
         ],
         "additionalProperties": false
       },
@@ -282,6 +1955,7 @@
         "properties": {
           "exchangeId": {
             "type": "string",
+            "maxLength": 100,
             "description": "Exact exchange id returned by prepare_doctor_question_card_request."
           },
           "title": {
@@ -307,6 +1981,126 @@
         ],
         "additionalProperties": false
       },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_submit_doctor_question_card_draft.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "card": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "visibleState": {
+            "type": "string",
+            "enum": [
+              "human_review"
+            ]
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
+      },
       "annotations": {
         "readOnlyHint": false,
         "untrustedContentHint": false
@@ -321,10 +2115,12 @@
         "properties": {
           "drugId": {
             "type": "string",
+            "maxLength": 100,
             "description": "Exact ClearDose UDI drug id."
           },
           "preferredPath": {
             "type": "string",
+            "maxLength": 30,
             "enum": [
               "prescriber_send",
               "transfer",
@@ -349,6 +2145,126 @@
           "drugId"
         ],
         "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_prepare_prescription_follow_up.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "followUp": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "visibleState": {
+            "type": "string",
+            "enum": [
+              "human_review"
+            ]
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
       },
       "annotations": {
         "readOnlyHint": false,
@@ -409,6 +2325,2293 @@
         },
         "additionalProperties": false
       },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_prepare_agent_memory_packet.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "packet": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "visibleState": {
+            "type": "string",
+            "enum": [
+              "human_review"
+            ]
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "untrustedContentHint": true
+      }
+    },
+    {
+      "name": "cleardose_inspect_workflow_runtime",
+      "title": "Inspect local workflow runtime",
+      "description": "Read recent ClearDose workflow instances, transitions, bounded context snapshots, generated cards, and the local DuckDB-Wasm status. Use this to explain what the site and agent have completed without changing state.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "flowId": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Optional exact flow id. Omit it to inspect concurrent recent flows."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum recent events to return.",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 40
+          }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_inspect_workflow_runtime.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "runtime": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true
+      }
+    },
+    {
+      "name": "cleardose_inspect_workflow_state",
+      "title": "Inspect one workflow state",
+      "description": "Return one local workflow's current state, version, state metadata, valid agent actions, human-only actions, and disabled actions without changing it.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "flowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Exact flow id returned by inspect_workflow_runtime."
+          }
+        },
+        "required": [
+          "flowId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Current state and declared actions for one local workflow.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "flow": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "definition": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "stateMeta": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "terminal": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": "boolean"
+          },
+          "availableActions": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "object",
+              "maxProperties": 18,
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "aliases": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "from": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "to": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "trigger": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "inputSchema": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "requiredInput": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "relatedCapabilityId": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "relatedTool": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 160
+                },
+                "humanOnly": {
+                  "type": "boolean"
+                },
+                "recovery": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "available": {
+                  "type": "boolean"
+                },
+                "availableToHuman": {
+                  "type": "boolean"
+                },
+                "disabledCode": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "disabledReason": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "humanActions": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "object",
+              "maxProperties": 18,
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "aliases": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "from": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "to": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "trigger": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "inputSchema": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "requiredInput": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "relatedCapabilityId": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "relatedTool": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 160
+                },
+                "humanOnly": {
+                  "type": "boolean"
+                },
+                "recovery": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "available": {
+                  "type": "boolean"
+                },
+                "availableToHuman": {
+                  "type": "boolean"
+                },
+                "disabledCode": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "disabledReason": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "unavailableActions": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "object",
+              "maxProperties": 18,
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "aliases": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "from": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "to": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "trigger": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "inputSchema": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "requiredInput": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "relatedCapabilityId": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "relatedTool": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 160
+                },
+                "humanOnly": {
+                  "type": "boolean"
+                },
+                "recovery": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "available": {
+                  "type": "boolean"
+                },
+                "availableToHuman": {
+                  "type": "boolean"
+                },
+                "disabledCode": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "disabledReason": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "valid": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "disabled": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "validNextStates": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true
+      }
+    },
+    {
+      "name": "cleardose_get_workflow_history",
+      "title": "Get one workflow event history",
+      "description": "Return up to one hundred chronological events for one exact local workflow, including bounded context snapshots and stable event versions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "flowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Exact local workflow id."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 40,
+            "description": "Maximum most-recent events to return in chronological order."
+          }
+        },
+        "required": [
+          "flowId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Bounded chronological history for one local workflow.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "events": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "maxProperties": 64,
+              "additionalProperties": true
+            }
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true
+      }
+    },
+    {
+      "name": "cleardose_get_available_workflow_actions",
+      "title": "Get available workflow actions",
+      "description": "List every valid agent action, human-only action, and unavailable action for one exact local workflow state without dispatching anything.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "flowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Exact local workflow id."
+          }
+        },
+        "required": [
+          "flowId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Valid, human-only, and unavailable actions for one workflow state.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "terminal": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": "boolean"
+          },
+          "valid": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "disabled": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "validNextStates": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "availableActions": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "object",
+              "maxProperties": 18,
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "aliases": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "from": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "to": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "trigger": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "inputSchema": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "requiredInput": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "relatedCapabilityId": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "relatedTool": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 160
+                },
+                "humanOnly": {
+                  "type": "boolean"
+                },
+                "recovery": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "available": {
+                  "type": "boolean"
+                },
+                "availableToHuman": {
+                  "type": "boolean"
+                },
+                "disabledCode": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "disabledReason": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "humanActions": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "object",
+              "maxProperties": 18,
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "aliases": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "from": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "to": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "trigger": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "inputSchema": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "requiredInput": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "relatedCapabilityId": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "relatedTool": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 160
+                },
+                "humanOnly": {
+                  "type": "boolean"
+                },
+                "recovery": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "available": {
+                  "type": "boolean"
+                },
+                "availableToHuman": {
+                  "type": "boolean"
+                },
+                "disabledCode": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "disabledReason": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "unavailableActions": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "object",
+              "maxProperties": 18,
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "aliases": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "from": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "to": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "trigger": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "inputSchema": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "requiredInput": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "relatedCapabilityId": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "relatedTool": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 160
+                },
+                "humanOnly": {
+                  "type": "boolean"
+                },
+                "recovery": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "available": {
+                  "type": "boolean"
+                },
+                "availableToHuman": {
+                  "type": "boolean"
+                },
+                "disabledCode": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "disabledReason": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "resetAvailable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_get_workflow_transition",
+      "title": "Inspect one workflow transition",
+      "description": "Explain one declared action, its source and target state, input schema, availability, human-control status, and recovery metadata without dispatching it.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "flowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Exact local workflow id."
+          },
+          "action": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "pattern": "^[A-Za-z][A-Za-z0-9_]*$",
+            "description": "Declared action name such as COMPARE."
+          }
+        },
+        "required": [
+          "flowId",
+          "action"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "One declared workflow transition and its current availability.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "transition": {
+            "type": "object",
+            "maxProperties": 18,
+            "properties": {
+              "action": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "aliases": {
+                "type": "array",
+                "maxItems": 100,
+                "items": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "from": {
+                "type": "array",
+                "maxItems": 100,
+                "items": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "to": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "trigger": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "inputSchema": {
+                "type": "object",
+                "maxProperties": 64,
+                "additionalProperties": true
+              },
+              "requiredInput": {
+                "type": "array",
+                "maxItems": 100,
+                "items": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "relatedCapabilityId": {
+                "type": "string",
+                "maxLength": 160
+              },
+              "relatedTool": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 160
+              },
+              "humanOnly": {
+                "type": "boolean"
+              },
+              "recovery": {
+                "type": "object",
+                "maxProperties": 64,
+                "additionalProperties": true
+              },
+              "available": {
+                "type": "boolean"
+              },
+              "availableToHuman": {
+                "type": "boolean"
+              },
+              "disabledCode": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "disabledReason": {
+                "type": "string",
+                "maxLength": 500
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": false
+      }
+    },
+    {
+      "name": "cleardose_dispatch_workflow_transition",
+      "title": "Dispatch one local workflow transition",
+      "description": "Dispatch one declared agent action against the exact observed workflow version. The runtime validates the action-specific input, rejects stale state, and blocks human-only transitions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "flowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Exact local workflow id."
+          },
+          "action": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "pattern": "^[A-Za-z][A-Za-z0-9_]*$",
+            "description": "One currently available agent action."
+          },
+          "input": {
+            "type": "object",
+            "maxProperties": 12,
+            "additionalProperties": true,
+            "description": "Action-specific input. Its selected transition schema performs the final validation."
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000,
+            "description": "Current version returned by inspect_workflow_state."
+          },
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]*$",
+            "description": "Unique idempotency id for this dispatch."
+          }
+        },
+        "required": [
+          "flowId",
+          "action",
+          "expectedVersion",
+          "requestId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Result of one versioned local workflow mutation.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "event": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "flow": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "availableActions": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "object",
+              "maxProperties": 18,
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "aliases": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "from": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "to": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "trigger": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "inputSchema": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "requiredInput": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "relatedCapabilityId": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "relatedTool": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 160
+                },
+                "humanOnly": {
+                  "type": "boolean"
+                },
+                "recovery": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "available": {
+                  "type": "boolean"
+                },
+                "availableToHuman": {
+                  "type": "boolean"
+                },
+                "disabledCode": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "disabledReason": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "humanActions": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "object",
+              "maxProperties": 18,
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "aliases": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "from": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "to": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "trigger": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "inputSchema": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "requiredInput": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "relatedCapabilityId": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "relatedTool": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 160
+                },
+                "humanOnly": {
+                  "type": "boolean"
+                },
+                "recovery": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "available": {
+                  "type": "boolean"
+                },
+                "availableToHuman": {
+                  "type": "boolean"
+                },
+                "disabledCode": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "disabledReason": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "untrustedContentHint": true
+      }
+    },
+    {
+      "name": "cleardose_reset_workflow_state",
+      "title": "Reset one local workflow state",
+      "description": "Reset one local workflow to its declared initial state using the exact observed version and a unique request id. Existing history remains available.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "flowId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Exact local workflow id."
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000,
+            "description": "Current version returned by inspect_workflow_state."
+          },
+          "requestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]*$",
+            "description": "Unique idempotency id for this reset."
+          }
+        },
+        "required": [
+          "flowId",
+          "expectedVersion",
+          "requestId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Result of one versioned local workflow mutation.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "event": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "flow": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "availableActions": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "object",
+              "maxProperties": 18,
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "aliases": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "from": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "to": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "trigger": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "inputSchema": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "requiredInput": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "relatedCapabilityId": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "relatedTool": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 160
+                },
+                "humanOnly": {
+                  "type": "boolean"
+                },
+                "recovery": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "available": {
+                  "type": "boolean"
+                },
+                "availableToHuman": {
+                  "type": "boolean"
+                },
+                "disabledCode": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "disabledReason": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "humanActions": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "object",
+              "maxProperties": 18,
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "aliases": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 500
+                },
+                "from": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "to": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "trigger": {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                "inputSchema": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "requiredInput": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "items": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "relatedCapabilityId": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "relatedTool": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 160
+                },
+                "humanOnly": {
+                  "type": "boolean"
+                },
+                "recovery": {
+                  "type": "object",
+                  "maxProperties": 64,
+                  "additionalProperties": true
+                },
+                "available": {
+                  "type": "boolean"
+                },
+                "availableToHuman": {
+                  "type": "boolean"
+                },
+                "disabledCode": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "disabledReason": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": false
+      },
       "annotations": {
         "readOnlyHint": false,
         "untrustedContentHint": true
@@ -423,6 +4626,7 @@
         "properties": {
           "target": {
             "type": "string",
+            "maxLength": 80,
             "enum": [
               "medication-search",
               "comparison-results",
@@ -446,7 +4650,16 @@
               "shortcut-observatory",
               "machine-inspector",
               "agent-memory",
-              "prescription-recovery"
+              "prescription-recovery",
+              "capability-studio",
+              "studio-runtime",
+              "demo-lab",
+              "route-demo-scenarios",
+              "programmatic-replay",
+              "webmcp-explorer",
+              "webmcp-console",
+              "state-graph",
+              "availability-results"
             ],
             "description": "Stable section identifier. If the section is not on the current page, the tool returns a clear non-retryable error."
           }
@@ -455,6 +4668,119 @@
           "target"
         ],
         "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_highlight_section.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "target": {
+            "type": "string",
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
       },
       "annotations": {
         "readOnlyHint": true,
@@ -470,6 +4796,141 @@
         "properties": {},
         "additionalProperties": false
       },
+      "outputSchema": {
+        "type": "object",
+        "description": "Structured response for cleardose_get_cart.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "maxProperties": 64,
+              "additionalProperties": true
+            }
+          },
+          "itemCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "subtotal": {
+            "type": "number",
+            "minimum": 0
+          },
+          "shipping": {
+            "type": "number",
+            "minimum": 0
+          },
+          "total": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "additionalProperties": true
+      },
       "annotations": {
         "readOnlyHint": true,
         "untrustedContentHint": false
@@ -484,16 +4945,141 @@
         "properties": {
           "drugId": {
             "type": "string",
+            "maxLength": 100,
             "description": "Exact UDI drug id returned by get_drug_index_entry."
           },
           "variantId": {
             "type": "string",
+            "maxLength": 140,
             "description": "Exact package variant id returned by get_drug_index_entry."
           }
         },
         "required": [
           "drugId",
           "variantId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Result of adding one exact package to the local mock cart.",
+        "maxProperties": 32,
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Stable failure code when ok is false."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 800
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the request can succeed after the stated recovery."
+          },
+          "recommendedTool": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "recommendedRoute": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "recoveryInput": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "details": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          },
+          "field": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "missingFields": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "allowed": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "flowId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "currentState": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "currentVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "requestId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "definitionId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "visibleActionRequired": {
+            "type": "boolean"
+          },
+          "existingEventId": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "itemCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "total": {
+            "type": "number",
+            "minimum": 0
+          },
+          "fulfillmentGate": {
+            "type": "object",
+            "maxProperties": 64,
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "ok"
         ],
         "additionalProperties": false
       },

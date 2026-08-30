@@ -1,4 +1,7 @@
 const fieldTypes = new Set(["string", "number", "integer", "boolean"]);
+const TEMPLATE_STRING_MAX = 2000;
+const TEMPLATE_NUMBER_MIN = -1000000;
+const TEMPLATE_NUMBER_MAX = 1000000;
 
 function text(value, field, { required = true, max = 500 } = {}) {
   const normalized = String(value ?? "").trim();
@@ -36,7 +39,14 @@ function states(values, kind) {
 }
 
 export function buildTemplateInputSchema(fields) {
-  const properties = Object.fromEntries(fields.map((field) => [field.name, { type: field.type, description: field.description || field.label, ...(field.example !== "" ? { examples: [field.example] } : {}) }]));
+  const properties = Object.fromEntries(fields.map((field) => {
+    const bounds = field.type === "string"
+      ? { maxLength: TEMPLATE_STRING_MAX }
+      : ["number", "integer"].includes(field.type)
+        ? { minimum: TEMPLATE_NUMBER_MIN, maximum: TEMPLATE_NUMBER_MAX }
+        : {};
+    return [field.name, { type: field.type, ...bounds, description: field.description || field.label, ...(field.example !== "" ? { examples: [field.example] } : {}) }];
+  }));
   const required = fields.filter((field) => field.required).map((field) => field.name);
   return Object.freeze({ type: "object", properties, ...(required.length ? { required } : {}), additionalProperties: false });
 }
@@ -69,11 +79,12 @@ export function validateTemplateInput(template, input = {}) {
     if (field.required && (value == null || value === "")) throw new TypeError(`${field.name} is required.`);
     if (value == null || value === "") continue;
     if (field.type === "string" && typeof value !== "string") throw new TypeError(`${field.name} must be a string.`);
-    if (field.type === "number" && typeof value !== "number") throw new TypeError(`${field.name} must be a number.`);
+    if (field.type === "string" && value.length > TEMPLATE_STRING_MAX) throw new TypeError(`${field.name} must be ${TEMPLATE_STRING_MAX} characters or fewer.`);
+    if (field.type === "number" && (typeof value !== "number" || !Number.isFinite(value))) throw new TypeError(`${field.name} must be a finite number.`);
     if (field.type === "integer" && !Number.isInteger(value)) throw new TypeError(`${field.name} must be an integer.`);
+    if (["number", "integer"].includes(field.type) && (value < TEMPLATE_NUMBER_MIN || value > TEMPLATE_NUMBER_MAX)) throw new TypeError(`${field.name} must be between ${TEMPLATE_NUMBER_MIN} and ${TEMPLATE_NUMBER_MAX}.`);
     if (field.type === "boolean" && typeof value !== "boolean") throw new TypeError(`${field.name} must be a boolean.`);
-    output[field.name] = typeof value === "string" ? value.slice(0, 2000) : value;
+    output[field.name] = value;
   }
   return output;
 }
-

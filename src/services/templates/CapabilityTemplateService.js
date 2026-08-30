@@ -1,11 +1,12 @@
 import { normalizeCapabilityTemplate, validateTemplateInput } from "../api/templates/capabilityTemplateSchema";
+import { capabilityReplayScenarioId } from "../api/demos/capabilityReplayScenario";
 import { SafeEjsTemplateEngine } from "./SafeEjsTemplateEngine";
 import { toolResponse } from "../../infrastructure/webmcp/toolResponse";
 
 function copy(value) { return value == null ? value : structuredClone(value); }
 
 const starters = Object.freeze([
-  Object.freeze({ kind: "tool", name: "visit_question_sheet", title: "Generate a visit question sheet", description: "Create a local, reviewable question sheet from user-provided medication and visit goals.", examplePrompt: "I’m getting ready for an appointment about lisinopril. Please make me a short question sheet focused on cost and monitoring, and leave it for me to review.", voiceGuide: "Name the medication, say what you want to understand, then review the generated sheet before copying it.", scope: { role: "patient", situation: "visit-preparation", step: "question-sheet" }, inputFields: [{ name: "drug_name", label: "Medication name", type: "string", required: true, description: "Fictional medication name." }, { name: "visit_goal", label: "Visit goal", type: "string", required: true, description: "What the patient wants to discuss." }], body: "# Questions about <%= input.drug_name %>\n\nVisit goal: <%= input.visit_goal %>\n\n- What should I understand before making any change?\n- Which cost, monitoring, and safety questions should we discuss?\n\nGenerated in ClearDose for human review. Not medical advice.", autoRegister: false }),
+  Object.freeze({ kind: "tool", name: "visit_question_sheet", title: "Generate a visit question sheet", description: "Create a local, reviewable question sheet from user-provided medication and visit goals.", examplePrompt: "I'm getting ready for an appointment about lisinopril. Please make me a short question sheet focused on cost and monitoring, and leave it for me to review.", voiceGuide: "Name the medication, say what you want to understand, then review the generated sheet before copying it.", scope: { role: "patient", situation: "visit-preparation", step: "question-sheet" }, inputFields: [{ name: "drug_name", label: "Medication name", type: "string", required: true, description: "Fictional medication name." }, { name: "visit_goal", label: "Visit goal", type: "string", required: true, description: "What the patient wants to discuss." }], body: "# Questions about <%= input.drug_name %>\n\nVisit goal: <%= input.visit_goal %>\n\n- What should I understand before making any change?\n- Which cost, monitoring, and safety questions should we discuss?\n\nGenerated in ClearDose for human review. Not medical advice.", autoRegister: false }),
   Object.freeze({ kind: "workflow", name: "prescription_review_loop", title: "Prescription review loop", description: "A reusable human-reviewed workflow for gathering context before an administrative prescription follow-up.", examplePrompt: "ClearDose says my fictional order needs a prescription. Please start a review workflow, help me gather the context, and stop before anyone is contacted.", voiceGuide: "Collect the fictional medication context, prepare the editable handoff, and stop for human review before completion.", scope: { role: "patient", situation: "prescription-required", step: "review-loop" }, inputFields: [{ name: "drug_name", label: "Medication name", type: "string", required: true, description: "Fictional indexed medication." }], states: ["ready", "collecting_context", "preparing_handoff", "human_review", "complete"], body: "Review workflow for <%= input.drug_name %>. Current role: <%= context.role %>. Stop at human review before any external action.", autoRegister: false }),
 ]);
 
@@ -58,12 +59,50 @@ export class CapabilityTemplateService {
   }
 
   toolDefinition(template) {
+    const exampleInput = Object.fromEntries(template.inputFields.map((field) => [field.name,
+      field.type === "boolean" ? true : ["number", "integer"].includes(field.type) ? 1 : field.example || `Example ${field.label}`,
+    ]));
+    const outputSchema = {
+      type: "object",
+      maxProperties: 4,
+      properties: {
+        ok: { type: "boolean" },
+        artifact: {
+          type: "object",
+          maxProperties: 6,
+          properties: {
+            id: { type: "string", maxLength: 120 },
+            artifactType: { type: "string", enum: ["dynamic-document"] },
+            flowId: { type: "string", maxLength: 120 },
+            status: { type: "string", enum: ["human_review"] },
+            title: { type: "string", maxLength: 100 },
+            contentStored: { type: "boolean" },
+          },
+          required: ["id", "artifactType", "flowId", "status", "title", "contentStored"],
+          additionalProperties: false,
+        },
+        content: { type: "string", maxLength: 20000 },
+        visibleState: { type: "string", enum: ["human_review"] },
+      },
+      required: ["ok", "artifact", "content", "visibleState"],
+      additionalProperties: false,
+    };
     return {
-      name: template.name, title: template.title, description: template.description, inputSchema: template.inputSchema,
+      name: template.name, title: template.title, description: template.description, inputSchema: template.inputSchema, outputSchema,
       annotations: { readOnlyHint: false, untrustedContentHint: true },
-      capabilityId: `cleardose.user-generated.${template.name}`, category: "user-generated", interactionModel: "imperative",
-      machine: { id: `machine.dynamic.user-tool-${template.name.replaceAll("_", "-")}.v1`, kind: "dynamic", role: template.scope.role, states: ["queued", "running", "complete", "error"] },
-      examplePrompt: template.examplePrompt,
+      capabilityId: `cleardose.user-generated.${template.name}`, category: "user-generated", interactionModel: "imperative", registration: "imperative",
+      machine: { id: `machine.dynamic.user-tool-${template.name.replaceAll("_", "-")}.v1`, kind: "dynamic", role: template.scope.role, scope: template.scope, states: ["queued", "running", "complete", "error"] },
+      examplePrompt: template.examplePrompt || `Create ${template.title.toLowerCase()} with fictional data and leave it for review.`,
+      voicePrompt: template.voiceGuide || `Run ${template.title.toLowerCase()} with fictional data, then read the review status aloud.`,
+      advancedPrompt: `Invoke cleardose_user_${template.name} with the closed input schema. Return the bounded local artifact and stop at human review.`,
+      expectedResult: `A bounded ${template.title.toLowerCase()} draft that remains local and in human review.`,
+      routes: ["*"],
+      permissions: ["local-document-draft", "human-review"],
+      exampleRequests: [exampleInput],
+      exampleResponse: { ok: true, artifact: { id: "artifact_demo", artifactType: "dynamic-document", flowId: "flow_demo", status: "human_review", title: template.title, contentStored: false }, content: "Generated local review content.", visibleState: "human_review" },
+      deterministicErrors: [{ code: "INVALID_INPUT", recovery: "Use only the declared bounded input fields and exact JSON types." }],
+      relatedTools: ["inspect_workflow_runtime"],
+      scenarioIds: [capabilityReplayScenarioId({ toolName: `cleardose_user_${template.name}` })],
       execute: (input) => this.executeTool(template, input),
     };
   }
@@ -71,9 +110,17 @@ export class CapabilityTemplateService {
   async executeTool(template, input) {
     const safeInput = validateTemplateInput(template, input);
     return this.workflowRuntime.runTool(`user_${template.name}`, safeInput, async ({ flowId }) => {
-      const content = this.engine.render(template.body, { input: safeInput, context: template.scope, site: { name: "ClearDose", tagline: "Transparent prescriptions, agent-ready." } });
+      const content = this.engine.render(template.body, { input: safeInput, context: template.scope, site: { name: "ClearDose", tagline: "Transparent prescriptions, agent-ready." } }).slice(0, 20000);
       const artifact = await this.workflowRuntime.createTemplateArtifact({ flowId, template, input: safeInput, content });
-      return toolResponse({ ok: true, artifact, content, visibleState: "human_review" }, `Generated ${template.title} locally for human review.`);
+      const artifactSummary = {
+        id: artifact.id,
+        artifactType: artifact.artifactType || "dynamic-document",
+        flowId: artifact.flowId || flowId,
+        status: artifact.status,
+        title: artifact.title || template.title,
+        contentStored: artifact.contentStored === true,
+      };
+      return toolResponse({ ok: true, artifact: artifactSummary, content, visibleState: "human_review" }, `Generated ${template.title} locally for human review.`);
     }, { capabilityId: `cleardose.user-generated.${template.name}`, category: "user-generated", interactionModel: "imperative", machine: this.toolDefinition(template).machine });
   }
 

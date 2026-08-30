@@ -1,20 +1,20 @@
-# ClearDose — WebMCP hackathon entry
+# ClearDose WebMCP hackathon entry
 
 **Tagline:** Transparent prescriptions, agent-ready.
 
 ## What we built
 
-ClearDose is a fictional, local-first Vue 3 prescription-commerce experience where a patient and browser agent use the same typed capabilities. A 52-record Universal Drug Index expands into 156 packages and 468 deterministic fictional offers. It supports search, price comparison, discussion-only related records, synthetic interaction-review fixtures, local procurement planning, cart/account/checkout journeys, structured patient-to-doctor documents, prescription recovery, user-controlled agent memory packets, and a safe studio for locally authoring new document tools and workflows.
+ClearDose is a fictional, local-first Vue 3 prescription-commerce experience where a patient and browser agent use the same typed capabilities. A 52-record Universal Drug Index expands into 156 packages and 624 deterministic fictional offers across four providers and three mock locations. It supports explicit semantic comparison, provider inventory, delivery estimates, synthetic interaction-review fixtures, local procurement planning, cart and checkout journeys, structured doctor-discussion documents, prescription recovery, user-controlled memory packets, and a safe studio for locally authoring tools and workflows.
 
-The differentiator is observability: the dedicated flow lab renders concurrent XState/Stately-style state paths, exact event ids, transition history, and the bounded context at every step. DuckDB-Wasm stores the drug seed, flows, events, agent exchanges, and cards in browser OPFS. `BroadcastChannel` mirrors activity into a second tab, so a demo operator can put the patient experience and live runtime side by side.
+The demo has three recurring parts. Programmatic Replay runs deterministic steps through the same local tool handlers used by WebMCP. The WebMCP Explorer exposes live registration, schemas, examples, errors, timing, and state changes. The Live State Inspector renders branching workflow truth, versioned actions, exact event ids, and bounded context. DuckDB-Wasm stores the drug seed, flows, events, agent exchanges, and cards in browser OPFS. `BroadcastChannel` mirrors activity into a second tab.
 
 ## Why WebMCP
 
-Prescription journeys contain precise identity, price, package, state, and human-approval boundaries that are difficult for an agent to reconstruct from presentation alone. ClearDose registers fourteen single-purpose imperative tools through `document.modelContext.registerTool()` and catalogs eight declarative forms. Every capability has a category, interaction-model tag, visible conversational prompt, closed bounded contract, deterministic machine analog, and graceful unsupported-browser behavior.
+Prescription journeys contain precise identity, price, package, state, and human-approval boundaries that an agent should not infer from page layout. ClearDose registers 25 single-purpose imperative tools through `document.modelContext.registerTool()` and catalogs nine declarative forms. Every capability has a category, interaction tag, human, voice, and advanced prompt guidance, bounded input and output contracts, deterministic errors, routes, permissions, related tools, and a machine id.
 
-Human components and agent tools share Pinia actions and application services. Search returns exact UDI ids for later calls. Comparison never claims therapeutic substitution. Synthetic interaction results expose incomplete coverage. Planning never reserves or orders. Checkout, patient data, and clinical decisions remain human-controlled.
+Human components, Explorer requests, replay steps, and agent tools share Pinia actions and application services. Search returns exact UDI ids for later calls. Compatibility data decides which facts or offers may be compared and gives a reason. Discussion-only relationships are never ranked as equivalents. Synthetic interaction results expose incomplete coverage. Planning never reserves or orders. Checkout, patient data, and clinical decisions remain human-controlled.
 
-## Site → agent → site “ping-pong”
+## Site to agent to site exchange
 
 The question-card exchange demonstrates a reusable two-tool pattern:
 
@@ -27,13 +27,13 @@ The generic `createStructuredExchangeToolPair()` factory and domain template lit
 
 ## Judge demo
 
-1. Use the floating **Demo shortcuts** CTA and select **Full judge tour**.
-2. Copy its chain into a WebMCP-capable agent, then run the deterministic visual analog. Explain that the simulation and real agent are deliberately distinguished.
-3. Inspect the dynamic `role/situation/step` scope, current state, event ids, and context beside the same run.
-4. Select **Prescription recovery**. Generate an editable follow-up, review it, and copy it without contacting a prescriber.
-5. Prepare a memory packet, inspect every line, then explicitly copy or save the Markdown. Show that nothing is retained automatically.
-6. Open **Capability Studio**, preview the visit question-sheet starter, explicitly register it, run it into human review, and inspect its dynamic machine events.
-7. Run the negative recovery lab and finish with `cleardose_inspect_workflow_runtime`.
+1. Open `/#/demo` and select the semantic comparison scenario. Run it once, then pause and single-step it while Inspect calls shows each request, response, timing value, highlight, and bounded state change.
+2. In the WebMCP Explorer, open `cleardose_compare_medication_options`. Run a valid seeded request, then run a malformed or incompatible request and follow the structured recovery.
+3. Change the mock location and run the three-day availability scenario. Compare provider inventory, price components, and delivery windows.
+4. Open the Live State Inspector. Select the seeded branching flow, inspect available actions, explain `COMPARE`, and dispatch it with the displayed version and a unique request id.
+5. Try `START_CHECKOUT` through the agent dispatch tool. The runtime rejects it as human-only. Use the visible patient control instead if the demo needs to enter checkout review.
+6. Run the failure-and-recovery scenario. Keep the original error in history, then choose the recommended next tool.
+7. Finish with the doctor discussion card. The generated questions stop in human review, and every clinical statement remains labeled sample data.
 
 ## Architecture
 
@@ -41,10 +41,12 @@ The generic `createStructuredExchangeToolPair()` factory and domain template lit
 - Facade/repository/DTO/DAO boundaries for commerce state
 - DuckDB-Wasm with official compatible bundle selection and browser OPFS
 - Memory fallback plus same-origin `BroadcastChannel` replication
-- Centralized workflow definitions, negative fixtures, and structured exchange contract
+- Centralized workflow definitions, branching state contracts, negative fixtures, replay scenarios, and structured exchange contracts
 - Reusable adapter-ready components registered by one ClearDose plugin
-- A canonical 22-capability manifest, seven prompt chains, fourteen built-in imperative tools, eight declarative forms, runtime contract tests, and Chrome-compatible eval fixtures
-- Static tool/form machines plus dynamic shortcut machines scoped to a role, situation, and step
+- A canonical 34-capability manifest, 25 built-in imperative tools, nine declarative forms, runtime contract tests, and Chrome-compatible eval fixtures
+- Static tool and form machines plus branching and dynamic machines scoped to a role, situation, and step
+- Explicit comparison relationships and deterministic provider, inventory, price, and delivery fixtures centralized in the UDI service
+- One locally invokable tool registry shared by browser registration, Explorer requests, and Programmatic Replay
 - A non-executable EJS-shaped capability template engine with explicit local registration and user-generated namespace isolation
 - User-controlled File System Access/download memory export with no silent external agent transfer
 
@@ -52,7 +54,7 @@ The generic `createStructuredExchangeToolPair()` factory and domain template lit
 
 The site targets WCAG 2.2 AAA engineering practices: semantic landmarks and forms, high contrast, visible focus, minimum target sizes, skip navigation, reduced-motion/forced-colors support, live announcements, keyboard-operable dialogs/timelines, voice transcript fallback, and print-safe question cards. This is an engineering target, not a formal conformance claim.
 
-The test suite covers DTO privacy, UDI counts and boundaries, WebMCP registration/cleanup, closed schemas, runtime input errors, state/context history, structured response validation, and all negative fixtures. The exported eval suite covers direct, ordered, mutation, structured handoff, workflow inspection, and refusal journeys.
+The test suite covers DTO privacy, UDI counts and boundaries, compatibility rejection, location and delivery failures, WebMCP registration and local invocation, replay controls, closed schemas, versioned state dispatch, history, structured response validation, and negative fixtures. The exported eval suite covers direct, ordered, mutation, structured handoff, workflow inspection, recovery, and refusal journeys.
 
 ## Safety and scope
 

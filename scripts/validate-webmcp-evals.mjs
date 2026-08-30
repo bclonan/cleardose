@@ -9,6 +9,22 @@ const evals = await readJson("../evals/cleardose.evals.json");
 const smokeEvals = await readJson("../evals/cleardose.smoke.json");
 const names = new Set();
 
+function assertBoundedInputStrings(node, path) {
+  if (!node || typeof node !== "object") return;
+  if (node.type === "string") {
+    assert.ok(Number.isInteger(node.maxLength) && node.maxLength > 0, `${path} needs a positive maxLength.`);
+  }
+  if (node.items) assertBoundedInputStrings(node.items, `${path}[]`);
+  if (node.properties) {
+    for (const [key, value] of Object.entries(node.properties)) assertBoundedInputStrings(value, `${path}.${key}`);
+  }
+  if (node.additionalProperties && typeof node.additionalProperties === "object") assertBoundedInputStrings(node.additionalProperties, `${path}.*`);
+  if (node.propertyNames) assertBoundedInputStrings(node.propertyNames, `${path}.<key>`);
+  for (const keyword of ["allOf", "anyOf", "oneOf"]) {
+    if (Array.isArray(node[keyword])) node[keyword].forEach((value, index) => assertBoundedInputStrings(value, `${path}.${keyword}[${index}]`));
+  }
+}
+
 assert.ok(Array.isArray(tools) && tools.length > 0, "Schema must export at least one tool.");
 for (const tool of tools) {
   assert.match(tool.name, /^cleardose_[a-z0-9_]+$/, `Invalid namespaced tool name: ${tool.name}`);
@@ -17,6 +33,8 @@ for (const tool of tools) {
   assert.ok(tool.description.length >= 45, `${tool.name} needs a precise description.`);
   assert.equal(tool.inputSchema?.type, "object", `${tool.name} needs an object input schema.`);
   assert.equal(tool.inputSchema?.additionalProperties, false, `${tool.name} must reject unknown properties.`);
+  assertBoundedInputStrings(tool.inputSchema, `${tool.name}.input`);
+  assert.equal(tool.outputSchema?.type, "object", `${tool.name} needs an output schema.`);
   assert.equal(typeof tool.annotations?.readOnlyHint, "boolean", `${tool.name} needs readOnlyHint.`);
   assert.equal(typeof tool.annotations?.untrustedContentHint, "boolean", `${tool.name} needs untrustedContentHint.`);
 }

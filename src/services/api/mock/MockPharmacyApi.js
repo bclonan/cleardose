@@ -23,6 +23,11 @@ export class MockPharmacyApi {
   getDrugIndexEntry(drugId) { return this.udi.getById(drugId); }
   compareDrugPrices(input) { return clone(this.udi.comparePrices(input)); }
   findRelatedDrugs(input) { return clone(this.udi.findRelated(input)); }
+  listCompatibleOptions(input) { return clone(this.udi.listCompatibleOptions(input)); }
+  compareMedicationOptions(input) { return clone(this.udi.compareMedicationOptions(input)); }
+  getDrugAvailability(input) { return clone(this.udi.getDrugAvailability(input)); }
+  compareDrugAvailability(input) { return clone(this.udi.compareDrugAvailability(input)); }
+  estimateDelivery(input) { return clone(this.udi.estimateDelivery(input)); }
   reviewInteractionFlags(input) { return clone(this.udi.reviewInteractionFlags(input)); }
   buildProcurementPlan(input) { return clone(this.udi.buildProcurementPlan(input)); }
 

@@ -40,7 +40,7 @@ function clearFilters() {
         <span class="eyebrow">Mock catalog</span>
         <h1>Find your medication.</h1>
         <p>Search by generic name, brand name, or health category. Every price shown is illustrative.</p>
-        <form class="catalog-search" role="search" data-agent-section="medication-search" toolname="filter_visible_medication_catalog" tooldescription="Populate the visible catalog search field so the user can review matching fictional medications on this page." toolautosubmit @submit.prevent="syncSearch">
+        <form class="catalog-search" role="search" data-agent-section="medication-search" toolname="cleardose_filter_visible_medication_catalog" tooldescription="Populate the visible catalog search field so the user can review matching fictional medications on this page." toolautosubmit @submit.prevent="syncSearch">
           <Search :size="23" />
           <input v-model="search" name="query" aria-label="Search the medication catalog" autocomplete="off" toolparamdescription="Medication, brand, or health category search text" placeholder="Search medications or conditions" @input="syncSearch" />
           <button v-if="search" type="button" aria-label="Clear search" @click="search = ''; syncSearch()"><X :size="19" /></button>
@@ -56,7 +56,7 @@ function clearFilters() {
       <div class="catalog-toolbar">
         <div>
           <strong>{{ filtered.length }}</strong> results
-          <span v-if="search">for “{{ search }}”</span>
+          <span v-if="search">for "{{ search }}"</span>
         </div>
         <label class="sort-control">
           <SlidersHorizontal :size="17" />
