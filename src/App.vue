@@ -20,12 +20,28 @@ const mobileOpen = ref(false);
 const accountOpen = ref(false);
 const headerSearch = ref("");
 
+function focusRouteContent() {
+  const main = globalThis.document?.querySelector("#main-content");
+  const heading = main?.querySelector("h1");
+  if (heading) {
+    heading.setAttribute("tabindex", "-1");
+    heading.focus({ preventScroll: true });
+    return;
+  }
+  main?.focus({ preventScroll: true });
+}
+
+function skipToRouteContent() {
+  globalThis.document?.querySelector("#main-content")?.scrollIntoView({ block: "start" });
+  focusRouteContent();
+}
+
 watch(
   () => route.fullPath,
   () => {
     mobileOpen.value = false;
     accountOpen.value = false;
-    nextTick(() => globalThis.document?.querySelector("#main-content")?.focus({ preventScroll: true }));
+    nextTick(focusRouteContent);
   },
 );
 
@@ -43,7 +59,7 @@ function signOut() {
 
 <template>
   <div class="site-shell">
-    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <a class="skip-link" href="#main-content" @click.prevent="skipToRouteContent">Skip to main content</a>
     <div class="demo-banner">
       <span class="demo-pulse" aria-hidden="true"></span>
       ClearDose sandbox <span aria-hidden="true">•</span> Mock data only

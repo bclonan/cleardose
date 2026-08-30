@@ -1,4 +1,5 @@
 import { clone } from "../../../domain/shared/clone";
+import { CartLineLimitError, MAX_CART_LINES, MAX_CART_UNITS_PER_LINE } from "../../../domain/cart/cartLimits";
 
 /**
  * In-browser stand-in for a future HTTP service. It owns mock request behavior
@@ -79,7 +80,7 @@ export class MockPharmacyApi {
   }
 
   logoutCustomer() { this.dao.mutate((state) => { state.currentCustomerId = null; }); }
-  listCart() { return clone(this.dao.read().cart); }
+  listCart() { return clone(this.dao.read().cart.slice(0, MAX_CART_LINES)); }
 
   addCartItem(medicationId, variantId) {
     const medication = this.udi.getById(medicationId);
@@ -87,19 +88,22 @@ export class MockPharmacyApi {
     if (!medication || !variant) return false;
     return this.dao.mutate((state) => {
       const existing = state.cart.find((item) => item.variantId === variantId);
-      if (existing) existing.units = Math.min(3, existing.units + 1);
-      else state.cart.push({
-        medicationId: medication.id,
-        variantId: variant.id,
-        name: medication.name,
-        genericFor: medication.genericFor,
-        form: variant.form,
-        strength: variant.strength,
-        quantity: variant.quantity,
-        price: variant.price,
-        retail: variant.retail,
-        units: 1,
-      });
+      if (existing) existing.units = Math.min(MAX_CART_UNITS_PER_LINE, existing.units + 1);
+      else {
+        if (state.cart.length >= MAX_CART_LINES) throw new CartLineLimitError();
+        state.cart.push({
+          medicationId: medication.id,
+          variantId: variant.id,
+          name: medication.name,
+          genericFor: medication.genericFor,
+          form: variant.form,
+          strength: variant.strength,
+          quantity: variant.quantity,
+          price: variant.price,
+          retail: variant.retail,
+          units: 1,
+        });
+      }
       return true;
     });
   }
@@ -109,7 +113,7 @@ export class MockPharmacyApi {
   }
 
   setCartItemUnits(variantId, units) {
-    const next = Math.max(0, Math.min(3, Number(units) || 0));
+    const next = Math.max(0, Math.min(MAX_CART_UNITS_PER_LINE, Number(units) || 0));
     this.dao.mutate((state) => {
       if (!next) state.cart = state.cart.filter((item) => item.variantId !== variantId);
       else {

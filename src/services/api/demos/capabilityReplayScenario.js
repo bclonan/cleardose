@@ -1,3 +1,5 @@
+import { normalizeDemoRoute } from "../../../domain/shared/demoRoute.js";
+
 const DISCLOSURE = Object.freeze({
   label: "Seeded local mock",
   detail: "This one-step replay uses the capability's seeded example. It contacts no pharmacy, clinician, insurer, payment service, or patient record.",
@@ -14,16 +16,6 @@ function safeSlug(value) {
   return slug || "capability";
 }
 
-function normalizeRoute(value) {
-  const raw = String(value || "/").trim();
-  const hashPath = raw.includes("#") ? raw.slice(raw.indexOf("#") + 1) : raw;
-  const path = hashPath.split("?")[0].split("#")[0] || "/";
-  if (path.startsWith("/medications/")) return "/medications";
-  if (path.startsWith("/account/orders/")) return "/account/orders";
-  if (path.startsWith("/checkout/confirmation/")) return "/checkout/confirmation";
-  return path.startsWith("/") ? path : `/${path}`;
-}
-
 export function capabilityReplayScenarioId(capability) {
   return `capability-${safeSlug(capability?.toolName || capability?.qualifiedName || capability?.name)}`;
 }
@@ -36,11 +28,11 @@ export function createCapabilityReplayScenario(capability, { route = "/" } = {})
   if (!/^[a-z][a-z0-9_]{2,119}$/.test(toolName) || !/^[a-z][a-z0-9_]{2,159}$/.test(qualifiedName)) {
     throw new TypeError("A capability replay needs stable lowercase tool names.");
   }
-  const currentRoute = normalizeRoute(route);
+  const currentRoute = normalizeDemoRoute(route);
   const declaredRoutes = Array.isArray(capability.routes) ? capability.routes : [];
   const replayRoute = declaredRoutes.includes("*") || declaredRoutes.includes("global") || declaredRoutes.includes(currentRoute)
     ? currentRoute
-    : normalizeRoute(declaredRoutes.find((item) => String(item).startsWith("/")) || currentRoute);
+    : normalizeDemoRoute(declaredRoutes.find((item) => String(item).startsWith("/")) || currentRoute);
   const example = structuredClone(capability.exampleRequests?.[0] ?? {});
   const title = String(capability.title || toolName.replaceAll("_", " ")).slice(0, 160);
   const capabilityId = String(capability.id || `cleardose.dynamic.${toolName}`).slice(0, 180);

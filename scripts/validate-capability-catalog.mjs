@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { capabilityCatalog, capabilityCategories } from "../src/infrastructure/webmcp/catalog/capabilityCatalog.js";
 import { hackathonShortcuts } from "../src/services/api/shortcuts/hackathonShortcuts.js";
 import { demoScenarios } from "../src/services/api/demos/demoScenarios.js";
+import { assertBoundedJsonSchema, assertJsonSchemaValue } from "./json-schema-contract.mjs";
 
 const categoryIds = new Set(capabilityCategories.map((item) => item.id));
 const capabilityIds = new Set(capabilityCatalog.map((item) => item.id));
@@ -18,11 +19,13 @@ for (const item of capabilityCatalog) {
   assert.ok(Array.isArray(item.routes) && item.routes.length > 0, `${item.id} needs at least one route.`);
   assert.ok(Array.isArray(item.permissions) && item.permissions.length > 0, `${item.id} needs explicit permissions.`);
   assert.equal(item.outputSchema?.type, "object", `${item.id} needs an output schema.`);
+  assertBoundedJsonSchema(item.outputSchema, `${item.id}.outputSchema`);
   assert.ok(Array.isArray(item.exampleRequests) && item.exampleRequests.length > 0, `${item.id} needs a prebuilt request.`);
   assert.ok(item.examplePrompt && item.voicePrompt && item.advancedPrompt && item.expectedResult, `${item.id} needs complete prompt guidance.`);
   assert.ok(Array.isArray(item.deterministicErrors), `${item.id} needs deterministic error metadata.`);
   assert.ok(Array.isArray(item.relatedTools), `${item.id} needs related-tool metadata.`);
   assert.ok(Array.isArray(item.scenarioIds), `${item.id} needs scenario metadata.`);
+  assertJsonSchemaValue(item.exampleResponse, item.outputSchema, `${item.id}.exampleResponse`);
   const executableScenarioIds = demoScenarios.filter((scenario) => scenario.capabilityIds.includes(item.id)).map((scenario) => scenario.id);
   assert.deepEqual(item.scenarioIds, executableScenarioIds, `${item.id} scenario metadata must match executable replay steps.`);
 }

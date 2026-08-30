@@ -1,33 +1,31 @@
+import js from "@eslint/js";
 import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import pluginVue from "eslint-plugin-vue";
+import globals from "globals";
 
 const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
+    "dist/**",
+    "node_modules/**",
+    ".sites-runtime/**",
+    "**/*.ts",
   ]),
+  js.configs.recommended,
+  ...pluginVue.configs["flat/essential"],
   {
-    files: ["components/ui/**/*.{ts,tsx}", "hooks/use-mobile.ts"],
-    rules: {
-      // These files are vendored verbatim from shadcn@4.17.0. Keep the
-      // registry source intact while applying the stricter rules to Site code.
-      "@typescript-eslint/no-unused-vars": "off",
-      "react-hooks/purity": "off",
-      "react-hooks/set-state-in-effect": "off",
+    files: ["src/**/*.{js,vue}"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: globals.browser,
     },
   },
   {
-    files: ["src/**/*.js"],
-    rules: {
-      // Vue composables use the conventional `use*` prefix but are not React hooks.
-      "react-hooks/rules-of-hooks": "off",
+    files: ["scripts/**/*.mjs", "tests/**/*.mjs", "eslint.config.mjs"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: globals.nodeBuiltin,
     },
   },
 ]);

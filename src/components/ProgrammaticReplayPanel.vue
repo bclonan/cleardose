@@ -1,10 +1,11 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { AlertTriangle, Check, ChevronRight, Clock3, Code2, Pause, Play, RefreshCcw, RotateCcw, StepForward } from "@lucide/vue";
 import { usePharmacyStore } from "../composables/usePharmacyStore";
 import { useAgentReadyComponent } from "../composables/useAgentReadyComponent";
 import { agentReadyProps } from "../presentation/agentReadyProps";
+import { normalizeDemoRoute } from "../domain/shared/demoRoute.js";
 
 const props = defineProps({ ...agentReadyProps });
 useAgentReadyComponent(props, { name: "programmatic_replay_panel", defaultAdapter: Object.freeze({}) });
@@ -16,19 +17,35 @@ const announcement = ref("Replay controls ready.");
 const scenario = computed(() => store.demoScenario(store.demoLab.selectedScenarioId || store.replay.scenarioId));
 const trace = computed(() => store.replay.steps ?? []);
 const toolsReady = computed(() => Boolean(scenario.value) && scenario.value.steps.every((step) => store.webMcp.tools.some((tool) => (tool.name === step.toolName || tool.name.endsWith(`_${step.toolName}`)) && tool.locallyInvokable)));
-const canStart = computed(() => Boolean(scenario.value) && toolsReady.value && !["running"].includes(store.replay.status));
+const primaryDisabled = computed(() => !["running", "paused"].includes(store.replay.status) && (!scenario.value || !toolsReady.value));
+const primaryActionLabel = computed(() => {
+  if (store.replay.status === "running") return "Pause";
+  if (store.replay.status === "paused") return "Resume";
+  if (!toolsReady.value) return "Loading tools";
+  if (store.replay.status === "complete") return "Run again";
+  if (store.replay.status === "error") return "Retry";
+  return "Run";
+});
 const timingDifference = computed(() => manualElapsedMs.value && store.replay.totalElapsedMs ? Math.round((manualElapsedMs.value - store.replay.totalElapsedMs) * 100) / 100 : 0);
+
+watch(() => store.replay.status, (status, previousStatus) => {
+  if (status === previousStatus) return;
+  const messages = {
+    running: previousStatus === "paused" ? "Replay resumed." : "Replay started.",
+    paused: "Replay paused.",
+    complete: `Replay completed in ${store.replay.totalElapsedMs || 0} milliseconds.`,
+    error: "Replay stopped with an error. Review the failed step for recovery details.",
+    idle: "Replay reset to seeded state.",
+  };
+  announcement.value = messages[status] ?? `Replay status changed to ${status}.`;
+});
 
 function elapsedSince(started) {
   return Math.max(0, Math.round(((globalThis.performance?.now?.() ?? Date.now()) - started) * 100) / 100);
 }
 
 function replayRoute(path) {
-  const normalized = path.startsWith("/medications/")
-    ? "/medications"
-    : path.startsWith("/checkout/confirmation/")
-      ? "/checkout/confirmation"
-      : path;
+  const normalized = normalizeDemoRoute(path);
   return scenario.value?.routes.includes(normalized) ? normalized : scenario.value?.routes[0] ?? normalized;
 }
 
@@ -47,14 +64,44 @@ function stopManualTimer() {
 
 async function startReplay() {
   if (!scenario.value) return;
+  announcement.value = `Starting ${scenario.value.title}.`;
   try { await store.runReplayScenario(scenario.value.id, { route: replayRoute(route.path), resetSeed: true }); }
   catch (error) { announcement.value = error instanceof Error ? error.message : "The replay could not start."; }
 }
 
+async function handlePrimaryReplayAction() {
+  if (store.replay.status === "running") {
+    await store.pauseReplay();
+    announcement.value = "Replay paused.";
+    return;
+  }
+  if (store.replay.status === "paused") {
+    announcement.value = "Resuming replay.";
+    await store.resumeReplay();
+    return;
+  }
+  await startReplay();
+}
+
 async function stepReplay() {
   if (!scenario.value) return;
-  try { await store.stepReplayScenario(scenario.value.id, { route: replayRoute(route.path), resetSeed: store.replay.scenarioId !== scenario.value.id }); }
+  announcement.value = "Running the next replay step.";
+  try {
+    const result = await store.stepReplayScenario(scenario.value.id, { route: replayRoute(route.path), resetSeed: store.replay.scenarioId !== scenario.value.id });
+    if (result?.status === "paused") announcement.value = `Replay step ${result.nextStepIndex} completed. Replay remains paused.`;
+  }
   catch (error) { announcement.value = error instanceof Error ? error.message : "The replay step failed."; }
+}
+
+async function restartReplay() {
+  announcement.value = "Restarting replay from the first step.";
+  try { await store.restartReplay({ autoRun: true, route: replayRoute(route.path) }); }
+  catch (error) { announcement.value = error instanceof Error ? error.message : "The replay could not restart."; }
+}
+
+async function resetReplay() {
+  await store.resetReplay();
+  announcement.value = "Replay and seeded demo state reset.";
 }
 </script>
 
@@ -68,12 +115,10 @@ async function stepReplay() {
     <p v-else class="empty-replay">Choose a contextual prompt to load its executable trace.</p>
 
     <div class="replay-controls" aria-label="Replay controls">
-      <button v-if="store.replay.status !== 'running'" class="button button-primary" type="button" :disabled="!canStart" @click="startReplay"><Play :size="16" /> {{ toolsReady ? 'Run' : 'Loading tools' }}</button>
-      <button v-else class="button button-primary" type="button" @click="store.pauseReplay"><Pause :size="16" /> Pause</button>
-      <button v-if="store.replay.status === 'paused' && store.replay.steps.length" class="button button-ghost" type="button" @click="store.resumeReplay"><Play :size="16" /> Resume</button>
+      <button class="button button-primary" type="button" :disabled="primaryDisabled" @click="handlePrimaryReplayAction"><Pause v-if="store.replay.status === 'running'" :size="16" /><Play v-else :size="16" /> {{ primaryActionLabel }}</button>
       <button class="button button-ghost" type="button" :disabled="!scenario || !toolsReady || store.replay.status === 'running'" @click="stepReplay"><StepForward :size="16" /> Step</button>
-      <button class="button button-ghost" type="button" :disabled="!store.replay.scenarioId" @click="store.restartReplay({ autoRun: true, route: replayRoute(route.path) })"><RefreshCcw :size="16" /> Restart</button>
-      <button class="text-action" type="button" @click="store.resetReplay"><RotateCcw :size="15" /> Reset seeded state</button>
+      <button class="button button-ghost" type="button" :disabled="!store.replay.scenarioId" @click="restartReplay"><RefreshCcw :size="16" /> Restart</button>
+      <button class="text-action" type="button" @click="resetReplay"><RotateCcw :size="15" /> Reset seeded state</button>
     </div>
 
     <div class="replay-timing-grid">
@@ -95,6 +140,6 @@ async function stepReplay() {
       </li>
     </ol>
     <p class="replay-disclosure">{{ scenario?.mockDisclosure.detail || 'All replay operations stay inside the local fictional sandbox.' }}</p>
-    <p class="sr-only" aria-live="polite">{{ announcement }}</p>
+    <p class="sr-only" role="status" aria-live="polite" aria-atomic="true">{{ announcement }}</p>
   </section>
 </template>

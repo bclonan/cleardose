@@ -119,3 +119,15 @@ test("WorkflowRuntime exposes every tool-facing drug operation through its seede
     "procurement",
   ]);
 });
+
+test("memory drug seeding replaces records that are absent from the current fixture", async () => {
+  const { MemoryWorkflowDao } = await vite.ssrLoadModule("/src/infrastructure/persistence/MemoryWorkflowDao.js");
+  const dao = new MemoryWorkflowDao({ reason: "seed-replacement-test" });
+  await dao.initialize({ drugs: [records.med_alpha] });
+  assert.equal((await dao.getDrug("med_alpha")).id, "med_alpha");
+
+  await dao.initialize({ drugs: [records.med_beta] });
+  assert.equal(await dao.getDrug("med_alpha"), null);
+  assert.equal((await dao.getDrug("med_beta")).id, "med_beta");
+  assert.equal(dao.status().drugCount, 1);
+});

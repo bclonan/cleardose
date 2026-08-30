@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import {
   ArrowRight,
@@ -17,6 +17,8 @@ const router = useRouter();
 const store = usePharmacyStore();
 const medications = computed(() => store.medications);
 const search = ref("");
+const suggestionsOpen = ref(false);
+const activeSuggestionIndex = ref(-1);
 const comparisonId = ref("med_atorvastatin");
 const featured = computed(() => medications.value.filter((medication) => medication.popular).slice(0, 3));
 const comparison = computed(() => medications.value.find((medication) => medication.id === comparisonId.value));
@@ -29,9 +31,51 @@ const suggestions = computed(() => {
     .filter((item) => `${item.name} ${item.genericFor}`.toLowerCase().includes(term))
     .slice(0, 5);
 });
+const visibleSuggestions = computed(() => suggestionsOpen.value ? suggestions.value : []);
+const activeSuggestionId = computed(() => activeSuggestionIndex.value >= 0 && visibleSuggestions.value[activeSuggestionIndex.value]
+  ? suggestionId(visibleSuggestions.value[activeSuggestionIndex.value])
+  : undefined);
+const seededDrugCount = computed(() => store.state.drugIndexSummary?.drugCount ?? medications.value.length);
+const demoLocationCount = computed(() => store.state.drugIndexSummary?.demoLocationCount ?? store.state.drugIndexSummary?.demoLocations?.length ?? 0);
+
+watch(search, () => {
+  activeSuggestionIndex.value = -1;
+  suggestionsOpen.value = suggestions.value.length > 0;
+});
+
+function suggestionId(item) { return `home-search-suggestion-${item.id}`; }
+function openSuggestions() { suggestionsOpen.value = suggestions.value.length > 0; }
+function closeSuggestions() { suggestionsOpen.value = false; activeSuggestionIndex.value = -1; }
+
+function handleSearchKeydown(event) {
+  const count = suggestions.value.length;
+  if (["ArrowDown", "ArrowUp"].includes(event.key) && count) {
+    event.preventDefault();
+    suggestionsOpen.value = true;
+    if (event.key === "ArrowDown") activeSuggestionIndex.value = (activeSuggestionIndex.value + 1 + count) % count;
+    else activeSuggestionIndex.value = activeSuggestionIndex.value < 0 ? count - 1 : (activeSuggestionIndex.value - 1 + count) % count;
+    return;
+  }
+  if (event.key === "Enter" && suggestionsOpen.value && activeSuggestionIndex.value >= 0) {
+    event.preventDefault();
+    const selected = suggestions.value[activeSuggestionIndex.value];
+    closeSuggestions();
+    router.push(`/medications/${selected.slug}`);
+    return;
+  }
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeSuggestions();
+  } else if (event.key === "Tab") closeSuggestions();
+}
+
+function handleSearchFocusOut(event) {
+  if (!event.currentTarget.contains(event.relatedTarget)) closeSuggestions();
+}
 
 function submitSearch() {
   const query = search.value.trim();
+  closeSuggestions();
   router.push({ name: "medications", query: query ? { q: query } : {} });
 }
 </script>
@@ -45,14 +89,14 @@ function submitSearch() {
         <div class="hero-copy">
           <span class="eyebrow"><ShieldCheck :size="17" /> ClearDose · Transparent prescriptions, agent-ready.</span>
           <h1>Know the medication.<br /><em>Know the price.</em><br />Know what happens next.</h1>
-          <p class="hero-lede">ClearDose turns prescription shopping into one understandable path, with visible prices, explicit clinical handoffs, and actions ready for either the patient or their agent.</p>
+          <p class="hero-lede">ClearDose turns prescription shopping into one understandable path, with visible prices, explicit clinical handoffs, and actions ready for either the patient or their agent. <RouterLink class="hero-judge-link" to="/demo">Run the judge demo <ArrowRight :size="16" /></RouterLink></p>
 
-          <form class="hero-search" role="search" data-agent-section="medication-search" toolname="cleardose_navigate_to_home_drug_search" tooldescription="Populate the home search and navigate the visible ClearDose interface to matching fictional drug records." toolautosubmit @submit.prevent="submitSearch">
+          <form class="hero-search" role="search" data-agent-section="medication-search" toolname="cleardose_navigate_to_home_drug_search" tooldescription="Populate the home search and navigate the visible ClearDose interface to matching fictional drug records." toolautosubmit @submit.prevent="submitSearch" @focusout="handleSearchFocusOut">
             <Search :size="22" aria-hidden="true" />
-            <input v-model="search" name="query" role="combobox" aria-autocomplete="list" aria-controls="home-search-suggestions" :aria-expanded="suggestions.length > 0" placeholder="Try Lisinopril or cholesterol" aria-label="Find a medication" autocomplete="off" toolparamdescription="Generic medication, brand, condition, or category search text" />
+            <input v-model="search" name="query" role="combobox" aria-autocomplete="list" aria-controls="home-search-suggestions" :aria-expanded="visibleSuggestions.length > 0" :aria-activedescendant="activeSuggestionId" placeholder="Try Lisinopril or cholesterol" aria-label="Find a medication" autocomplete="off" toolparamdescription="Generic medication, brand, condition, or category search text" @focus="openSuggestions" @keydown="handleSearchKeydown" />
             <button type="submit">Find my medication <ArrowRight :size="18" /></button>
-            <div v-if="suggestions.length" id="home-search-suggestions" class="search-suggestions" role="listbox" aria-label="Medication suggestions">
-              <RouterLink v-for="item in suggestions" :key="item.id" role="option" :to="`/medications/${item.slug}`">
+            <div v-if="visibleSuggestions.length" id="home-search-suggestions" class="search-suggestions" role="listbox" aria-label="Medication suggestions">
+              <RouterLink v-for="(item, index) in visibleSuggestions" :id="suggestionId(item)" :key="item.id" role="option" :aria-selected="activeSuggestionIndex === index" :tabindex="-1" :to="`/medications/${item.slug}`" @mouseenter="activeSuggestionIndex = index" @click="closeSuggestions">
                 <span><strong>{{ item.name }}</strong><small>Generic for {{ item.genericFor }}</small></span>
                 <ArrowRight :size="17" />
               </RouterLink>
@@ -99,10 +143,10 @@ function submitSearch() {
 
     <section class="value-strip">
       <div class="page-width value-strip-inner">
-        <div><strong>1,000+</strong><span>medications represented by the real model</span></div>
+        <div><strong>{{ seededDrugCount }}</strong><span>seeded medication concepts</span></div>
         <div><strong>100%</strong><span>visible price components</span></div>
         <div><strong>$5</strong><span>mock pharmacy labor fee</span></div>
-        <div><strong>50 states</strong><span>mail-delivery experience</span></div>
+        <div><strong>{{ demoLocationCount }}</strong><span>deterministic demo locations</span></div>
       </div>
     </section>
 

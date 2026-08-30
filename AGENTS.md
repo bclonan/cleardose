@@ -2,7 +2,7 @@
 
 ## Mission
 
-Build and extend **ClearDose — Transparent prescriptions, agent-ready.** as a fictional, local-only prescription commerce sandbox. Preserve the full patient journey while making every meaningful action reusable by both Vue components and WebMCP tools.
+Build and extend ClearDose, transparent prescriptions, agent-ready, as a fictional local-only prescription commerce sandbox. Preserve the full patient journey while making every meaningful action reusable by both Vue components and WebMCP tools.
 
 ## Non-negotiable boundaries
 
@@ -55,6 +55,33 @@ Build and extend **ClearDose — Transparent prescriptions, agent-ready.** as a 
 - Voice guidance is optional progressive enhancement. Every spoken instruction needs an equivalent persistent transcript and keyboard controls.
 - Every user-data field needs a stable label, `name`, appropriate `type`, and correct `autocomplete` token. Do not disable autofill without a specific safety reason.
 
+## Canonical directories
+
+- `src/views` contains route presentation. Views orchestrate store actions and sanitized DTOs only.
+- `src/components` contains reusable UI, replay, Explorer, state, and agent-ready components.
+- `src/stores` and `src/composables` expose the reactive Pinia boundary.
+- `src/domain` contains shared limits and pure domain rules that do not belong to the mock API.
+- `src/services/api` owns fictional fixtures, UDI behavior, workflow definitions, structured exchanges, and server-like mock behavior.
+- `src/services/workflows` owns replay and versioned runtime coordination.
+- `src/services/templates` owns safe user-authored template behavior.
+- `src/infrastructure/persistence` owns browser serialization, DuckDB-Wasm, OPFS, memory fallback, and cross-tab replication.
+- `src/infrastructure/webmcp` owns the capability catalog, browser adapter, local registry, declarative runner, and registered tool handlers.
+- `tests` contains the Node unit, integration, architecture, and contract suite.
+- `evals` contains WebMCP schemas and journeys. `evals/schema.json` and `evals/cleardose.smoke.json` are generated. Do not edit them by hand.
+- `docs` contains canonical architecture, testing, demo, role, accessibility, and release evidence.
+
+Do not recreate the removed React, Next, Cloudflare Worker, D1, shadcn, or Drizzle starter. The active stack is Vue, Vite, Pinia, and browser-local DuckDB-Wasm.
+
+## Coding conventions
+
+- Prefer plain JavaScript modules with small exported functions and explicit dependency injection at the composition root.
+- Keep route normalization in `src/domain/shared/demoRoute.js`.
+- Keep shared cart capacity in `src/domain/cart/cartLimits.js`.
+- Use `ClipboardService`, `VoicePreferenceService`, and `DeclarativeFormObserver` instead of direct page-level browser persistence or global listener code.
+- Keep deterministic seed ids. Do not add random values to replay inputs, expected outputs, or domain fixtures.
+- Add one focused test for every corrected contract or regression.
+- Keep documentation specific. Record counts and observed behavior, and label missing automation as `NOT CONFIGURED`.
+
 ## Change checklist
 
 1. Add or update DTOs and repository behavior before changing pages.
@@ -71,8 +98,26 @@ Build and extend **ClearDose — Transparent prescriptions, agent-ready.** as a 
 
 ## Commands
 
-- `npm run dev` — local Vite development
-- `npm test` — architecture and WebMCP contract tests
-- `npm run evals:contracts` — regenerate and validate the static tool/eval contract
-- `npm run build` — production build
-- `npm run lint` — lint the repository
+- `npm ci`. Clean lockfile install.
+- `npm run dev`. Local Vite development.
+- `npm run lint`. JavaScript and Vue lint gate.
+- `npm run typecheck`. Vue-aware no-output type check.
+- `npm test`. Architecture, domain, state, persistence, replay, UI contract, and WebMCP tests.
+- `npm run evals:contracts`. Regenerate and validate static tool and eval contracts.
+- `npm run build`. Production build.
+- `npm run smoke:app`. Live shell and compiled-module smoke.
+- `npm ls --depth=0`. Direct dependency-tree check.
+- `git diff --check`. Whitespace and patch-integrity check.
+
+## Definition of done
+
+A change is done only when:
+
+1. UI, WebMCP, and replay still meet at the same store and application handler path.
+2. New or changed tools have canonical catalog metadata, closed bounded schemas, runtime validation, structured errors, and correct annotations.
+3. New mutations use versioned state where needed and preserve visible human control.
+4. Fictional-data, no-clinical-advice, and no-real-fulfillment boundaries remain visible and tested.
+5. Focus, labels, live feedback, keyboard operation, reduced-motion behavior, and responsive layout are considered for every changed control.
+6. Relevant tests pass, then lint, typecheck, full tests, contract evals, build, app smoke, dependency check, and diff check pass before release.
+7. The production-like build is exercised in a real browser. Record route, console, network, keyboard, responsive, success, and failure results in `docs/SMOKE_TEST_MATRIX.md`.
+8. Documentation and capability counts match the final code. Update `CHANGELOG.md` for user-visible or contract changes.

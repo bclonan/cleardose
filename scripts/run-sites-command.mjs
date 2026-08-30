@@ -13,7 +13,7 @@ if (!command) {
   process.exit(64);
 }
 
-for (const directory of ["npm-cache", "wrangler/logs", "wrangler/registry"]) {
+for (const directory of ["npm-cache"]) {
   mkdirSync(resolve(runtimeRoot, directory), { recursive: true });
 }
 
@@ -25,9 +25,6 @@ const env = {
   npm_config_audit: "false",
   npm_config_fund: "false",
   npm_config_update_notifier: "false",
-  WRANGLER_WRITE_LOGS: "false",
-  WRANGLER_LOG_PATH: resolve(runtimeRoot, "wrangler/logs"),
-  MINIFLARE_REGISTRY_PATH: resolve(runtimeRoot, "wrangler/registry"),
 };
 
 for (const name of [

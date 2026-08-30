@@ -23,6 +23,7 @@ export class BrowserWebMcpAdapter {
         title: tool.title,
         description: tool.description,
         inputSchema: tool.inputSchema,
+        outputSchema: tool.outputSchema,
         annotations: tool.annotations,
         execute: tool.execute,
       };

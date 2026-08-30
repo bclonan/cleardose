@@ -1,5 +1,6 @@
 import { demoScenarios, getDemoScenario } from "../api/demos/demoScenarios.js";
 import { BoundedObservationService } from "../ui/BoundedObservationService.js";
+import { normalizeDemoRoute } from "../../domain/shared/demoRoute.js";
 
 const BLOCKED_PATH_SEGMENTS = new Set(["__proto__", "prototype", "constructor"]);
 
@@ -25,17 +26,6 @@ function defaultNow() { return new Date().toISOString(); }
 function defaultId() { return `call_${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(16).slice(2)}`}`; }
 function defaultSleep(milliseconds) { return new Promise((resolve) => globalThis.setTimeout(resolve, milliseconds)); }
 function roundDuration(value) { return Math.max(0, Math.round(Number(value || 0) * 100) / 100); }
-
-function normalizeRoute(value) {
-  const raw = String(value || "").trim();
-  const hashPath = raw.includes("#") ? raw.slice(raw.indexOf("#") + 1) : raw;
-  const path = hashPath.split("?")[0].split("#")[0] || "/";
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  if (normalized.startsWith("/medications/")) return "/medications";
-  if (normalized.startsWith("/account/orders/")) return "/account/orders";
-  if (normalized.startsWith("/checkout/confirmation/")) return "/checkout/confirmation";
-  return normalized;
-}
 
 function pathSegments(path) {
   return String(path || "").replace(/\[(\d+)\]/g, ".$1").split(".").filter(Boolean).map((segment) => {
@@ -169,7 +159,7 @@ export class ProgrammaticReplayRuntime {
     await this.settleActive();
     const scenario = this.getScenario(scenarioId);
     if (!scenario) throw new TypeError(`Unknown replay scenario: ${scenarioId}.`);
-    const normalizedRoute = normalizeRoute(route || scenario.routes[0]);
+    const normalizedRoute = normalizeDemoRoute(route || scenario.routes[0]);
     if (!scenario.routes.includes(normalizedRoute)) throw new TypeError(`${scenario.id} is not available on ${normalizedRoute}.`);
     if (resetSeed) await this.resetSeed({ reason: "prepare", scenario: copy(scenario), route: normalizedRoute });
 

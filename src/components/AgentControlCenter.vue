@@ -7,6 +7,7 @@ import { useAgentReadyComponent } from "../composables/useAgentReadyComponent";
 import { agentReadyProps } from "../presentation/agentReadyProps";
 import { agentControlCenterAdapter } from "../presentation/adapters/componentAdapters";
 import { VoiceGuidanceService } from "../services/accessibility/VoiceGuidanceService";
+import { VoicePreferenceService } from "../services/accessibility/VoicePreferenceService.js";
 import { getVoiceJourney } from "../services/accessibility/voiceJourneys";
 
 const props = defineProps(agentReadyProps);
@@ -14,25 +15,16 @@ const route = useRoute();
 const store = usePharmacyStore();
 const { adapter } = useAgentReadyComponent(props, { name: "agent_control_center", defaultAdapter: agentControlCenterAdapter });
 const voice = new VoiceGuidanceService();
+const voicePreference = new VoicePreferenceService();
 const dialog = ref(null);
 const opener = ref(null);
-const voiceEnabled = ref(readPreference());
+const voiceEnabled = ref(voicePreference.load());
 const speaking = ref(false);
 const stepIndex = ref(0);
 const announcement = ref("Agent controls ready.");
 const journey = computed(() => getVoiceJourney(route.name));
 const currentStep = computed(() => journey.value.steps[stepIndex.value] ?? journey.value.intro);
 const ctaLabel = computed(() => adapter.value.ctaLabel(store.webMcp.available));
-
-function readPreference() {
-  try { return globalThis.localStorage?.getItem("cleardose-voice-guidance") === "on"; }
-  catch { return false; }
-}
-
-function savePreference() {
-  try { globalThis.localStorage?.setItem("cleardose-voice-guidance", voiceEnabled.value ? "on" : "off"); }
-  catch { /* Preference persistence is optional. */ }
-}
 
 function openPanel() {
   opener.value = globalThis.document?.activeElement;
@@ -56,7 +48,7 @@ function speak(text) {
 
 function toggleVoice() {
   voiceEnabled.value = !voiceEnabled.value;
-  savePreference();
+  voicePreference.save(voiceEnabled.value);
   if (voiceEnabled.value) speak(`${journey.value.title}. ${journey.value.intro}`);
   else {
     voice.cancel();
@@ -80,7 +72,7 @@ onBeforeUnmount(() => voice.cancel());
 
 <template>
   <div class="agent-control-entry">
-    <button ref="opener" class="agent-tools-cta" type="button" data-agent-section="agent-tools-control" aria-haspopup="dialog" @click="openPanel">
+    <button ref="opener" class="agent-tools-cta" type="button" data-agent-section="agent-tools-control" aria-haspopup="dialog" :aria-label="ctaLabel" @click="openPanel">
       <Bot :size="18" aria-hidden="true" />
       <span>{{ ctaLabel }}</span>
     </button>

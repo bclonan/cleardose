@@ -57,13 +57,13 @@ export class DuckDbWasmDao {
       });
       this.connection = await this.db.connect();
       await this.createSchema();
-      await this.seedDrugs(drugs);
+      const drugCount = await this.seedDrugs(drugs);
       this.databaseStatus = {
         engine: "duckdb-wasm",
         persistence: "opfs",
         state: "ready",
         fallbackReason: "",
-        drugCount: drugs.length,
+        drugCount,
       };
       return this.status();
     } catch (error) {
@@ -109,17 +109,30 @@ export class DuckDbWasmDao {
   }
 
   async seedDrugs(drugs) {
-    if (!drugs.length) return;
-    const values = drugs.map((drug) => `(${[
-      drug.id,
-      drug.name,
-      drug.genericFor,
-      drug.category,
-      drug.drugClass,
-      drug.comparisonGroup,
-      drug.identifiers?.udi,
-    ].map(sql).join(",")},${json(drug)})`).join(",");
-    await this.connection.query(`INSERT OR REPLACE INTO drugs VALUES ${values}; CHECKPOINT;`);
+    await this.connection.query("BEGIN TRANSACTION;");
+    try {
+      await this.connection.query("DELETE FROM drugs;");
+      if (drugs.length) {
+        const values = drugs.map((drug) => `(${[
+          drug.id,
+          drug.name,
+          drug.genericFor,
+          drug.category,
+          drug.drugClass,
+          drug.comparisonGroup,
+          drug.identifiers?.udi,
+        ].map(sql).join(",")},${json(drug)})`).join(",");
+        await this.connection.query(`INSERT INTO drugs VALUES ${values};`);
+      }
+      const countResult = await this.connection.query("SELECT COUNT(*) AS drug_count FROM drugs;");
+      const drugCount = Number(rows(countResult)[0]?.drug_count ?? 0);
+      await this.connection.query("COMMIT;");
+      await this.connection.query("CHECKPOINT;");
+      return drugCount;
+    } catch (error) {
+      try { await this.connection.query("ROLLBACK;"); } catch { /* Preserve the original seed failure. */ }
+      throw error;
+    }
   }
 
   async appendEvent(event, flow) {

@@ -5,6 +5,7 @@ import { Activity, FlaskConical, Play, TerminalSquare, X } from "@lucide/vue";
 import { usePharmacyStore } from "../composables/usePharmacyStore";
 import { useAgentReadyComponent } from "../composables/useAgentReadyComponent";
 import { agentReadyProps } from "../presentation/agentReadyProps";
+import { normalizeDemoRoute } from "../domain/shared/demoRoute.js";
 import DemoScenarioCard from "./DemoScenarioCard.vue";
 import ProgrammaticReplayPanel from "./ProgrammaticReplayPanel.vue";
 import WorkflowLiveViewer from "./WorkflowLiveViewer.vue";
@@ -24,15 +25,8 @@ function trackOutsideFocus(event) {
 onMounted(() => document.addEventListener("focusin", trackOutsideFocus, true));
 onBeforeUnmount(() => document.removeEventListener("focusin", trackOutsideFocus, true));
 
-function scenarioRoute(path) {
-  if (path.startsWith("/medications/")) return "/medications";
-  if (path.startsWith("/account/orders/")) return "/account/orders";
-  if (path.startsWith("/checkout/confirmation/")) return "/checkout/confirmation";
-  return path;
-}
-
 const scenarios = computed(() => {
-  const contextual = store.demoScenariosForRoute(scenarioRoute(route.path));
+  const contextual = store.demoScenariosForRoute(normalizeDemoRoute(route.path));
   return contextual.length ? contextual : [store.demoScenario("webmcp-explorer-tour")].filter(Boolean);
 });
 

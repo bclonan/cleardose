@@ -4,6 +4,7 @@ import test, { after } from "node:test";
 import { fileURLToPath } from "node:url";
 import { createPinia, setActivePinia } from "pinia";
 import { createServer } from "vite";
+import { assertBoundedJsonSchema } from "../scripts/json-schema-contract.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const vite = await createServer({
@@ -13,6 +14,22 @@ const vite = await createServer({
   optimizeDeps: { noDiscovery: true },
 });
 after(async () => vite.close());
+
+test("bounded schema validation rejects recursive output contracts", () => {
+  const schema = {
+    type: "object",
+    maxProperties: 1,
+    additionalProperties: { $ref: "#/$defs/value" },
+    $defs: {
+      value: {
+        type: "object",
+        maxProperties: 1,
+        additionalProperties: { $ref: "#/$defs/value" },
+      },
+    },
+  };
+  assert.throws(() => assertBoundedJsonSchema(schema), /recursive schema reference/);
+});
 
 test("Explorer sanitization removes secrets before a receipt is stored", async () => {
   const { sanitizeExplorerJsonText, sanitizeExplorerValue, usePharmacyStore } = await vite.ssrLoadModule("/src/stores/pharmacyStore.js");
@@ -154,6 +171,28 @@ test("declarative runner validates first and reports visible changes after route
   assert.deepEqual(failedSubmit.visibleForm.changedFields, ["query"]);
 });
 
+test("Studio declarative replay fills one prepared fresh tool input and leaves save to the user", async () => {
+  const { DeclarativeToolRunner } = await vite.ssrLoadModule("/src/services/ui/DeclarativeToolRunner.js");
+  const { getCapability } = await vite.ssrLoadModule("/src/infrastructure/webmcp/catalog/capabilityCatalog.js");
+  const capability = getCapability("compose_dynamic_capability_template");
+  const input = capability.exampleRequests[0];
+  const controls = Object.keys(input).map((name) => fakeControl({
+    name,
+    value: name === "kind" ? "tool" : "",
+    type: name === "kind" ? "radio" : name === "field_0_required" ? "checkbox" : "text",
+    checked: name === "kind",
+  }));
+  const runner = new DeclarativeToolRunner({ documentRef: { querySelector: () => fakeForm(capability.qualifiedName, controls) } });
+
+  const result = runner.invoke(capability.qualifiedName, input);
+  assert.equal(result.ok, true);
+  assert.equal(result.visibleForm.submitted, false);
+  assert.deepEqual(result.visibleForm.changedFields, Object.keys(input));
+  assert.equal(controls.find((control) => control.name === "field_0_name").value, "topic");
+  assert.match(controls.find((control) => control.name === "body").value, /input\.topic/);
+  assert.equal(runner.invoke(capability.qualifiedName, { ...input, kind: "workflow" }).code, "INVALID_INPUT");
+});
+
 test("declarative form identity values are redacted from observable changes", async () => {
   const { DeclarativeToolRunner } = await vite.ssrLoadModule("/src/services/ui/DeclarativeToolRunner.js");
   const controls = [
@@ -191,6 +230,18 @@ test("catalog examples and bounded state schemas match the executable response s
   const declarative = capabilityCatalog.filter((capability) => capability.interactionModel === "declarative");
   assert.ok(declarative.every((capability) => Object.keys(capability.exampleRequests[0]).length > 0));
   assert.ok(declarative.every((capability) => capability.inputSchema.additionalProperties === false));
+  const autoSubmitNames = [
+    "navigate_to_drug_search",
+    "navigate_to_mobile_drug_search",
+    "navigate_to_home_drug_search",
+    "filter_visible_drug_index",
+    "filter_visible_medication_catalog",
+    "populate_visible_price_comparison",
+  ];
+  assert.deepEqual(declarative.filter((capability) => capability.autoSubmit).map((capability) => capability.toolName), autoSubmitNames);
+  assert.ok(declarative.filter((capability) => capability.autoSubmit).every((capability) => capability.permissions.includes("visible-form-submit") && !capability.permissions.includes("human-submit") && capability.exampleResponse.visibleForm.submitted));
+  assert.ok(declarative.filter((capability) => !capability.autoSubmit).every((capability) => capability.permissions.includes("human-submit") && !capability.exampleResponse.visibleForm.submitted));
+  assert.equal(getCapability("navigate_to_home_drug_search").exampleResponse.visibleForm.presentAfterRun, false);
 
   const state = getCapability("inspect_workflow_state");
   assert.equal(state.outputSchema.additionalProperties, false);
@@ -206,12 +257,19 @@ test("catalog examples and bounded state schemas match the executable response s
   assert.ok(dispatch.exampleResponse.event.id);
 
   const availabilityCodes = getCapability("get_drug_availability").deterministicErrors.map((error) => error.code);
-  assert.deepEqual(availabilityCodes, ["LOCATION_UNAVAILABLE", "PACKAGE_UNAVAILABLE"]);
+  assert.deepEqual(availabilityCodes, ["LOCATION_UNAVAILABLE", "LOCATION_MISMATCH", "PACKAGE_UNAVAILABLE"]);
   assert.deepEqual(getCapability("highlight_section").deterministicErrors.map((error) => error.code), ["INVALID_INPUT"]);
   const declarativeForm = getCapability("navigate_to_drug_search");
   assert.ok("recommendedRoute" in declarativeForm.outputSchema.properties);
   assert.ok("missingFields" in declarativeForm.outputSchema.properties);
   assert.ok(declarativeForm.deterministicErrors.some((error) => error.code === "VISIBLE_FORM_SUBMIT_FAILED"));
+  const studioForm = getCapability("compose_dynamic_capability_template");
+  assert.deepEqual(studioForm.inputSchema.properties.kind.enum, ["tool"]);
+  assert.ok("field_0_name" in studioForm.inputSchema.properties);
+  assert.ok("field_0_type" in studioForm.inputSchema.properties);
+  assert.equal("states" in studioForm.inputSchema.properties, false);
+  assert.equal(studioForm.exampleRequests[0].field_0_name, "topic");
+  assert.match(studioForm.exampleRequests[0].body, /input\.topic/);
 });
 
 test("Explorer search and prompt tabs keep stable keyboard and autofill contracts", async () => {

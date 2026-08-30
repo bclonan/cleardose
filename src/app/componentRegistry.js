@@ -8,9 +8,7 @@ import StatusBadge from "../components/StatusBadge.vue";
 import WebMcpStatus from "../components/WebMcpStatus.vue";
 import WorkflowLiveViewer from "../components/WorkflowLiveViewer.vue";
 import DoctorQuestionCard from "../components/DoctorQuestionCard.vue";
-import PromptGuide from "../components/PromptGuide.vue";
 import CapabilityMachinePane from "../components/CapabilityMachinePane.vue";
-import HackathonLauncher from "../components/HackathonLauncher.vue";
 import PrescriptionRecoveryPanel from "../components/PrescriptionRecoveryPanel.vue";
 import CapabilityStudioVoiceGuide from "../components/CapabilityStudioVoiceGuide.vue";
 import DemoScenarioCard from "../components/DemoScenarioCard.vue";
@@ -30,9 +28,7 @@ export const clearDoseComponents = Object.freeze({
   WebMcpStatus,
   WorkflowLiveViewer,
   DoctorQuestionCard,
-  PromptGuide,
   CapabilityMachinePane,
-  HackathonLauncher,
   PrescriptionRecoveryPanel,
   CapabilityStudioVoiceGuide,
   DemoScenarioCard,

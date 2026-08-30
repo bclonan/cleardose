@@ -23,10 +23,13 @@ const selectedName = ref("cleardose_search_drug_index");
 const requestText = ref("{}");
 const requestError = ref("");
 const receipt = ref(null);
+const requestEditor = ref(null);
+const invokeButton = ref(null);
 const promptMode = ref("human");
 const promptModes = ["human", "voice", "advanced"];
 const promptPanelId = `${componentId}-tool-prompt-panel`;
 const promptTitleId = `${componentId}-tool-prompt-title`;
+const receiptSummaryId = `${componentId}-invocation-summary`;
 const announcement = ref("WebMCP Explorer ready.");
 let consoleMounted = true;
 onUnmounted(() => { consoleMounted = false; });
@@ -184,19 +187,42 @@ async function invoke() {
   catch {
     requestText.value = sanitizeExplorerJsonText(requestText.value, { invalid: true });
     requestError.value = "Request must be valid JSON. Any sensitive values in the invalid text were removed.";
+    announcement.value = requestError.value;
+    await nextTick();
+    requestEditor.value?.focus({ preventScroll: true });
     return;
   }
   const invocationInput = sanitizeExplorerInvocationValue(input);
   requestText.value = JSON.stringify(invocationInput, null, 2);
   highlightService?.highlight("webmcp-console");
-  const result = await store.invokeWebMcpTool(selected.value.name, invocationInput, { interactionModel: selected.value.interactionModel });
-  if (consoleMounted) receipt.value = result;
+  announcement.value = `Invoking ${selected.value.title || selected.value.name}.`;
+  try {
+    const result = await store.invokeWebMcpTool(selected.value.name, invocationInput, { interactionModel: selected.value.interactionModel });
+    if (!consoleMounted) return;
+    receipt.value = result;
+    const failed = Boolean(result.error || result.response?.isError || result.response?.ok === false);
+    const changeCount = Array.isArray(result.changes) ? result.changes.length : 0;
+    announcement.value = failed
+      ? `${selected.value.title || selected.value.name} returned a structured failure in ${result.elapsedMs || 0} milliseconds.`
+      : `${selected.value.title || selected.value.name} completed in ${result.elapsedMs || 0} milliseconds with ${changeCount} observed ${changeCount === 1 ? "change" : "changes"}.`;
+  } catch (error) {
+    requestError.value = error instanceof Error ? error.message : "The local tool invocation failed.";
+    announcement.value = requestError.value;
+  } finally {
+    if (consoleMounted) {
+      await nextTick();
+      invokeButton.value?.focus({ preventScroll: true });
+    }
+  }
 }
 
 async function reset() {
   await store.resetReplay();
   receipt.value = null;
   loadRequest(liveRequest(selected.value?.exampleRequests?.[0] ?? {}));
+  announcement.value = "Explorer request and seeded demo state reset.";
+  await nextTick();
+  invokeButton.value?.focus({ preventScroll: true });
 }
 
 async function copyPrompt() {
@@ -271,16 +297,16 @@ async function handlePromptTabKeydown(event) {
           <details><summary>Examples, errors, and related tools <ChevronRight :size="14" /></summary><div class="tool-reference-grid"><section><h4>Example response</h4><pre tabindex="0"><code>{{ JSON.stringify(selected.exampleResponse, null, 2) }}</code></pre></section><section><h4>Deterministic errors</h4><ul><li v-for="error in selected.deterministicErrors" :key="error.code"><code>{{ error.code }}</code><span>{{ error.recovery }}</span></li><li v-if="!selected.deterministicErrors.length">No tool-specific fixture. Schema validation errors still apply.</li></ul><h4>Related tools</h4><div class="related-tool-links"><button v-for="tool in selected.relatedTools" :key="tool" type="button" @click="choose(tool.startsWith('cleardose_') ? tool : `cleardose_${tool}`)">{{ tool }}</button></div></section></div></details>
         </article>
 
-        <section class="explorer-console" data-agent-section="webmcp-console" aria-labelledby="console-title">
+        <section class="explorer-console" data-agent-section="webmcp-console" aria-labelledby="console-title" :aria-busy="store.explorer.invoking">
           <header><div><span class="eyebrow"><Braces :size="15" /> Try it</span><h3 id="console-title">Local request console</h3></div><span><ShieldCheck :size="14" /> Seeded mock, no external call</span></header>
           <div class="prebuilt-requests"><button v-for="example in prebuiltRequests" :key="example.label" type="button" @click="loadRequest(example.input)"><WandSparkles :size="14" />{{ example.label }}</button></div>
-          <label>Tool parameters<textarea v-model="requestText" name="webmcp-tool-parameters" autocomplete="off" rows="11" spellcheck="false" aria-describedby="console-route-note"></textarea></label>
+          <label>Tool parameters<textarea ref="requestEditor" v-model="requestText" name="webmcp-tool-parameters" autocomplete="off" rows="11" spellcheck="false" aria-describedby="console-route-note"></textarea></label>
           <p id="console-route-note">{{ selected.interactionModel === 'declarative' ? 'Declarative calls edit the visible form only when its route is open.' : 'Imperative calls use the same Pinia, facade, API, and workflow path as browser WebMCP.' }}</p>
           <p v-if="requestError" class="inline-error" role="alert">{{ requestError }}</p>
-          <div class="console-actions"><button class="button button-primary" type="button" :disabled="store.explorer.invoking" @click="invoke"><Play :size="16" />{{ store.explorer.invoking ? 'Running' : 'Invoke tool' }}</button><button class="button button-ghost" type="button" @click="reset"><RotateCcw :size="16" /> Reset seeded state</button></div>
+          <div class="console-actions"><button ref="invokeButton" class="button button-primary" type="button" :disabled="store.explorer.invoking" @click="invoke"><Play :size="16" />{{ store.explorer.invoking ? 'Running' : 'Invoke tool' }}</button><button class="button button-ghost" type="button" @click="reset"><RotateCcw :size="16" /> Reset seeded state</button></div>
 
-          <div v-if="receipt" class="console-receipt" :class="{ failed: receipt.error || receipt.response?.isError || receipt.response?.ok === false }">
-            <div class="receipt-summary"><span><Check v-if="!receipt.error && !receipt.response?.isError && receipt.response?.ok !== false" :size="16" /><AlertTriangle v-else :size="16" />{{ receipt.error || receipt.response?.isError || receipt.response?.ok === false ? 'Structured failure' : 'Completed' }}</span><strong><Clock3 :size="15" />{{ receipt.elapsedMs }} ms</strong><code>{{ receipt.id }}</code></div>
+          <div v-if="receipt" class="console-receipt" role="region" :aria-labelledby="receiptSummaryId" :class="{ failed: receipt.error || receipt.response?.isError || receipt.response?.ok === false }">
+            <div class="receipt-summary"><span :id="receiptSummaryId"><Check v-if="!receipt.error && !receipt.response?.isError && receipt.response?.ok !== false" :size="16" /><AlertTriangle v-else :size="16" />{{ receipt.error || receipt.response?.isError || receipt.response?.ok === false ? 'Structured failure' : 'Completed' }}</span><strong><Clock3 :size="15" />{{ receipt.elapsedMs }} ms</strong><code>{{ receipt.id }}</code></div>
             <div class="replay-io-grid"><section><h4>Request</h4><pre tabindex="0"><code>{{ JSON.stringify(receipt.request, null, 2) }}</code></pre></section><section><h4>Response</h4><pre tabindex="0"><code>{{ JSON.stringify(receipt.error || receipt.response, null, 2) }}</code></pre></section></div>
             <section class="receipt-changes"><h4>Observed changes</h4><ul v-if="receipt.changes.length"><li v-for="change in receipt.changes" :key="change.key"><code>{{ change.key }}</code><span>{{ JSON.stringify(change.before) }} → {{ JSON.stringify(change.after) }}</span></li></ul><p v-else>No bounded application state or visible form field changed.</p></section>
           </div>
@@ -289,6 +315,6 @@ async function handlePromptTabKeydown(event) {
         <section v-if="linkedScenarios.length" class="explorer-prompt-specs"><header><span class="eyebrow">Active prompt specifications</span><h3>Scenarios that may call this tool</h3></header><div><DemoScenarioCard v-for="scenario in linkedScenarios" :key="scenario.id" :scenario="scenario" compact /></div></section>
       </div>
     </div>
-    <p class="sr-only" aria-live="polite">{{ announcement }}</p>
+    <p class="sr-only" role="status" aria-live="polite" aria-atomic="true">{{ announcement }}</p>
   </section>
 </template>

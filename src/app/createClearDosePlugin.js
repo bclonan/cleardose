@@ -13,6 +13,7 @@ import { ProgrammaticReplayRuntime } from "../services/workflows/ProgrammaticRep
 import { BoundedObservationService } from "../services/ui/BoundedObservationService";
 import { DeclarativeToolRunner } from "../services/ui/DeclarativeToolRunner";
 import { ReplayDomProjectionService } from "../services/ui/ReplayDomProjectionService";
+import { observeDeclarativeForms } from "../services/ui/DeclarativeFormObserver";
 import { usePharmacyStore } from "../stores/pharmacyStore";
 import { clearDoseComponents, registerClearDoseComponents } from "./componentRegistry";
 import { clearDoseCapabilityTemplateServiceKey, clearDoseComponentRegistryKey, clearDoseDeclarativeToolRunnerKey, clearDoseFacadeKey, clearDoseHighlightServiceKey, clearDoseReplayRuntimeKey, clearDoseToolRegistryKey, clearDoseWorkflowRuntimeKey } from "./injectionKeys";
@@ -146,15 +147,11 @@ export function createClearDosePlugin(options = {}) {
       const runtimeReady = workflowRuntime.initialize({ drugs: facade.getSnapshot().state.medications })
         .then(() => workflowRuntime.seedDemoFlows());
 
-      globalThis.document?.addEventListener("submit", (event) => {
-        const form = event.target;
-        const toolName = form?.getAttribute?.("toolname");
-        if (!toolName || form.dataset.cleardoseObserved === "true") return;
-        form.dataset.cleardoseObserved = "true";
-        queueMicrotask(() => { delete form.dataset.cleardoseObserved; });
-        const fieldNames = [...new FormData(form).keys()];
-        void workflowRuntime.recordDeclarativeForm({ name: toolName, fieldNames });
-      }, true);
+      observeDeclarativeForms(app, {
+        documentRef: options.documentRef ?? globalThis.document,
+        FormDataCtor: options.FormDataCtor ?? globalThis.FormData,
+        recordForm: (form) => workflowRuntime.recordDeclarativeForm(form),
+      });
 
       if (options.webMcp?.enabled !== false) {
         const toolsReady = toolRegistry.registerDefinitions(createDefaultTools({ store, highlightService, workflowRuntime }));

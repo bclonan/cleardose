@@ -136,18 +136,45 @@ test("dynamic shortcut machine preserves role, situation, step, and every visibl
 test("seeded local database adapter answers drug queries and memory packets remain reviewable", async () => {
   const { MemoryWorkflowDao } = await vite.ssrLoadModule("/src/infrastructure/persistence/MemoryWorkflowDao.js");
   const { WorkflowRuntime } = await vite.ssrLoadModule("/src/services/workflows/WorkflowRuntime.js");
-  const runtime = new WorkflowRuntime({ dao: new MemoryWorkflowDao({ reason: "test" }), channelName: "query-test" });
+  const dao = new MemoryWorkflowDao({ reason: "test" });
+  const runtime = new WorkflowRuntime({ dao, channelName: "query-test" });
   await runtime.initialize({ drugs: [{ id: "med_lisinopril", name: "Lisinopril", genericFor: "Zestril", category: "Heart health", drugClass: "ACE inhibitor", identifiers: { udi: "udi:cleardose:lisinopril" }, variants: [{ price: 8.25 }] }] });
   const records = await runtime.querySeededDrugs({ query: "ACE", limit: 5 });
   assert.equal(records[0].id, "med_lisinopril");
-  const packet = await runtime.prepareMemoryPacket({ label: "Reviewed facts", facts: ["Fictional data only"], flowIds: [] });
+  const sentinel = "authored-memory-sentinel-must-not-persist";
+  const packet = await runtime.prepareMemoryPacket({ label: sentinel, goal: sentinel, facts: [sentinel], decisions: [sentinel], nextSteps: [sentinel], flowIds: [] });
   assert.equal(packet.status, "human_review");
-  assert.match(packet.markdown, /Fictional data only/);
+  assert.match(packet.markdown, new RegExp(sentinel));
   assert.equal(runtime.snapshot().memoryPackets.length, 1);
+  assert.deepEqual(runtime.snapshot().memoryPackets[0].counts, { facts: 1, decisions: 1, nextSteps: 1, flowReferences: 0 });
+  assert.equal(runtime.snapshot().memoryPackets[0].authoredTextStored, false);
+  assert.equal("markdown" in runtime.snapshot().memoryPackets[0], false);
+  assert.doesNotMatch(JSON.stringify(runtime.snapshot()), new RegExp(sentinel));
+  assert.doesNotMatch(JSON.stringify(await dao.loadSnapshot()), new RegExp(sentinel));
+});
+
+test("workflow inspection caps and deterministically orders every returned collection", async () => {
+  const { runtime } = await runtimeFixture();
+  for (let index = 0; index < 5; index += 1) {
+    const timestamp = `2026-08-29T12:00:0${index}.000Z`;
+    const flowId = `flow_inspect_${index}`;
+    runtime.flows.set(flowId, { id: flowId, definitionId: "webmcp-tool-call", title: `Flow ${index}`, state: "complete", status: "completed", context: {}, eventCount: 1, createdAt: timestamp, updatedAt: timestamp });
+    runtime.events.set(`evt_inspect_${index}`, { id: `evt_inspect_${index}`, flowId, definitionId: "webmcp-tool-call", type: "TOOL_EXECUTION_COMPLETED", fromState: "running", toState: "complete", source: "test", correlationId: "", context: {}, createdAt: timestamp, version: 1 });
+    runtime.cards.set(`card_inspect_${index}`, { id: `card_inspect_${index}`, artifactType: "doctor-question-card", flowId, status: "human_review", createdAt: timestamp, updatedAt: timestamp });
+    runtime.cards.set(`memory_inspect_${index}`, { id: `memory_inspect_${index}`, artifactType: "agent-memory-packet", flowId, status: "human_review", authoredTextStored: false, contentStored: false, createdAt: timestamp, updatedAt: timestamp });
+  }
+
+  const inspected = runtime.inspect({ limit: 2 });
+  assert.deepEqual(inspected.flows.map((flow) => flow.id), ["flow_inspect_4", "flow_inspect_3"]);
+  assert.deepEqual(inspected.events.map((event) => event.id), ["evt_inspect_3", "evt_inspect_4"]);
+  assert.deepEqual(inspected.cards.map((card) => card.id), ["card_inspect_4", "card_inspect_3"]);
+  assert.deepEqual(inspected.memoryPackets.map((packet) => packet.id), ["memory_inspect_4", "memory_inspect_3"]);
+  assert.equal(inspected.artifacts.length, 2);
 });
 
 test("static workflow definitions expose branching and replay transition contracts", async () => {
-  const { getWorkflowDefinition } = await vite.ssrLoadModule("/src/services/api/workflows/workflowDefinitions.js");
+  const { getWorkflowDefinition, workflowDefinitions } = await vite.ssrLoadModule("/src/services/api/workflows/workflowDefinitions.js");
+  const { createDefaultTools } = await vite.ssrLoadModule("/src/infrastructure/webmcp/tools/createDefaultTools.js");
   const stateDemo = getWorkflowDefinition("state-interaction-demo");
   assert.equal(stateDemo.initialState, "search_complete");
   assert.equal(stateDemo.stateMeta.error.error, true);
@@ -158,6 +185,19 @@ test("static workflow definitions expose branching and replay transition contrac
     ["VIEW_RESULT", "COMPARE", "CHECK_AVAILABILITY", "CHANGE_QUERY", "ASK_AGENT", "START_CHECKOUT"],
   );
   assert.equal(stateDemo.transitions.find((transition) => transition.action === "START_CHECKOUT").humanOnly, true);
+  const availabilityTransition = stateDemo.transitions.find((transition) => transition.action === "CHECK_AVAILABILITY");
+  const defaultTools = createDefaultTools({ store: {}, highlightService: { listTargets: () => [], highlight: () => ({ ok: true }) } });
+  const defaultToolsByName = new Map(defaultTools.map((tool) => [`cleardose_${tool.name}`, tool]));
+  assert.deepEqual(Object.keys(availabilityTransition.inputSchema.properties), ["postalCode"]);
+  assert.deepEqual(
+    availabilityTransition.inputSchema.properties.postalCode,
+    defaultToolsByName.get(availabilityTransition.relatedTool).inputSchema.properties.postalCode,
+  );
+  for (const definition of workflowDefinitions) {
+    for (const transition of definition.transitions.filter((item) => item.relatedTool)) {
+      assert.ok(defaultToolsByName.has(transition.relatedTool), `${definition.id}.${transition.action} references an unknown tool.`);
+    }
+  }
 
   const replay = getWorkflowDefinition("programmatic-replay");
   assert.deepEqual(replay.states, ["ready", "running", "paused", "complete", "error"]);

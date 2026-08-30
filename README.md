@@ -1,86 +1,121 @@
 # ClearDose
 
-**Transparent prescriptions, agent-ready.**
+Transparent prescriptions, agent-ready.
 
-A Vue 3 prescription-commerce sandbox with a local Universal Drug Index, fictional provider offers, customer and checkout flows, a WebMCP Explorer, deterministic Programmatic Replay, and a branching Live State Inspector. A safe Capability Studio supports local user-authored tools without turning templates into executable code.
+ClearDose is a fictional, local-only prescription shopping sandbox built with Vue 3. It shows how a person, a browser agent, and a deterministic replay can use the same typed application capabilities without scraping page text or bypassing visible human controls.
 
-## Run
+![ClearDose home](docs/screenshots/home.png)
+
+## Why WebMCP
+
+Medication shopping needs exact package identity, explicit comparison rules, current workflow state, and clear approval boundaries. Generic DOM automation has to infer those facts from presentation. ClearDose exposes them as bounded capabilities through `document.modelContext.registerTool()`.
+
+The visible UI, WebMCP tools, Explorer Try It console, and Programmatic Replay all call the same Pinia actions and application services. A tool cannot place an order, contact a clinician, send a prescription, or make a clinical decision.
+
+## Main demo
+
+The seeded patient journey can:
+
+- search 52 fictional medication concepts and 156 exact packages;
+- compare an exact package across four fictional providers;
+- change among three mock locations and observe price and fulfillment changes;
+- reject unrelated medication comparisons with a typed explanation;
+- create a doctor discussion card that remains in human review;
+- show legal, blocked, failure, and recovery transitions in a live state graph.
+
+Three pieces recur across the site:
+
+- Programmatic Replay runs the real local handlers with pause, resume, step, restart, reset, timing, and call inspection.
+- The WebMCP Explorer documents and invokes the canonical 34-capability catalog.
+- The Live State Inspector shows current state, version, event history, valid next actions, and recovery paths.
+
+![WebMCP Explorer](docs/screenshots/explorer.png)
+
+![Live State Inspector](docs/screenshots/state-inspector.png)
+
+## Run locally
+
+Node.js 22.13.0 or newer is required.
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-Use `demo@patient.test` / `demo1234`, or create a fictional local account. Run `npm test` for deterministic behavior, `npm run evals:contracts` for the exported tool/eval contract gate, and `npm run build` for the production bundle. With the dev server on port 4173, `npm run smoke:app` verifies the live shell and compiled feature modules. `npm run evals:smoke` requires Chrome Canary.
+Open `http://localhost:5173/#/`. The seeded sign-in is `demo@patient.test` with password `demo1234`. Both values are fictional and stay in the browser.
+
+For a production-like local run:
+
+```bash
+npm run build
+npm run start -- --host 127.0.0.1 --port 4173 --strictPort
+```
+
+Then open `http://127.0.0.1:4173/#/`.
+
+The current hosted build is available at the [owner-only demo](https://cleardose-demo.bclonancode.chatgpt.site). It is not yet a public judge URL.
+
+## Test
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run evals:contracts
+npm run build
+npm run smoke:app
+npm ls --depth=0
+git diff --check
+```
+
+The final local release run passes 99 repository tests and validates 34 capabilities, 25 imperative tool contracts, 23 evaluation journeys, and 15 positive smoke journeys. The repository has no automated end-to-end browser suite or automated accessibility scanner. Those gaps remain explicit in [testing and release evidence](docs/TESTING.md).
+
+## Demo scenarios
+
+- [Six-minute judge path](docs/DEMO_GUIDE.md)
+- `/#/demo`: invoke a seeded search, inspect schemas, run replay, and try a malformed request.
+- `/#/compare`: compare Lisinopril 10 mg, quantity 60 in Baltimore and the remote mock location.
+- `/#/flow-lab`: trigger `MOCK_SERVICE_FAILED`, inspect `RETRY_CHECK_AVAILABILITY`, and dispatch a legal recovery.
+- `/#/studio`: author a safe local document capability, preview it, save a draft, and register it as a separate action.
+
+The [role scenario matrix](docs/ROLE_SCENARIOS.md) maps every patient, clinician-discussion, agent, developer, and judge story to its evidence.
 
 ## Architecture
 
-The project keeps one readable local-first path:
+ClearDose keeps two connected local paths:
 
-`Vue component or WebMCP tool → Pinia action → ClearDoseFacade → mock API / UniversalDrugIndex → BrowserStateDao for commerce state`
+```text
+Vue component or WebMCP tool
+  -> Pinia action
+  -> ClearDoseFacade
+  -> repository adapter
+  -> mock API and Universal Drug Index
+  -> browser DAO
 
-`UI, WebMCP, or scenario → WorkflowRuntime → DuckDB-Wasm / OPFS → BroadcastChannel → live viewer`
+UI, WebMCP, or replay
+  -> shared tool handler
+  -> WorkflowRuntime
+  -> DuckDB-Wasm and OPFS, with memory fallback
+  -> BroadcastChannel
+  -> Live State Inspector
+```
 
-`Demo card → ProgrammaticReplayRuntime → WebMcpToolRegistry.invoke() → the same tool handler → bounded observations`
+Pages do not read seed files or persistence directly. The canonical capability manifest is `src/infrastructure/webmcp/catalog/capabilityCatalog.js`. The registered implementations are in `src/infrastructure/webmcp/tools/createDefaultTools.js`. See [architecture](docs/ARCHITECTURE.md), [WebMCP integration](docs/WEBMCP_PLUGIN.md), and [local workflow runtime](docs/LOCAL_WORKFLOW_RUNTIME.md).
 
-Pages contain no persistence or seed-data access. DTOs sanitize and freeze records before they enter the store; the customer DTO deliberately omits the demo password. The composition root at `src/app/createClearDosePlugin.js` wires Pinia, adapters, facade, globally registered components, and default WebMCP tools.
+## Documentation
 
-Host apps can import the supported extension API from `src/cleardose.js`.
-
-## Local flow lab
-
-Open `/#/flow-lab` to run multiple workflows beside the Live State Inspector. The inspector shows the application's current truth, a branching graph, valid agent actions, human-only actions, disabled branches, event ids, chronological history, and bounded context. Its interaction tools inspect one flow, explain a transition, dispatch one versioned action, or reset state while preserving history. They do not solve a workflow in one call.
-
-DuckDB-Wasm boots from its official jsDelivr distribution and seeds all 52 fictional drug records into a browser-local OPFS database alongside workflow instances, events, structured exchanges, and generated cards. The UDI expands to 156 packages and 624 fictional provider offers across four providers and three mock locations. After the engine assets load, queries and stored data remain on the device. If the engine, OPFS, or a writable file is unavailable, the affected tab reports a visible memory fallback while `BroadcastChannel` continues mirroring live events.
-
-The question-card demo implements a two-call exchange: `prepare_doctor_question_card_request` returns bounded UDI facts, a template-literal instruction, and an exact expected response schema; `submit_doctor_question_card_draft` accepts only structured neutral questions and produces a printable patient-reviewable card. ClearDose derives displayed price facts from its UDI rather than accepting agent-authored prices.
-
-The same page contains executable negative fixtures for invalid health-data-style forms, incompatible comparisons, unavailable locations, provider failures, missed delivery windows, stale fictional prices, prescription-required recovery, denied permission, timeout, duplicate action, unsupported external fulfillment, and no seeded equivalent. Each fixture runs a bounded seeded operation before recording its observed error in the workflow history. Permission, timeout, and the mock-service outage are explicit injected failures. The duplicate and no-equivalent cases exercise the real state guard and compatibility model. Recoverable errors return a code, retryability, the next tool to consider, and bounded recovery input.
-
-## Demo lab
-
-Programmatic Replay, the WebMCP Explorer, and the Live State Inspector recur across the site. Every route-aware demo card includes Run demo, Copy prompt, and Inspect calls actions plus human, voice, and advanced prompt variants. A replay calls the same local registry handlers used by WebMCP. It records structured requests, responses, timing, stable highlights, and bounded application or DOM changes. Pause, resume, single-step, restart, and reset are real controls.
-
-Open `/#/demo` for the WebMCP Explorer. It lists the canonical capabilities with live browser-registration status, input and output schemas, example requests, typed errors, permissions, routes, related tools, and linked scenarios. Try It invokes the chosen local handler and shows its response, elapsed time, and state change. Malformed examples are included so errors and recovery can be demonstrated instead of hidden.
-
-## Hackathon prompt shortcuts
-
-Open `/#/shortcuts` for the judge workbench. Its scenario cards use Programmatic Replay, so each displayed step invokes a registered local tool handler and writes real workflow evidence. The workbench still distinguishes local replay from an external browser agent.
-
-Every demo card keeps the complete prompt visible and offers human, voice, and advanced wording. Copy uses a permission-aware fallback. The page also contains prescription-recovery and agent-memory surfaces. A prescription gate returns administrative steps plus an editable prompt. A memory packet can be reviewed, copied, or saved as Markdown using the File System Access API when supported and a download otherwise. ClearDose never sends context to an external agent or writes a file without a visible human action.
-
-## Capability Studio
-
-Open `/#/studio` to create a local WebMCP document tool or deterministic workflow. A four-step voice-supported guide collects identity, a closed input schema, role/situation/step scope, and an EJS-shaped template. The renderer supports only escaped path interpolation, comments, and one-level bounded conditionals; it never evaluates JavaScript. Previewing and saving do not register anything. Loading is a separate explicit action, imported templates return to draft review, and generated documents remain in `human_review`.
-
-## WebMCP
-
-The plugin progressively registers 25 single-purpose imperative tools through `document.modelContext` and catalogs nine declarative forms. The 34-capability catalog owns names, categories, schemas, permissions, prompts, errors, routes, related tools, and machine ids. Explicitly approved user-authored tools are added under `cleardose_user_*` at runtime. UI, WebMCP, Explorer calls, and replay calls meet at the same application services. Browsers without WebMCP still receive the complete human interface and local replay.
-
-Reusable components accept adapter overrides plus imperative and declarative WebMCP configuration. The persistent Demo Lab exposes route prompts, replay, and state inspection without making WebMCP support mandatory. See [docs/WEBMCP_PLUGIN.md](docs/WEBMCP_PLUGIN.md) for extension examples.
-
-## Project documentation
-
-- [Project goal](PROJECT.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [User stories](docs/USER_STORIES.md)
-- [WebMCP plugin guide](docs/WEBMCP_PLUGIN.md)
+- [Final release report](docs/FINAL_RELEASE_REPORT.md)
+- [Finalization task board](docs/FINALIZATION_TASKBOARD.md)
+- [Smoke test matrix](docs/SMOKE_TEST_MATRIX.md)
+- [Submission checklist](docs/SUBMISSION_CHECKLIST.md)
+- [Submission draft](docs/HACKATHON_SUBMISSION.md)
 - [Accessibility target](docs/ACCESSIBILITY.md)
 - [Mock API boundary](docs/MOCK_API.md)
-- [Bulk data sources and import plan](docs/DATA_SOURCES.md)
-- [WebMCP evals](docs/EVALS.md)
-- [Local workflow runtime](docs/LOCAL_WORKFLOW_RUNTIME.md)
-- [Prompt and voice guide](docs/PROMPT_GUIDE.md)
-- [Hackathon shortcuts](docs/HACKATHON_SHORTCUTS.md)
 - [Capability Studio](docs/CAPABILITY_STUDIO.md)
-- [Capability naming ADR](docs/adr/0001-capability-naming-and-machine-scope.md)
-- [Human-controlled memory ADR](docs/adr/0002-human-controlled-agent-memory-files.md)
-- [Safe capability templates ADR](docs/adr/0003-safe-user-authored-capability-templates.md)
-- [Shared demo runtime ADR](docs/adr/0004-shared-demo-runtime-and-explicit-domain-contracts.md)
-- [Hackathon entry](HACKATHON_ENTRY.md)
+- [Evaluation contracts](docs/EVALS.md)
+- [Agent and contributor guide](AGENTS.md)
 - [Changelog](CHANGELOG.md)
-- [Agent/contributor instructions](AGENTS.md)
 
 ## Safety boundary
 
-Everything is fictional and stored only in the browser. ClearDose is not a pharmacy, does not provide medical advice, and does not transmit prescriptions, contact providers, fulfill medication, or process payments.
+Everything is fictional and stored only in the browser. ClearDose is not a pharmacy, medical device, clinical system, or care recommendation service. It does not accept real health information, contact providers, process payments, validate prescriptions, fulfill medication, or place real orders.

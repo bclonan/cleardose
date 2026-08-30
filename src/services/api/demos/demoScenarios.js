@@ -1,4 +1,5 @@
 import { shortcutReplayScenarios } from "./shortcutReplayScenarios.js";
+import { normalizeDemoRoute } from "../../../domain/shared/demoRoute.js";
 
 const SEEDED_MOCK_DISCLOSURE = Object.freeze({
   label: "Seeded local mock",
@@ -380,20 +381,9 @@ export const demoScenarios = Object.freeze([
 
 const scenariosById = new Map([...demoScenarios, ...shortcutReplayScenarios].map((item) => [item.id, item]));
 
-function normalizeRoute(value) {
-  const raw = String(value || "").trim();
-  const hashPath = raw.includes("#") ? raw.slice(raw.indexOf("#") + 1) : raw;
-  const path = hashPath.split("?")[0] || "/";
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  if (normalized.startsWith("/medications/")) return "/medications";
-  if (normalized.startsWith("/account/orders/")) return "/account/orders";
-  if (normalized.startsWith("/checkout/confirmation/")) return "/checkout/confirmation";
-  return normalized;
-}
-
 export function getDemoScenario(id) { return scenariosById.get(String(id)) ?? null; }
 
 export function getDemoScenariosForRoute(route) {
-  const path = normalizeRoute(route);
+  const path = normalizeDemoRoute(route);
   return demoScenarios.filter((item) => item.routes.includes(path));
 }

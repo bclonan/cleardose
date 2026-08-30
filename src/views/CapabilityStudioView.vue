@@ -103,7 +103,7 @@ async function remove() { if (!selectedTemplate.value || !globalThis.confirm?.(`
   <div class="studio-page">
     <header class="studio-topbar" data-agent-section="capability-studio"><div><span class="eyebrow"><Sparkles :size="16" /> Local Capability Studio</span><h1>Create a workflow or WebMCP tool.</h1><p>Describe it, template it, test it, then explicitly load it. No arbitrary JavaScript and no silent registration.</p></div><div class="studio-top-actions"><button class="button button-light" type="button" @click="fileInput.click()"><Upload :size="16" /> Import template</button><button class="button button-outline-light" type="button" @click="newTemplate"><Plus :size="16" /> New capability</button><input ref="fileInput" class="sr-only" type="file" accept="application/json,.json" aria-label="Import capability template JSON" @change="importTemplate" /></div></header>
 
-    <main class="studio-shell">
+    <div class="studio-shell">
       <aside class="studio-library" aria-label="Saved capability templates"><header><div><small>Local library</small><strong>{{ templates.length }} templates</strong></div><span>{{ store.webMcp.registered }}/{{ store.webMcp.available }} registered</span></header><button v-for="template in templates" :key="template.id" type="button" :class="{ selected: template.id === selectedTemplate?.id }" @click="loadTemplate(template)"><span><em>{{ template.kind }}</em><small>{{ store.capabilityTemplates.statuses[template.id] || (template.autoRegister ? 'loaded' : 'draft') }}</small></span><strong>{{ template.title }}</strong><code>{{ template.kind === 'tool' ? `cleardose_user_${template.name}` : `machine.dynamic.user-workflow-${template.name.replaceAll('_', '-')}.v1` }}</code></button></aside>
 
       <section class="studio-workspace">
@@ -128,7 +128,7 @@ async function remove() { if (!selectedTemplate.value || !globalThis.confirm?.(`
       </section>
 
       <aside class="studio-inspector"><header><small>Template contract</small><strong>{{ selectedTemplate?.title || draft.title }}</strong><span :class="status">{{ status }}</span></header><dl><dt>Kind</dt><dd>{{ draft.kind }}</dd><dt>Capability</dt><dd><code>{{ draft.kind === 'tool' ? `cleardose.user-generated.${draft.name}` : `machine.dynamic.user-workflow-${draft.name.replaceAll('_', '-')}.v1` }}</code></dd><dt>Scope</dt><dd>{{ draft.role }} / {{ draft.situation }} / {{ draft.scopeStep }}</dd><dt>Inputs</dt><dd>{{ draft.inputFields.length }} closed-schema fields</dd></dl><div class="studio-inspector-actions"><button type="button" @click="copyTemplate"><Clipboard :size="15" /> Copy JSON</button><button type="button" @click="exportTemplate"><Download :size="15" /> Download</button><button type="button" @click="fileInput.click()"><FileInput :size="15" /> Import</button><button v-if="selectedTemplate" class="danger" type="button" @click="remove"><Trash2 :size="15" /> Delete</button></div><div class="studio-boundary"><Braces :size="18" /><p><strong>Template, not code.</strong> ClearDose resolves approved paths and bounded conditionals. It never evaluates submitted JavaScript.</p></div></aside>
-    </main>
+    </div>
     <p class="sr-only" aria-live="polite">{{ announcement }}</p>
   </div>
 </template>

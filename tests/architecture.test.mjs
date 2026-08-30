@@ -76,12 +76,18 @@ test("registered demo laboratory components keep the shared agent-ready contract
   }
 });
 
-test("every Prompt Guide fallback runs through shared replay and Explorer can hydrate stored receipts", async () => {
-  const promptGuide = await readFile(join(root, "src", "components", "PromptGuide.vue"), "utf8");
+test("registered demo launchers have mounted consumers and legacy launchers are absent", async () => {
+  const registry = await readFile(join(root, "src", "app", "componentRegistry.js"), "utf8");
+  const app = await readFile(join(root, "src", "App.vue"), "utf8");
+  assert.doesNotMatch(registry, /PromptGuide|HackathonLauncher/);
+  for (const name of ["AgentControlCenter", "RouteDemoSection", "DemoLabDock"]) {
+    assert.match(registry, new RegExp(`^  ${name},$`, "m"), `${name} is not registered.`);
+    assert.match(app, new RegExp(`<Cd${name}\\b`), `${name} is not mounted by App.`);
+  }
+});
+
+test("Explorer hydrates stored receipts", async () => {
   const explorer = await readFile(join(root, "src", "components", "WebMcpExplorer.vue"), "utf8");
-  assert.match(promptGuide, /store\.runCapabilityReplay\(tool/);
-  assert.doesNotMatch(promptGuide, /store\.invokeWebMcpTool\(tool\.name/);
-  assert.match(promptGuide, /> Programmatic replay</);
   assert.match(explorer, /store\.explorer\.lastInvocation\?\.toolName === entry\.name/);
   assert.match(explorer, /watch\(\(\) => store\.explorer\.lastInvocation/);
 });
@@ -89,7 +95,7 @@ test("every Prompt Guide fallback runs through shared replay and Explorer can hy
 test("detail routes keep contextual demos and comparison can build a reviewable doctor card", async () => {
   for (const name of ["RouteDemoSection.vue", "DemoLabDock.vue", "DemoScenarioCard.vue"]) {
     const source = await readFile(join(root, "src", "components", name), "utf8");
-    assert.match(source, /startsWith\("\/account\/orders\/"\)/, `${name} does not normalize order details.`);
+    assert.match(source, /normalizeDemoRoute\(route\.path|normalizeDemoRoute\(path/, `${name} does not use shared route normalization.`);
   }
   const comparison = await readFile(join(root, "src", "components", "ComparisonPanel.vue"), "utf8");
   assert.match(comparison, /Build a doctor discussion card/);

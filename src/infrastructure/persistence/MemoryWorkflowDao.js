@@ -13,6 +13,7 @@ export class MemoryWorkflowDao {
   }
 
   async initialize({ drugs = [] } = {}) {
+    this.drugs.clear();
     drugs.forEach((drug) => this.drugs.set(drug.id, copy(drug)));
     return this.status();
   }

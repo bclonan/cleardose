@@ -52,6 +52,23 @@ test("exact package requests never fall back to a different indexed package", as
       return true;
     },
   );
+
+  assert.throws(
+    () => facade.getDrugAvailability({
+      drugId: "med_lisinopril",
+      variantId: "lisinopril-10mg-60",
+      locationId: "demo-baltimore",
+      postalCode: "60601",
+    }),
+    (error) => {
+      assert.equal(error.code, "LOCATION_MISMATCH");
+      assert.equal(error.recommendedTool, "cleardose_get_drug_availability");
+      assert.deepEqual(error.recoveryInput, { locationId: "demo-baltimore", postalCode: "21201" });
+      assert.equal(error.details.locationIdMatch.id, "demo-baltimore");
+      assert.equal(error.details.postalCodeMatch.id, "demo-chicago");
+      return true;
+    },
+  );
 });
 
 test("compatible options distinguish provider comparison from clinician discussion records", async () => {

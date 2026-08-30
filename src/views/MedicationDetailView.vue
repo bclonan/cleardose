@@ -23,6 +23,7 @@ const store = usePharmacyStore();
 const medication = computed(() => store.medicationBySlug(route.params.slug));
 const selectedVariantId = ref(medication.value?.variants[0]?.id ?? "");
 const added = ref(false);
+const cartAnnouncement = ref("");
 const locationId = ref("demo-baltimore");
 const selectedOfferId = ref("");
 const availability = ref(null);
@@ -42,6 +43,7 @@ watch([selectedVariantId, locationId], () => checkAvailability(), { immediate: t
 function addItem() {
   store.addToCart(medication.value.id, selectedVariantId.value);
   added.value = true;
+  cartAnnouncement.value = `${medication.value.name} ${selectedVariant.value.strength} added to the mock cart. The cart now has ${store.cartCount} ${store.cartCount === 1 ? "item" : "items"}.`;
   window.setTimeout(() => { added.value = false; }, 2400);
 }
 
@@ -136,6 +138,7 @@ function deliveryLabel(offer) {
           <Transition name="fade">
             <div v-if="added" class="added-message"><Check :size="17" /> Added to cart <button type="button" @click="router.push('/cart')">View cart</button></div>
           </Transition>
+          <p class="sr-only" role="status" aria-live="polite" aria-atomic="true">{{ cartAnnouncement }}</p>
         </div>
       </div>
     </section>

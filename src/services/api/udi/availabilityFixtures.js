@@ -168,18 +168,33 @@ function publicLocation(location) {
 export function resolveDemoLocation({ locationId = "", postalCode = "" } = {}) {
   const normalizedId = String(locationId || "").trim();
   const normalizedPostalCode = String(postalCode || "").trim();
-  const location = normalizedId
-    ? locationById.get(normalizedId)
-    : normalizedPostalCode
-      ? locationByPostalCode.get(normalizedPostalCode)
-      : locationById.get("demo-baltimore");
+  const locationFromId = normalizedId ? locationById.get(normalizedId) : null;
+  const locationFromPostalCode = normalizedPostalCode ? locationByPostalCode.get(normalizedPostalCode) : null;
+  if (locationFromId && locationFromPostalCode && locationFromId.id !== locationFromPostalCode.id) {
+    throw new ClearDoseDomainError("LOCATION_MISMATCH", "The seeded location id and postal code identify different demo locations.", {
+      retryable: true,
+      recommendedTool: "cleardose_get_drug_availability",
+      recoveryInput: { locationId: locationFromId.id, postalCode: locationFromId.postalCode },
+      details: {
+        locationId: normalizedId,
+        postalCode: normalizedPostalCode,
+        locationIdMatch: publicLocation(locationFromId),
+        postalCodeMatch: publicLocation(locationFromPostalCode),
+      },
+    });
+  }
+  const hasInvalidId = Boolean(normalizedId && !locationFromId);
+  const hasInvalidPostalCode = Boolean(normalizedPostalCode && !locationFromPostalCode);
+  const location = hasInvalidId || hasInvalidPostalCode
+    ? null
+    : locationFromId ?? locationFromPostalCode ?? locationById.get("demo-baltimore");
   if (location) return structuredClone(location);
   throw new ClearDoseDomainError("LOCATION_UNAVAILABLE", "That location is not part of the seeded ClearDose demo service area.", {
     retryable: true,
     recommendedTool: "cleardose_get_drug_availability",
     recoveryInput: { locationId: "demo-baltimore" },
     details: {
-      field: normalizedId ? "locationId" : "postalCode",
+      field: hasInvalidId ? "locationId" : "postalCode",
       supportedLocations: demoLocations.map(publicLocation),
     },
   });

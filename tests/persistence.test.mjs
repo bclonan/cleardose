@@ -42,6 +42,34 @@ test("DuckDB initialization failure keeps the workflow runtime usable through me
   assert.equal(runtime.inspect({ flowId: flow.id }).events.length, 1);
 });
 
+test("DuckDB drug seeding replaces the prior fixture inside one transaction", async () => {
+  const { DuckDbWasmDao } = await vite.ssrLoadModule("/src/infrastructure/persistence/DuckDbWasmDao.js");
+  const statements = [];
+  let rowCount = 9;
+  const dao = new DuckDbWasmDao();
+  dao.connection = {
+    async query(statement) {
+      const normalized = String(statement).trim();
+      statements.push(normalized);
+      if (normalized.startsWith("DELETE FROM drugs")) rowCount = 0;
+      if (normalized.startsWith("INSERT INTO drugs")) rowCount = 1;
+      if (normalized.startsWith("SELECT COUNT")) return { toArray: () => [{ toJSON: () => ({ drug_count: rowCount }) }] };
+      return { toArray: () => [] };
+    },
+  };
+
+  const count = await dao.seedDrugs([{ id: "med_current", name: "Current", genericFor: "", category: "Demo", drugClass: "Demo", comparisonGroup: "demo", identifiers: { udi: "udi:cleardose:current" } }]);
+  assert.equal(count, 1);
+  assert.deepEqual(statements.map((statement) => statement.split(/\s+/).slice(0, 3).join(" ")), [
+    "BEGIN TRANSACTION;",
+    "DELETE FROM drugs;",
+    "INSERT INTO drugs",
+    "SELECT COUNT(*) AS",
+    "COMMIT;",
+    "CHECKPOINT;",
+  ]);
+});
+
 test("BroadcastChannel mirrors event ids, flow state, and bounded context across runtimes", async () => {
   const [{ MemoryWorkflowDao }, { WorkflowRuntime }] = await Promise.all([
     vite.ssrLoadModule("/src/infrastructure/persistence/MemoryWorkflowDao.js"),

@@ -47,12 +47,19 @@ test("capability templates use closed schemas and require explicit local registr
     examplePrompt: "Please make a visit note for lisinopril.", body: "# <%= input.drug_name %>",
     scope: { role: "patient", situation: "visit", step: "note" },
     inputFields: [{ name: "drug_name", label: "Medication", type: "string", required: true }],
+    autoRegister: true,
   });
+  assert.equal(record.autoRegister, false);
+  assert.equal(service.snapshot().statuses[record.id], "draft");
+  assert.equal(registrations.length, 0);
   assert.equal(record.inputSchema.additionalProperties, false);
   assert.equal(record.inputSchema.properties.drug_name.maxLength, 2000);
   assert.throws(() => service.render(record.id, { drug_name: "Lisinopril", hidden: true }), /Unknown template input/);
   assert.throws(() => service.render(record.id, { drug_name: "x".repeat(2001) }), /2000 characters or fewer/);
   await service.register(record.id);
+  assert.equal(service.get(record.id).autoRegister, true);
+  assert.equal(service.snapshot().statuses[record.id], "registered");
+  assert.ok(saved.some((item) => item.name === "make_visit_note" && item.autoRegister));
   assert.equal(registrations[0].options.namespace, "cleardose_user");
   const registeredDefinition = registrations[0].definitions[0];
   assert.equal(registeredDefinition.annotations.untrustedContentHint, true);
@@ -70,15 +77,25 @@ test("capability templates use closed schemas and require explicit local registr
   assert.deepEqual(registeredDefinition.relatedTools, ["inspect_workflow_runtime"]);
   assert.deepEqual(registeredDefinition.scenarioIds, ["capability-user-make-visit-note"]);
   assert.deepEqual(registeredDefinition.machine.scope, record.scope);
-  const savedAgain = service.save({ id: record.id, kind: record.kind, name: record.name, title: record.title, description: record.description, examplePrompt: record.examplePrompt, body: record.body, scope: record.scope, inputFields: record.inputFields });
-  assert.equal(savedAgain.autoRegister, true);
-  assert.equal(service.snapshot().statuses[record.id], "registered");
+  assert.throws(
+    () => service.save({ id: record.id, title: "Edited while registered" }),
+    /Unload the registered capability/,
+  );
   const result = await service.run(record.id, { drug_name: "<Lisinopril>" });
   assert.equal(result.structuredContent.visibleState, "human_review");
   assert.match(result.structuredContent.content, /&lt;Lisinopril&gt;/);
   assert.equal(result.structuredContent.artifact.contentStored, false);
   assert.equal(artifacts[0].template.name, "make_visit_note");
-  assert.ok(saved.some((item) => item.name === "make_visit_note" && item.autoRegister));
+  await service.unregister(record.id);
+  const savedAgain = service.save({ id: record.id, kind: record.kind, name: record.name, title: record.title, description: record.description, examplePrompt: record.examplePrompt, body: record.body, scope: record.scope, inputFields: record.inputFields });
+  assert.equal(savedAgain.autoRegister, false);
+  assert.equal(service.snapshot().statuses[record.id], "draft");
+
+  assert.throws(() => service.save({
+    kind: "tool", name: "make_invalid_note", title: "Make an invalid note", description: "Rejected before persistence.",
+    body: "# <%= input.missing %>", scope: { role: "patient", situation: "visit", step: "note" },
+    inputFields: [{ name: "topic", label: "Topic", type: "string", required: true }],
+  }), /not a declared input/);
 
   const numeric = service.save({
     kind: "tool", name: "make_cost_note", title: "Make a cost note", description: "Create a bounded cost note.",

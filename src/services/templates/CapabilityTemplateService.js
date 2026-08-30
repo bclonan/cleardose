@@ -5,6 +5,18 @@ import { toolResponse } from "../../infrastructure/webmcp/toolResponse";
 
 function copy(value) { return value == null ? value : structuredClone(value); }
 
+const fixedTemplatePaths = new Set(["context.role", "context.situation", "context.step", "site.name", "site.tagline"]);
+
+function validateDeclaredTemplatePaths(template) {
+  const declaredInputs = new Set(template.inputFields.map((field) => `input.${field.name}`));
+  const paths = [
+    ...String(template.body).matchAll(/<%=\s*([A-Za-z][A-Za-z0-9_.]*)\s*%>/g),
+    ...String(template.body).matchAll(/<%\s*if\s+([A-Za-z][A-Za-z0-9_.]*)\s*%>/g),
+  ].map((match) => match[1]);
+  const unknown = paths.find((path) => !declaredInputs.has(path) && !fixedTemplatePaths.has(path));
+  if (unknown) throw new TypeError(`Template path ${unknown} is not a declared input or supported local context field.`);
+}
+
 const starters = Object.freeze([
   Object.freeze({ kind: "tool", name: "visit_question_sheet", title: "Generate a visit question sheet", description: "Create a local, reviewable question sheet from user-provided medication and visit goals.", examplePrompt: "I'm getting ready for an appointment about lisinopril. Please make me a short question sheet focused on cost and monitoring, and leave it for me to review.", voiceGuide: "Name the medication, say what you want to understand, then review the generated sheet before copying it.", scope: { role: "patient", situation: "visit-preparation", step: "question-sheet" }, inputFields: [{ name: "drug_name", label: "Medication name", type: "string", required: true, description: "Fictional medication name." }, { name: "visit_goal", label: "Visit goal", type: "string", required: true, description: "What the patient wants to discuss." }], body: "# Questions about <%= input.drug_name %>\n\nVisit goal: <%= input.visit_goal %>\n\n- What should I understand before making any change?\n- Which cost, monitoring, and safety questions should we discuss?\n\nGenerated in ClearDose for human review. Not medical advice.", autoRegister: false }),
   Object.freeze({ kind: "workflow", name: "prescription_review_loop", title: "Prescription review loop", description: "A reusable human-reviewed workflow for gathering context before an administrative prescription follow-up.", examplePrompt: "ClearDose says my fictional order needs a prescription. Please start a review workflow, help me gather the context, and stop before anyone is contacted.", voiceGuide: "Collect the fictional medication context, prepare the editable handoff, and stop for human review before completion.", scope: { role: "patient", situation: "prescription-required", step: "review-loop" }, inputFields: [{ name: "drug_name", label: "Medication name", type: "string", required: true, description: "Fictional indexed medication." }], states: ["ready", "collecting_context", "preparing_handoff", "human_review", "complete"], body: "Review workflow for <%= input.drug_name %>. Current role: <%= context.role %>. Stop at human review before any external action.", autoRegister: false }),
@@ -25,7 +37,7 @@ export class CapabilityTemplateService {
     const saved = this.dao.load();
     const source = saved.length ? saved : starters;
     for (const record of source) {
-      try { const template = normalizeCapabilityTemplate(record); this.engine.validate(template.body); this.templates.set(template.id, template); }
+      try { const template = normalizeCapabilityTemplate(record); this.validate(template); this.templates.set(template.id, template); }
       catch { /* Ignore malformed local records instead of registering them. */ }
     }
     if (!saved.length) this.persist();
@@ -36,12 +48,18 @@ export class CapabilityTemplateService {
 
   get(id) { return this.templates.get(String(id)) ?? null; }
 
+  validate(template) {
+    this.engine.validate(template.body);
+    validateDeclaredTemplatePaths(template);
+    return template;
+  }
+
   save(record) {
     const prior = record?.id ? this.get(record.id) : null;
-    const autoRegister = Object.prototype.hasOwnProperty.call(record ?? {}, "autoRegister") ? record.autoRegister : prior?.autoRegister;
-    const template = normalizeCapabilityTemplate({ ...prior, ...record, autoRegister, createdAt: prior?.createdAt });
-    this.engine.validate(template.body);
-    this.templates.set(template.id, template); this.status.set(template.id, template.autoRegister ? (template.kind === "tool" ? "registered" : "loaded") : "draft"); this.persist(); this.notify();
+    if (prior?.autoRegister) throw new TypeError("Unload the registered capability before saving it as a draft.");
+    const template = normalizeCapabilityTemplate({ ...prior, ...record, autoRegister: false, createdAt: prior?.createdAt });
+    this.validate(template);
+    this.templates.set(template.id, template); this.status.set(template.id, "draft"); this.persist(); this.notify();
     return copy(template);
   }
 
@@ -54,6 +72,7 @@ export class CapabilityTemplateService {
   render(idOrTemplate, input = {}) {
     const template = typeof idOrTemplate === "string" ? this.get(idOrTemplate) : normalizeCapabilityTemplate(idOrTemplate);
     if (!template) throw new TypeError(`Unknown capability template: ${idOrTemplate}.`);
+    this.validate(template);
     const safeInput = validateTemplateInput(template, input);
     return this.engine.render(template.body, { input: safeInput, context: template.scope, site: { name: "ClearDose", tagline: "Transparent prescriptions, agent-ready." } });
   }
@@ -126,6 +145,7 @@ export class CapabilityTemplateService {
 
   async register(id) {
     const template = this.get(id); if (!template) throw new TypeError(`Unknown capability template: ${id}.`);
+    this.validate(template);
     if (template.kind === "tool") await this.toolRegistry.registerDefinitions([this.toolDefinition(template)], { namespace: "cleardose_user" });
     else this.workflowRuntime.registerDynamicDefinition({ id: `user-workflow-${template.name}`, title: template.title, description: template.description, states: template.states, scope: template.scope });
     const updated = normalizeCapabilityTemplate({ ...template, autoRegister: true, createdAt: template.createdAt });

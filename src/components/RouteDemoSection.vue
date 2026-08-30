@@ -5,6 +5,7 @@ import { Bot, Code2, MousePointer2 } from "@lucide/vue";
 import { usePharmacyStore } from "../composables/usePharmacyStore";
 import { useAgentReadyComponent } from "../composables/useAgentReadyComponent";
 import { agentReadyProps } from "../presentation/agentReadyProps";
+import { normalizeDemoRoute } from "../domain/shared/demoRoute.js";
 import DemoScenarioCard from "./DemoScenarioCard.vue";
 
 const props = defineProps({ ...agentReadyProps });
@@ -12,14 +13,7 @@ useAgentReadyComponent(props, { name: "route_demo_section", defaultAdapter: Obje
 const route = useRoute();
 const store = usePharmacyStore();
 
-function scenarioRoute(path) {
-  if (path.startsWith("/medications/")) return "/medications";
-  if (path.startsWith("/account/orders/")) return "/account/orders";
-  if (path.startsWith("/checkout/confirmation/")) return "/checkout/confirmation";
-  return path;
-}
-
-const scenarios = computed(() => store.demoScenariosForRoute(scenarioRoute(route.path)).slice(0, route.path === "/demo" ? 1 : 2));
+const scenarios = computed(() => store.demoScenariosForRoute(normalizeDemoRoute(route.path)).slice(0, route.path === "/demo" ? 1 : 2));
 </script>
 
 <template>

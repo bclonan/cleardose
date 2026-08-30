@@ -4,6 +4,19 @@ import WebMcpExplorer from "../components/WebMcpExplorer.vue";
 import { usePharmacyStore } from "../composables/usePharmacyStore";
 
 const store = usePharmacyStore();
+
+function focusExplorer() {
+  const explorer = globalThis.document?.querySelector("#explorer");
+  const heading = explorer?.querySelector("h2");
+  explorer?.scrollIntoView({
+    behavior: globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth",
+    block: "start",
+  });
+  if (heading) {
+    heading.setAttribute("tabindex", "-1");
+    heading.focus({ preventScroll: true });
+  }
+}
 </script>
 
 <template>
@@ -14,7 +27,7 @@ const store = usePharmacyStore();
           <span class="eyebrow"><TerminalSquare :size="17" /> Browser-native WebMCP laboratory</span>
           <h1>Read the contract.<br /><em>Run the real handler.</em></h1>
           <p>Search the live tool manifest, edit a request, run it against seeded local data, and inspect the response, timing, UI focus, workflow events, and bounded state changes.</p>
-          <div class="explorer-hero-actions"><a class="button button-orange" href="#explorer"><Play :size="17" /> Open Try It console</a><RouterLink class="button button-outline-light" to="/flow-lab"><Activity :size="17" /> Open state lab</RouterLink></div>
+          <div class="explorer-hero-actions"><button class="button button-orange" type="button" @click="focusExplorer"><Play :size="17" /> Open Try It console</button><RouterLink class="button button-outline-light" to="/flow-lab"><Activity :size="17" /> Open state lab</RouterLink></div>
           <div class="explorer-boundary"><ShieldCheck :size="19" /><span>Everything on this page is fictional and local. No pharmacy, clinician, insurer, payment network, or patient record is contacted.</span></div>
         </div>
         <dl class="explorer-live-summary">
@@ -28,7 +41,7 @@ const store = usePharmacyStore();
 
     <section class="page-width lab-system-strip" aria-label="Recurring demo system">
       <article><span><Code2 :size="20" /></span><h2>Programmatic replay</h2><p>Runs the same registered handlers step by step with Pause, Resume, Step, Restart, and seeded Reset.</p><button type="button" @click="store.openDemoLab('prompts')">Choose a replay <ArrowRight :size="16" /></button></article>
-      <article><span><TerminalSquare :size="20" /></span><h2>WebMCP Explorer</h2><p>Shows live status, schemas, examples, deterministic failures, linked prompts, requests, and responses.</p><a href="#explorer">Inspect tools <ArrowRight :size="16" /></a></article>
+      <article><span><TerminalSquare :size="20" /></span><h2>WebMCP Explorer</h2><p>Shows live status, schemas, examples, deterministic failures, linked prompts, requests, and responses.</p><button type="button" @click="focusExplorer">Inspect tools <ArrowRight :size="16" /></button></article>
       <article><span><Activity :size="20" /></span><h2>Live state inspector</h2><p>Shows current truth, event history, valid branches, blocked actions, error states, and recovery transitions.</p><button type="button" @click="store.openDemoLab('state')">Inspect state <ArrowRight :size="16" /></button></article>
     </section>
 

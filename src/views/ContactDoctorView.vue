@@ -32,7 +32,7 @@ async function copyDetails() {
   try {
     await clipboard.copy("CLEARDOSE PHARMACY SANDBOX. NCPDP 0000000. Fax 000-000-0000. Do not send a real prescription.");
     copied.value = true;
-    announcement.value = "Sample pharmacy details copied.";
+    announcement.value = "Sandbox details copied for local review. Do not send them to a provider or pharmacy.";
     window.setTimeout(() => { copied.value = false; }, 1800);
   } catch (error) {
     copied.value = false;
@@ -68,17 +68,17 @@ function editNote() {
         <div class="pharmacy-details-card" id="providers">
           <span class="generic-badge">Sample details only</span><h2>ClearDose Pharmacy Sandbox</h2>
           <dl><div><dt>Pharmacy name</dt><dd>ClearDose Pharmacy Sandbox</dd></div><div><dt>NCPDP ID</dt><dd>0000000</dd></div><div><dt>Fax</dt><dd>000-000-0000</dd></div><div><dt>Patient match</dt><dd>Email + date of birth</dd></div></dl>
-          <button class="button button-dark button-wide" type="button" @click="copyDetails"><Check v-if="copied" :size="18" /><ClipboardCopy v-else :size="18" />{{ copied ? 'Copied demo details' : 'Copy sample pharmacy details' }}</button>
+          <button class="button button-dark button-wide" type="button" aria-describedby="sandbox-routing-warning" @click="copyDetails"><Check v-if="copied" :size="18" /><ClipboardCopy v-else :size="18" />{{ copied ? 'Copied for local review' : 'Copy sandbox details for local review' }}</button>
           <p v-if="copyError" class="inline-error" role="alert">{{ copyError }}</p>
-          <small>Never send a real prescription to these fictional identifiers.</small>
+          <small id="sandbox-routing-warning">These identifiers are fictional. Never share them with a provider or pharmacy, and never send a real prescription to them.</small>
         </div>
       </div>
     </section>
 
     <section class="page-width doctor-flow-grid" data-agent-section="provider-handoff">
       <div class="doctor-instructions">
-        <span class="eyebrow">For patients</span><h2>Three ways to move forward.</h2>
-        <article><span>1</span><div><h3>Ask your provider to e-prescribe</h3><p>Share the pharmacy name and sample NCPDP identifier shown above.</p></div></article>
+        <span class="eyebrow">For patients</span><h2>Three parts of the local preview.</h2>
+        <article><span>1</span><div><h3>Review a production handoff</h3><p>A real pharmacy handoff needs a name and routing identifier. The values above only show that format. Do not share or send them.</p></div></article>
         <article><span>2</span><div><h3>Match the fictional account</h3><p>The mock workflow uses the seeded account email and date of birth to demonstrate a match.</p></div></article>
         <article><span>3</span><div><h3>Review the mock status</h3><p>A seeded verification state unlocks the fictional package in the patient account.</p></div></article>
         <div class="provider-note"><Building2 :size="22" /><div><strong>For providers</strong><p>This prototype shows the receiving instructions and feedback states a production pharmacy handoff would need.</p></div></div>
@@ -94,8 +94,8 @@ function editNote() {
           </form>
         </div>
         <div v-else class="generated-note">
-          <span class="generated-note-icon"><Check :size="28" /></span><span class="eyebrow">Preview ready</span><h2>Provider note created.</h2>
-          <div class="note-paper"><span>Prescription routing request</span><h3>{{ form.medication }}</h3><p><strong>Patient:</strong> {{ form.patientName }}<br /><strong>Account email:</strong> {{ form.patientEmail }}<br /><strong>Provider:</strong> {{ form.providerName }} {{ form.providerPhone }}</p><hr /><p>Please send an electronic prescription to <strong>ClearDose Pharmacy Sandbox</strong>, sample NCPDP <strong>0000000</strong>.</p><small>CLEARDOSE SANDBOX. DO NOT SEND.</small></div>
+          <span class="generated-note-icon"><Check :size="28" /></span><span class="eyebrow">Preview ready</span><h2>Provider note preview created.</h2>
+          <div class="note-paper"><span>Prescription routing preview</span><h3>{{ form.medication }}</h3><p><strong>Patient:</strong> {{ form.patientName }}<br /><strong>Account email:</strong> {{ form.patientEmail }}<br /><strong>Provider:</strong> {{ form.providerName }} {{ form.providerPhone }}</p><hr /><p>A production note would identify the receiving pharmacy here. This local preview uses <strong>ClearDose Pharmacy Sandbox</strong> and sample NCPDP <strong>0000000</strong> only to show the expected fields.</p><small>CLEARDOSE SANDBOX. NEVER SHARE OR SEND THESE DETAILS.</small></div>
           <div class="generated-note-actions"><button class="button button-dark" type="button" @click="runLocalHandoffSimulation"><Mail :size="18" /> Run local handoff simulation</button><button class="button button-ghost" type="button" @click="editNote">Edit details</button></div>
           <section v-if="localHandoff" class="local-handoff-status" role="status" aria-live="polite">
             <div><Check :size="20" /><strong>Local simulation complete</strong><code>{{ localHandoff.id }}</code></div>

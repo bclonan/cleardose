@@ -6,6 +6,7 @@ import { usePharmacyStore } from "../composables/usePharmacyStore";
 import { useAgentReadyComponent } from "../composables/useAgentReadyComponent";
 import { agentReadyProps } from "../presentation/agentReadyProps";
 import { ClipboardService } from "../services/ui/ClipboardService";
+import { normalizeDemoRoute } from "../domain/shared/demoRoute.js";
 
 const props = defineProps({
   ...agentReadyProps,
@@ -26,13 +27,7 @@ const isRunning = computed(() => store.replay.scenarioId === props.scenario.id &
 const toolsReady = computed(() => props.scenario.steps.every((step) => store.webMcp.tools.some((tool) => (tool.name === step.toolName || tool.name.endsWith(`_${step.toolName}`)) && tool.locallyInvokable)));
 
 function replayRoute(path) {
-  const normalized = path.startsWith("/medications/")
-    ? "/medications"
-    : path.startsWith("/account/orders/")
-      ? "/account/orders"
-    : path.startsWith("/checkout/confirmation/")
-        ? "/checkout/confirmation"
-        : path;
+  const normalized = normalizeDemoRoute(path);
   return props.scenario.routes.includes(normalized) ? normalized : props.scenario.routes[0];
 }
 

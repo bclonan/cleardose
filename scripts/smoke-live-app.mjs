@@ -25,7 +25,7 @@ try {
 const checks = [
   ["/src/main.js", /createApp/],
   ["/src/views/FlowLabView.vue", /DuckDB-Wasm state lab/],
-  ["/src/components/PromptGuide.vue", /Prompt guide/],
+  ["/src/components/DemoLabDock.vue", /Interactive demo laboratory/],
   ["/src/infrastructure/persistence/DuckDbWasmDao.js", /cleardose-flow-lab\.duckdb/],
   ["/src/infrastructure/webmcp/tools/createDefaultTools.js", /createStructuredExchangeToolPair/],
   ["/src/views/HackathonShortcutsView.vue", /Copy the prompt\. Watch the machine/],

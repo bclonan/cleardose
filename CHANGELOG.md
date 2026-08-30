@@ -10,6 +10,8 @@
 - Explicit comparison relationships plus seeded provider, location, inventory, pricing, and delivery data. Unrelated medications now fail with a structured recovery path.
 - Human, voice, and advanced prompt variants for each programmatic scenario.
 - Eleven built-in imperative tools for compatibility, availability, delivery, and workflow state interaction.
+- Final release evidence for role scenarios, browser smoke, testing limits, the judge path, submission status, and repository freeze.
+- Regression coverage for narrow viewports, bounded browser-registration schemas, authored-text persistence, route normalization, browser service fallbacks, and component lifecycle cleanup.
 
 ### Changed
 
@@ -17,6 +19,12 @@
 - Expanded the canonical catalog from 22 to 34 built-in capabilities: 25 imperative tools and nine declarative forms.
 - Price and fulfillment comparisons now start from explicit compatibility data and explain why each option may be compared.
 - Demo failures return typed codes, retryability, a recommended next tool, and bounded recovery input when recovery is possible.
+- Removed the unused React, Next, shadcn, Cloudflare Worker, D1, and Drizzle starter files and their dependencies. The repository now contains one active Vue application stack.
+- Replaced the React lint and type configuration with Vue-aware ESLint and `vue-tsc` gates.
+- Centralized demo-route normalization, cart capacity, voice preferences, and declarative form observation in focused shared services.
+- Browser tool registration now includes bounded output schemas. Generic structured values have finite depth, and workflow dispatch input keys and values are bounded.
+- Memory packet and dynamic template persistence now retain only operational metadata, never the user's authored packet or document text.
+- Narrow layouts no longer force page-level horizontal scrolling at 320 CSS pixels.
 
 ### Safety
 
@@ -24,6 +32,7 @@
 - Comparison relationships never claim therapeutic equivalence or recommend substitution.
 - Workflow dispatch rejects stale versions, duplicate request ids, invalid transitions, and human-only actions. Checkout, review, export, and external contact remain under visible human control.
 - Replay observations are bounded to declared application state and stable DOM targets. They do not capture page text, passwords, real health information, or external browser state.
+- The hosted Sites build remains owner-only. Public judge access and a project license require explicit owner decisions.
 
 ## 0.3.0, 2026-08-30
 

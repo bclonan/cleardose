@@ -1,5 +1,7 @@
 # ClearDose WebMCP hackathon entry
 
+This earlier long-form entry is retained for project history. Use [docs/HACKATHON_SUBMISSION.md](docs/HACKATHON_SUBMISSION.md) for the final submission draft and [docs/FINAL_RELEASE_REPORT.md](docs/FINAL_RELEASE_REPORT.md) for verified release status.
+
 **Tagline:** Transparent prescriptions, agent-ready.
 
 ## What we built
@@ -27,7 +29,7 @@ The generic `createStructuredExchangeToolPair()` factory and domain template lit
 
 ## Judge demo
 
-1. Open `/#/demo` and select the semantic comparison scenario. Run it once, then pause and single-step it while Inspect calls shows each request, response, timing value, highlight, and bounded state change.
+1. Open `/#/demo` and select the semantic comparison scenario. Run it once, then pause and single-step it while the `Inspect calls` panel shows each request, response, timing value, highlight, and bounded state change.
 2. In the WebMCP Explorer, open `cleardose_compare_medication_options`. Run a valid seeded request, then run a malformed or incompatible request and follow the structured recovery.
 3. Change the mock location and run the three-day availability scenario. Compare provider inventory, price components, and delivery windows.
 4. Open the Live State Inspector. Select the seeded branching flow, inspect available actions, explain `COMPARE`, and dispatch it with the displayed version and a unique request id.

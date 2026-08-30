@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { assertBoundedJsonSchema } from "./json-schema-contract.mjs";
 
 const readJson = async (relativePath) => JSON.parse(await readFile(fileURLToPath(new URL(relativePath, import.meta.url)), "utf8"));
 const schema = await readJson("../evals/schema.json");
@@ -35,6 +36,7 @@ for (const tool of tools) {
   assert.equal(tool.inputSchema?.additionalProperties, false, `${tool.name} must reject unknown properties.`);
   assertBoundedInputStrings(tool.inputSchema, `${tool.name}.input`);
   assert.equal(tool.outputSchema?.type, "object", `${tool.name} needs an output schema.`);
+  assertBoundedJsonSchema(tool.outputSchema, `${tool.name}.outputSchema`);
   assert.equal(typeof tool.annotations?.readOnlyHint, "boolean", `${tool.name} needs readOnlyHint.`);
   assert.equal(typeof tool.annotations?.untrustedContentHint, "boolean", `${tool.name} needs untrustedContentHint.`);
 }

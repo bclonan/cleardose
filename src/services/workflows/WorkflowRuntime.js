@@ -164,6 +164,46 @@ function runtimeCounts(runtime, { pendingEvents = 0 } = {}) {
   return { flows: runtime.flows.size, events: runtime.events.size + pendingEvents, exchanges: runtime.exchanges.size, artifacts: runtime.cards.size };
 }
 
+function compareRecent(left, right) {
+  const timestamp = String(right.updatedAt || right.createdAt || "").localeCompare(String(left.updatedAt || left.createdAt || ""));
+  return timestamp || String(left.id || "").localeCompare(String(right.id || ""));
+}
+
+function compareChronological(left, right) {
+  const timestamp = String(left.createdAt || left.updatedAt || "").localeCompare(String(right.createdAt || right.updatedAt || ""));
+  const version = Number(left.version ?? left.context?.__runtime?.eventVersion ?? 0) - Number(right.version ?? right.context?.__runtime?.eventVersion ?? 0);
+  return timestamp || version || String(left.id || "").localeCompare(String(right.id || ""));
+}
+
+function boundedCount(value, fallback = 0) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(0, Math.min(12, Math.trunc(parsed))) : fallback;
+}
+
+function memoryPacketPersistenceSummary(packet) {
+  const createdAt = Number.isFinite(Date.parse(String(packet?.createdAt || ""))) ? String(packet.createdAt).slice(0, 40) : now();
+  const updatedAt = Number.isFinite(Date.parse(String(packet?.updatedAt || ""))) ? String(packet.updatedAt).slice(0, 40) : createdAt;
+  const counts = packet?.counts ?? {};
+  const exportMethod = String(packet?.exportMethod || "").trim().replace(/[^a-z0-9_-]+/gi, "-").slice(0, 40);
+  return {
+    id: String(packet?.id || id("memory")).slice(0, 190),
+    artifactType: "agent-memory-packet",
+    flowId: String(packet?.flowId || "").slice(0, 190),
+    status: packet?.status === "exported" ? "exported" : "human_review",
+    counts: {
+      facts: boundedCount(counts.facts, Array.isArray(packet?.facts) ? packet.facts.length : 0),
+      decisions: boundedCount(counts.decisions, Array.isArray(packet?.decisions) ? packet.decisions.length : 0),
+      nextSteps: boundedCount(counts.nextSteps, Array.isArray(packet?.nextSteps) ? packet.nextSteps.length : 0),
+      flowReferences: boundedCount(counts.flowReferences, Array.isArray(packet?.flowIds) ? packet.flowIds.length : 0),
+    },
+    authoredTextStored: false,
+    contentStored: false,
+    ...(exportMethod ? { exportMethod } : {}),
+    createdAt,
+    updatedAt,
+  };
+}
+
 export class WorkflowStateError extends Error {
   constructor(code, message, { retryable = false, recommendedTool = "", details = {} } = {}) {
     super(message);
@@ -256,7 +296,11 @@ export class WorkflowRuntime {
       snapshot.flows.forEach((item) => this.flows.set(item.id, item));
       snapshot.events.forEach((item) => this.events.set(item.id, item));
       snapshot.exchanges.forEach((item) => this.exchanges.set(item.id, item));
-      snapshot.cards.forEach((item) => this.cards.set(item.id, item));
+      for (const item of snapshot.cards) {
+        const stored = item.artifactType === "agent-memory-packet" ? memoryPacketPersistenceSummary(item) : item;
+        this.cards.set(stored.id, stored);
+        if (item.artifactType === "agent-memory-packet" && JSON.stringify(stored) !== JSON.stringify(item)) await this.dao.saveCard(stored);
+      }
       this.openChannel();
       this.notify();
       return this.snapshot();
@@ -629,11 +673,12 @@ export class WorkflowRuntime {
   }
 
   async prepareMemoryPacket(input) {
-    const flow = await this.startFlow({ definitionId: "memory-packet", title: `Memory · ${input.label || "ClearDose demo"}`, context: { scope: input.scope ?? {}, externalWrite: false }, source: "memory" });
+    const flow = await this.startFlow({ definitionId: "memory-packet", title: "Memory packet review", context: { externalWrite: false, authoredTextStored: false }, source: "memory" });
     const packet = { ...createAgentMemoryPacket(input), flowId: flow.id, status: "human_review", updatedAt: now() };
-    this.cards.set(packet.id, packet);
-    await this.dao.saveCard(packet);
-    this.channel?.postMessage({ kind: "card", card: packet });
+    const stored = memoryPacketPersistenceSummary(packet);
+    this.cards.set(stored.id, stored);
+    await this.dao.saveCard(stored);
+    this.channel?.postMessage({ kind: "card", card: stored });
     await this.transition(flow.id, { type: "MEMORY_PACKET_PREPARED", toState: "human_review", context: { packetId: packet.id, factCount: packet.facts.length, userActionRequired: true }, source: "memory" });
     this.notify();
     return copy(packet);
@@ -642,7 +687,7 @@ export class WorkflowRuntime {
   async markMemoryExported(packetId, method) {
     const packet = this.cards.get(String(packetId));
     if (!packet || packet.artifactType !== "agent-memory-packet") throw new TypeError(`Unknown memory packet: ${packetId}.`);
-    const updated = { ...packet, status: "exported", exportMethod: String(method), updatedAt: now() };
+    const updated = memoryPacketPersistenceSummary({ ...packet, status: "exported", exportMethod: String(method), updatedAt: now() });
     this.cards.set(updated.id, updated); await this.dao.saveCard(updated);
     this.channel?.postMessage({ kind: "card", card: updated });
     await this.transition(updated.flowId, { type: "USER_EXPORTED_MEMORY", toState: "exported", context: { exportMethod: updated.exportMethod }, source: "ui" });
@@ -959,15 +1004,23 @@ export class WorkflowRuntime {
 
   inspect({ flowId = "", limit = 40 } = {}) {
     const boundedLimit = Math.max(1, Math.min(100, Number(limit) || 40));
-    const flows = flowId ? [this.flows.get(String(flowId))].filter(Boolean) : [...this.flows.values()];
+    const flows = (flowId ? [this.flows.get(String(flowId))].filter(Boolean) : [...this.flows.values()])
+      .sort(compareRecent)
+      .slice(0, boundedLimit);
     const selectedIds = new Set(flows.map((flow) => flow.id));
-    const events = [...this.events.values()].filter((event) => selectedIds.has(event.flowId)).slice(-boundedLimit);
-    const artifacts = [...this.cards.values()].filter((card) => selectedIds.has(card.flowId));
+    const events = [...this.events.values()]
+      .filter((event) => selectedIds.has(event.flowId))
+      .sort(compareChronological)
+      .slice(-boundedLimit);
+    const allArtifacts = [...this.cards.values()]
+      .filter((card) => selectedIds.has(card.flowId))
+      .sort(compareRecent);
+    const artifacts = allArtifacts.slice(0, boundedLimit);
     return {
       database: copy(this.database), flows: copy(flows), events: copy(events),
-      cards: copy(artifacts.filter((item) => !item.artifactType || item.artifactType === "doctor-question-card")),
+      cards: copy(allArtifacts.filter((item) => !item.artifactType || item.artifactType === "doctor-question-card").slice(0, boundedLimit)),
       artifacts: copy(artifacts),
-      memoryPackets: copy(artifacts.filter((item) => item.artifactType === "agent-memory-packet")),
+      memoryPackets: copy(allArtifacts.filter((item) => item.artifactType === "agent-memory-packet").slice(0, boundedLimit)),
     };
   }
 

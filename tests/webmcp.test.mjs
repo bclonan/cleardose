@@ -18,11 +18,13 @@ test("WebMCP registry qualifies and registers tools through document.modelContex
   const { BrowserWebMcpAdapter } = await vite.ssrLoadModule("/src/infrastructure/webmcp/BrowserWebMcpAdapter.js");
   const { WebMcpToolRegistry } = await vite.ssrLoadModule("/src/infrastructure/webmcp/WebMcpToolRegistry.js");
   const registry = new WebMcpToolRegistry({ adapter: new BrowserWebMcpAdapter({ documentRef }), namespace: "cleardose" });
+  const outputSchema = { type: "object", properties: { ok: { type: "boolean" } }, required: ["ok"], additionalProperties: false };
 
   await registry.registerDefinitions([{
     name: "ping",
     description: "Return a deterministic health response.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    outputSchema,
     execute: async () => ({ ok: true }),
     category: "test-only",
     interactionModel: "imperative",
@@ -30,6 +32,7 @@ test("WebMCP registry qualifies and registers tools through document.modelContex
   }]);
 
   assert.equal(registrations[0].tool.name, "cleardose_ping");
+  assert.deepEqual(registrations[0].tool.outputSchema, outputSchema);
   assert.ok(registrations[0].options.signal instanceof AbortSignal);
   assert.equal(registry.snapshot().status, "ready");
   assert.equal(registry.snapshot().tools[0].description, "Return a deterministic health response.");
@@ -80,6 +83,12 @@ test("default catalog exposes non-overlapping medication, availability, state, r
   assert.equal(tools.find((tool) => tool.name === "dispatch_workflow_transition").annotations.readOnlyHint, false);
   assert.equal(tools.find((tool) => tool.name === "reset_workflow_state").annotations.readOnlyHint, false);
   assert.equal(tools.find((tool) => tool.name === "prepare_doctor_question_card_request").inputSchema.additionalProperties, false);
+  const priceComparison = tools.find((tool) => tool.name === "compare_drug_prices");
+  assert.doesNotMatch(priceComparison.inputSchema.properties.strength.description, /closest/i);
+  assert.match(priceComparison.inputSchema.properties.strength.description, /PACKAGE_NOT_FOUND/);
+  assert.ok(priceComparison.deterministicErrors.some((error) => error.code === "PACKAGE_NOT_FOUND"));
+  assert.ok(tools.every((tool) => tool.outputSchema.$defs?.boundedValue0 && tool.outputSchema.$defs?.boundedValue8));
+  assert.ok(tools.every((tool) => !JSON.stringify(tool.outputSchema.$defs.boundedValue8).includes('"#/$defs/boundedValue8"')));
   assert.ok(tools.every((tool) => tool.inputSchema.additionalProperties === false));
   assert.ok(tools.every((tool) => tool.capabilityId.startsWith("cleardose.")));
   assert.ok(tools.every((tool) => tool.interactionModel === "imperative"));
@@ -200,6 +209,9 @@ test("branching state tools expose current truth and dispatch only one versioned
   assert.equal(calls.length, 6);
   assert.equal(byName("dispatch_workflow_transition").inputSchema.additionalProperties, false);
   assert.equal(byName("dispatch_workflow_transition").inputSchema.properties.input.maxProperties, 12);
+  assert.equal(byName("dispatch_workflow_transition").inputSchema.properties.input.additionalProperties.type, "string");
+  assert.equal(byName("dispatch_workflow_transition").inputSchema.properties.input.additionalProperties.maxLength, 1000);
+  assert.equal(byName("dispatch_workflow_transition").inputSchema.properties.input.propertyNames.maxLength, 80);
 });
 
 test("tool errors preserve domain and workflow recovery contracts", async () => {

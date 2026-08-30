@@ -1,3 +1,5 @@
+import { MAX_CART_ITEM_COUNT, MAX_CART_LINES } from "../../../domain/cart/cartLimits.js";
+
 const categoryDefinitions = Object.freeze([
   { id: "discovery-and-pricing", label: "Discovery and pricing", description: "Local UDI search, compatibility, price facts, availability, and synthetic review flags." },
   { id: "patient-and-clinician", label: "Patient and clinician", description: "Bounded handoffs, prescription recovery, and human-reviewed discussion documents." },
@@ -8,7 +10,43 @@ const categoryDefinitions = Object.freeze([
   { id: "user-generated", label: "User-created", description: "Locally authored workflow and document-tool templates that require review before loading." },
 ]);
 
-const boundedObjectSchema = Object.freeze({ type: "object", maxProperties: 64, additionalProperties: true });
+const boundedObjectSchema = Object.freeze({ $ref: "#/$defs/boundedObject" });
+const boundedPrimitiveBranches = Object.freeze([
+  Object.freeze({ type: "string", maxLength: 20000 }),
+  Object.freeze({ type: "number", minimum: -1000000000000, maximum: 1000000000000 }),
+  Object.freeze({ type: "boolean" }),
+  Object.freeze({ type: "null" }),
+]);
+
+function createBoundedJsonDefinitions(maxDepth = 8) {
+  const definitions = {
+    boundedValue0: Object.freeze({ oneOf: boundedPrimitiveBranches }),
+  };
+  for (let depth = 1; depth <= maxDepth; depth += 1) {
+    const childRef = Object.freeze({ $ref: `#/$defs/boundedValue${depth - 1}` });
+    definitions[`boundedValue${depth}`] = Object.freeze({
+      oneOf: Object.freeze([
+        ...boundedPrimitiveBranches,
+        Object.freeze({ type: "array", maxItems: 100, items: childRef }),
+        Object.freeze({
+          type: "object",
+          maxProperties: 64,
+          propertyNames: Object.freeze({ type: "string", maxLength: 160 }),
+          additionalProperties: childRef,
+        }),
+      ]),
+    });
+  }
+  definitions.boundedObject = Object.freeze({
+    type: "object",
+    maxProperties: 64,
+    propertyNames: Object.freeze({ type: "string", maxLength: 160 }),
+    additionalProperties: Object.freeze({ $ref: `#/$defs/boundedValue${maxDepth}` }),
+  });
+  return Object.freeze(definitions);
+}
+
+const boundedJsonDefinitions = createBoundedJsonDefinitions();
 const boundedStringArraySchema = Object.freeze({ type: "array", maxItems: 100, items: { type: "string", maxLength: 500 } });
 const boundedRecordArraySchema = Object.freeze({ type: "array", maxItems: 100, items: boundedObjectSchema });
 const commonResponseProperties = Object.freeze({
@@ -33,13 +71,18 @@ const commonResponseProperties = Object.freeze({
   type: { type: "string", maxLength: 120 },
   visibleActionRequired: { type: "boolean" },
   existingEventId: { type: "string", maxLength: 120 },
+  eventId: { type: "string", maxLength: 120 },
+  fromState: { type: ["string", "null"], maxLength: 100 },
+  suppliedFromState: { type: ["string", "null"], maxLength: 100 },
+  toState: { type: "string", maxLength: 100 },
 });
 
-function responseSchema(resultKey, description, { resultSchema = boundedObjectSchema, properties = {}, additionalProperties = true } = {}) {
+function responseSchema(resultKey, description, { resultSchema = boundedObjectSchema, properties = {}, additionalProperties = false } = {}) {
   return Object.freeze({
     type: "object",
     description,
     maxProperties: 32,
+    $defs: boundedJsonDefinitions,
     properties: {
       ...commonResponseProperties,
       ...(resultKey ? { [resultKey]: resultSchema } : {}),
@@ -165,12 +208,15 @@ const metadata = Object.freeze({
   compare_medication_options: {
     resultKey: "comparison", exampleRequest: { drugIds: ["med_lisinopril"], purpose: "price", postalCode: "21201" }, exampleResponse: { ok: true, comparison: { purpose: "price", relationships: [{ kind: "same_drug", reasonCode: "SAME_INDEXED_DRUG" }], rankable: true, compatibilityCoverage: "explicit-seeded-only" } },
     relatedTools: ["find_compatible_options", "compare_drug_availability"], scenarios: ["semantic-comparison", "full-patient-review"],
-    errors: [{ code: "INCOMPATIBLE_COMPARISON", recovery: "Call cleardose_find_compatible_options for the selected drug." }],
+    errors: [{ code: "INCOMPATIBLE_COMPARISON", recovery: "Call cleardose_find_compatible_options for the selected drug." }, { code: "LOCATION_MISMATCH", recovery: "Use a seeded location id and postal code that identify the same demo location." }],
   },
   compare_drug_prices: {
     resultKey: "comparison", exampleRequest: { drugIds: ["med_lisinopril"] }, exampleResponse: { ok: true, comparison: { selections: [{ drug: { id: "med_lisinopril" }, bestOffer: { providerName: "Harbor Demo Pharmacy" } }], currency: "USD", compatibilityEnforced: true } },
     relatedTools: ["find_compatible_options", "compare_medication_options"], scenarios: [],
-    errors: [{ code: "INCOMPATIBLE_COMPARISON", recovery: "Choose an explicitly seeded comparable record." }],
+    errors: [
+      { code: "INCOMPATIBLE_COMPARISON", recovery: "Choose an explicitly seeded comparable record." },
+      { code: "PACKAGE_NOT_FOUND", recovery: "Call cleardose_get_drug_index_entry and retry with an exact indexed strength and quantity." },
+    ],
   },
   find_related_drugs: {
     resultKey: "related", resultSchema: boundedRecordArraySchema,
@@ -181,17 +227,17 @@ const metadata = Object.freeze({
   get_drug_availability: {
     resultKey: "availability", exampleRequest: { drugId: "med_lisinopril", variantId: "lisinopril-10mg-60", locationId: "demo-baltimore" }, exampleResponse: { ok: true, availability: { location: { id: "demo-baltimore", postalCode: "21201" }, variant: { id: "lisinopril-10mg-60" }, counts: { in_stock: 2, low_stock: 1, unavailable: 1 }, offers: [{ providerName: "Harbor Demo Pharmacy", inventory: { status: "in_stock" } }], fictional: true } },
     relatedTools: ["compare_drug_availability", "estimate_delivery"], scenarios: ["availability-within-three-days", "checkout-cost-review", "full-patient-review"],
-    errors: [{ code: "LOCATION_UNAVAILABLE", recovery: "Choose one of the seeded demo locations." }, { code: "PACKAGE_UNAVAILABLE", recovery: "Use the returned recovery input or inspect another exact package." }],
+    errors: [{ code: "LOCATION_UNAVAILABLE", recovery: "Choose one of the seeded demo locations." }, { code: "LOCATION_MISMATCH", recovery: "Use a seeded location id and postal code that identify the same demo location." }, { code: "PACKAGE_UNAVAILABLE", recovery: "Use the returned recovery input or inspect another exact package." }],
   },
   compare_drug_availability: {
     resultKey: "comparison", exampleRequest: { drugId: "med_lisinopril", variantId: "lisinopril-10mg-60", locationId: "demo-baltimore", fulfillmentMode: "shipping", maxDeliveryDays: 3 }, exampleResponse: { ok: true, comparison: { fulfillmentMode: "shipping", maxDeliveryDays: 3, options: [{ fulfillmentMode: "shipping", arrivalDays: 2 }], bestOption: { arrivalDays: 2 }, fictional: true } },
     relatedTools: ["find_compatible_options", "get_drug_availability", "estimate_delivery"], scenarios: ["availability-within-three-days"],
-    errors: [{ code: "DELIVERY_WINDOW_MISSED", recovery: "Review the fastest seeded option or revise the deadline." }, { code: "PACKAGE_UNAVAILABLE", recovery: "Inspect the exact package at the seeded location." }],
+    errors: [{ code: "LOCATION_MISMATCH", recovery: "Use a seeded location id and postal code that identify the same demo location." }, { code: "DELIVERY_WINDOW_MISSED", recovery: "Review the fastest seeded option or revise the deadline." }, { code: "PACKAGE_UNAVAILABLE", recovery: "Inspect the exact package at the seeded location." }],
   },
   estimate_delivery: {
     resultKey: "estimate", exampleRequest: { drugId: "med_lisinopril", variantId: "lisinopril-10mg-60", providerId: "harbor-demo-pharmacy", locationId: "demo-baltimore", fulfillmentMode: "shipping" }, exampleResponse: { ok: true, estimate: { offer: { providerId: "harbor-demo-pharmacy", providerName: "Harbor Demo Pharmacy" }, fulfillmentMode: "shipping", estimate: { available: true, deliveryWindow: { minDays: 1, maxDays: 2 } }, fictional: true } },
     relatedTools: ["get_drug_availability", "compare_drug_availability"], scenarios: ["availability-within-three-days", "checkout-cost-review"],
-    errors: [{ code: "PROVIDER_NOT_FOUND", recovery: "Get the seeded offers and retry with an exact provider or offer id." }, { code: "PROVIDER_UNAVAILABLE", recovery: "Choose an available fulfillment mode or seeded provider." }],
+    errors: [{ code: "LOCATION_MISMATCH", recovery: "Use a seeded location id and postal code that identify the same demo location." }, { code: "PROVIDER_NOT_FOUND", recovery: "Get the seeded offers and retry with an exact provider or offer id." }, { code: "PROVIDER_UNAVAILABLE", recovery: "Choose an available fulfillment mode or seeded provider." }],
   },
   review_demo_interaction_flags: {
     resultKey: "review", exampleRequest: { drugIds: ["med_sildenafil", "med_isosorbide_mononitrate"] }, exampleResponse: { ok: true, review: { coverage: "synthetic-and-incomplete", requiresProfessionalReview: true } },
@@ -258,11 +304,12 @@ const metadata = Object.freeze({
     errors: [{ code: "INVALID_INPUT", recovery: "Choose a listed section that is present on the current route." }],
   },
   get_cart: {
-    resultKey: "items", resultSchema: Object.freeze({ type: "array", maxItems: 100, items: boundedObjectSchema }), outputProperties: { itemCount: { type: "integer", minimum: 0, maximum: 1000 }, subtotal: { type: "number", minimum: 0 }, shipping: { type: "number", minimum: 0 }, total: { type: "number", minimum: 0 } }, exampleRequest: {}, exampleResponse: { ok: true, items: [], itemCount: 0, subtotal: 0, shipping: 0, total: 0 }, relatedTools: ["add_to_cart"], scenarios: ["checkout-cost-review", "human-control-boundary", "full-patient-review"],
+    resultKey: "items", resultSchema: Object.freeze({ type: "array", maxItems: MAX_CART_LINES, items: boundedObjectSchema }), outputProperties: { itemCount: { type: "integer", minimum: 0, maximum: MAX_CART_ITEM_COUNT }, subtotal: { type: "number", minimum: 0 }, shipping: { type: "number", minimum: 0 }, total: { type: "number", minimum: 0 } }, exampleRequest: {}, exampleResponse: { ok: true, items: [], itemCount: 0, subtotal: 0, shipping: 0, total: 0 }, relatedTools: ["add_to_cart"], scenarios: ["checkout-cost-review", "human-control-boundary", "full-patient-review"],
   },
   add_to_cart: {
-    resultKey: "", outputSchema: responseSchema("", "Result of adding one exact package to the local mock cart.", { properties: { itemCount: { type: "integer", minimum: 0, maximum: 1000 }, total: { type: "number", minimum: 0 }, fulfillmentGate: boundedObjectSchema }, additionalProperties: false }), permissions: ["local-commerce-write"], exampleRequest: { drugId: "med_lisinopril", variantId: "lisinopril-5mg-30" }, exampleResponse: { ok: true, itemCount: 1, total: 11.75, fulfillmentGate: { code: "PRESCRIPTION_REQUIRED", humanReviewRequired: true } },
+    resultKey: "", outputSchema: responseSchema("", "Result of adding one exact package to the local mock cart.", { properties: { itemCount: { type: "integer", minimum: 0, maximum: MAX_CART_ITEM_COUNT }, total: { type: "number", minimum: 0 }, fulfillmentGate: boundedObjectSchema }, additionalProperties: false }), permissions: ["local-commerce-write"], exampleRequest: { drugId: "med_lisinopril", variantId: "lisinopril-5mg-30" }, exampleResponse: { ok: true, itemCount: 1, total: 11.75, fulfillmentGate: { code: "PRESCRIPTION_REQUIRED", humanReviewRequired: true } },
     relatedTools: ["get_drug_availability", "get_cart", "prepare_prescription_follow_up"], scenarios: ["checkout-cost-review", "full-patient-review"],
+    errors: [{ code: "CART_LINE_LIMIT", recovery: `Remove one of the ${MAX_CART_LINES} package lines, then retry the exact package.` }],
   },
 });
 
@@ -301,7 +348,9 @@ function tool(id, category, prompt, { kind = "static", role = "patient" } = {}) 
   });
 }
 
-function form(id, category, prompt, route, { properties = {}, required = [], exampleRequest = {} } = {}) {
+function form(id, category, prompt, route, {
+  properties = {}, required = [], exampleRequest = {}, autoSubmit = false, presentAfterRun = true,
+} = {}) {
   const visibleValueSchema = Object.freeze({
     oneOf: [
       { type: "string", maxLength: 800 },
@@ -335,13 +384,20 @@ function form(id, category, prompt, route, { properties = {}, required = [], exa
     category,
     interactionModel: "declarative",
     registration: "declarative",
+    autoSubmit,
     route,
     routes: Object.freeze([route]),
-    permissions: Object.freeze(["visible-form-write", "human-submit"]),
+    permissions: Object.freeze(["visible-form-write", autoSubmit ? "visible-form-submit" : "human-submit"]),
     examplePrompt: prompt,
-    voicePrompt: `${prompt} Tell me which visible fields you filled, then stop for my review.`,
-    advancedPrompt: `${prompt} Report each populated field and leave the final submission under my control.`,
-    expectedResult: "The visible form contains the requested fictional values and remains available for human review.",
+    voicePrompt: autoSubmit
+      ? `${prompt} Tell me which visible fields changed and whether the form submitted.`
+      : `${prompt} Tell me which visible fields you filled, then stop for my review.`,
+    advancedPrompt: autoSubmit
+      ? `${prompt} Report each populated field and the visible form submission result.`
+      : `${prompt} Report each populated field and leave the final submission under my control.`,
+    expectedResult: autoSubmit
+      ? `The visible form contains the requested fictional values and submits through its declared ${id} handler.`
+      : "The visible form contains the requested fictional values and remains available for human review.",
     inputSchema: Object.freeze({ type: "object", maxProperties: 30, properties, ...(required.length ? { required } : {}), additionalProperties: false }),
     outputSchema: responseSchema("visibleForm", `Visible DOM result for ${id}.`, {
       resultSchema: visibleFormSchema,
@@ -353,19 +409,19 @@ function form(id, category, prompt, route, { properties = {}, required = [], exa
       additionalProperties: false,
     }),
     exampleRequests: Object.freeze([Object.freeze(exampleRequest)]),
-    exampleResponse: Object.freeze({ ok: true, toolName: `cleardose_${id}`, interactionModel: "declarative", visibleForm: { toolName: `cleardose_${id}`, submitted: false, presentAfterRun: true, changedFields: Object.keys(exampleRequest), changes: Object.entries(exampleRequest).map(([field, after]) => ({ field, before: "", after })) }, mocked: true }),
+    exampleResponse: Object.freeze({ ok: true, toolName: `cleardose_${id}`, interactionModel: "declarative", visibleForm: { toolName: `cleardose_${id}`, submitted: autoSubmit, presentAfterRun, changedFields: Object.keys(exampleRequest), changes: Object.entries(exampleRequest).map(([field, after]) => ({ field, before: "", after })) }, mocked: true }),
     deterministicErrors: Object.freeze([
       Object.freeze({ code: "TOOL_UNAVAILABLE_ON_ROUTE", recovery: `Open ${route === "global" ? "a route with the form visible" : route}.` }),
       Object.freeze({ code: "INVALID_INPUT", recovery: "Use only the declared fields and their exact JSON types." }),
       Object.freeze({ code: "MISSING_VISIBLE_FIELD", recovery: "Reload the named route and confirm the visible form still exposes the field." }),
-      Object.freeze({ code: "VISIBLE_FORM_SUBMIT_FAILED", recovery: "Review the populated fields, then use the visible submit control." }),
+      ...(autoSubmit ? [Object.freeze({ code: "VISIBLE_FORM_SUBMIT_FAILED", recovery: "Review the populated fields, then use the visible submit control." })] : []),
     ]),
     relatedTools: Object.freeze([]),
     scenarioIds: Object.freeze([]),
     machine: Object.freeze({
       id: `machine.form.${id.replaceAll("_", "-")}.v1`, kind: "static", role: "patient",
       scope: Object.freeze({ role: "patient", situation: "visible-form", step: id }),
-      states: Object.freeze(["idle", "editing", "validating", "ready", "rejected"]),
+      states: Object.freeze(["idle", "editing", "validating", autoSubmit ? "submitted" : "ready", "rejected"]),
     }),
   });
 }
@@ -396,15 +452,41 @@ export const capabilityCatalog = Object.freeze([
   tool("highlight_section", "interface-and-observability", "Highlight the visible workflow runtime so we can inspect the same section."),
   tool("get_cart", "shopping-and-procurement", "Read my local mock cart and total without exposing profile data."),
   tool("add_to_cart", "shopping-and-procurement", "Add the exact indexed lisinopril package I selected to the local demo cart."),
-  form("navigate_to_drug_search", "declarative-forms", "Fill the header medication search with lisinopril and submit it.", "global", { properties: { query: { type: "string", minLength: 1, maxLength: 120 } }, required: ["query"], exampleRequest: { query: "lisinopril" } }),
-  form("navigate_to_mobile_drug_search", "declarative-forms", "Fill the mobile medication search with lisinopril and submit it.", "global", { properties: { query: { type: "string", minLength: 1, maxLength: 120 } }, required: ["query"], exampleRequest: { query: "lisinopril" } }),
-  form("navigate_to_home_drug_search", "declarative-forms", "Use the home search to find atorvastatin.", "/", { properties: { query: { type: "string", minLength: 1, maxLength: 120 } }, required: ["query"], exampleRequest: { query: "atorvastatin" } }),
-  form("filter_visible_drug_index", "declarative-forms", "Filter the visible UDI to statins.", "/udi", { properties: { query: { type: "string", maxLength: 120 }, category: { type: "string", maxLength: 80 }, drugClass: { type: "string", maxLength: 80 } }, exampleRequest: { query: "atorvastatin", category: "Heart health", drugClass: "Statin" } }),
-  form("filter_visible_medication_catalog", "declarative-forms", "Filter the visible medication catalog to blood pressure.", "/medications", { properties: { query: { type: "string", minLength: 1, maxLength: 120 } }, required: ["query"], exampleRequest: { query: "blood pressure" } }),
-  form("populate_visible_price_comparison", "declarative-forms", "Populate the visible comparison with an explicitly compatible pair.", "/compare", { properties: { leftMedicationId: { type: "string", maxLength: 100 }, rightMedicationId: { type: "string", maxLength: 100 }, purpose: { type: "string", enum: ["facts", "price", "fulfillment", "doctor_discussion"] }, leftVariantId: { type: "string", maxLength: 140 }, locationId: { type: "string", maxLength: 80 } }, required: ["leftMedicationId", "rightMedicationId", "purpose"], exampleRequest: { leftMedicationId: "med_lisinopril", rightMedicationId: "med_lisinopril", purpose: "price", leftVariantId: "lisinopril-10mg-60", locationId: "demo-baltimore" } }),
+  form("navigate_to_drug_search", "declarative-forms", "Fill the header medication search with lisinopril and submit it.", "global", { properties: { query: { type: "string", minLength: 1, maxLength: 120 } }, required: ["query"], exampleRequest: { query: "lisinopril" }, autoSubmit: true }),
+  form("navigate_to_mobile_drug_search", "declarative-forms", "Fill the mobile medication search with lisinopril and submit it.", "global", { properties: { query: { type: "string", minLength: 1, maxLength: 120 } }, required: ["query"], exampleRequest: { query: "lisinopril" }, autoSubmit: true }),
+  form("navigate_to_home_drug_search", "declarative-forms", "Use the home search to find atorvastatin.", "/", { properties: { query: { type: "string", minLength: 1, maxLength: 120 } }, required: ["query"], exampleRequest: { query: "atorvastatin" }, autoSubmit: true, presentAfterRun: false }),
+  form("filter_visible_drug_index", "declarative-forms", "Filter the visible UDI to statins.", "/udi", { properties: { query: { type: "string", maxLength: 120 }, category: { type: "string", maxLength: 80 }, drugClass: { type: "string", maxLength: 80 } }, exampleRequest: { query: "atorvastatin", category: "Heart health", drugClass: "Statin" }, autoSubmit: true }),
+  form("filter_visible_medication_catalog", "declarative-forms", "Filter the visible medication catalog to blood pressure.", "/medications", { properties: { query: { type: "string", minLength: 1, maxLength: 120 } }, required: ["query"], exampleRequest: { query: "blood pressure" }, autoSubmit: true }),
+  form("populate_visible_price_comparison", "declarative-forms", "Populate the visible comparison with an explicitly compatible pair.", "/compare", { properties: { leftMedicationId: { type: "string", maxLength: 100 }, rightMedicationId: { type: "string", maxLength: 100 }, purpose: { type: "string", enum: ["facts", "price", "fulfillment", "doctor_discussion"] }, leftVariantId: { type: "string", maxLength: 140 }, locationId: { type: "string", maxLength: 80 } }, required: ["leftMedicationId", "rightMedicationId", "purpose"], exampleRequest: { leftMedicationId: "med_lisinopril", rightMedicationId: "med_lisinopril", purpose: "price", leftVariantId: "lisinopril-10mg-60", locationId: "demo-baltimore" }, autoSubmit: true }),
   form("prepare_provider_note", "declarative-forms", "Fill a fictional provider-routing note for my review and do not send it.", "/contact-doctor", { properties: { "patient-name": { type: "string", minLength: 1, maxLength: 120 }, "patient-email": { type: "string", minLength: 3, maxLength: 160 }, "provider-name": { type: "string", minLength: 1, maxLength: 120 }, "provider-phone": { type: "string", maxLength: 40 }, medication: { type: "string", minLength: 1, maxLength: 160 } }, required: ["patient-name", "patient-email", "provider-name", "medication"], exampleRequest: { "patient-name": "Jamie Demo", "patient-email": "jamie@demo.invalid", "provider-name": "Dr. Sample", "provider-phone": "410-555-0100", medication: "Lisinopril 10mg" } }),
   form("populate_question_card_demo", "declarative-forms", "Populate the visible question-card demo with lisinopril.", "/flow-lab", { properties: { drugId: { type: "string", maxLength: 100 }, relatedDrugIds: { type: "array", maxItems: 3, items: { type: "string", maxLength: 100 } }, concerns: { type: "string", maxLength: 1000 } }, required: ["drugId"], exampleRequest: { drugId: "med_lisinopril", relatedDrugIds: ["med_losartan"], concerns: "What monitoring and cost questions should I discuss?" } }),
-  form("compose_dynamic_capability_template", "declarative-forms", "Fill the Capability Studio with a reviewable workflow or document-tool template. Do not register it automatically.", "/studio", { properties: { kind: { type: "string", enum: ["tool", "workflow"] }, name: { type: "string", pattern: "^[a-z][a-z0-9_]{2,59}$" }, title: { type: "string", maxLength: 160 }, description: { type: "string", maxLength: 500 }, examplePrompt: { type: "string", maxLength: 500 }, role: { type: "string", maxLength: 80 }, situation: { type: "string", maxLength: 100 }, scopeStep: { type: "string", maxLength: 100 }, body: { type: "string", maxLength: 12000 }, voiceGuide: { type: "string", maxLength: 1200 } }, required: ["kind", "name", "title", "description", "body"], exampleRequest: { kind: "tool", name: "visit_question_sheet", title: "Generate a visit question sheet", description: "Create a local review document from fictional visit goals.", examplePrompt: "Prepare a visit question sheet for lisinopril and leave it for review.", role: "patient", situation: "visit-preparation", scopeStep: "question-sheet", body: "# Questions about <%= input.drug_name %>", voiceGuide: "Describe the document and review it before loading." } }),
+  form("compose_dynamic_capability_template", "declarative-forms", "After you start a fresh one-input document-tool draft in Capability Studio, fill its declared input and safe template for review. This does not save or register it. Workflows and extra input rows stay under visible human control.", "/studio", {
+    properties: {
+      kind: { type: "string", enum: ["tool"] },
+      name: { type: "string", minLength: 3, maxLength: 60, pattern: "^[a-z][a-z0-9_]{2,59}$" },
+      title: { type: "string", minLength: 1, maxLength: 100 },
+      description: { type: "string", minLength: 1, maxLength: 500 },
+      examplePrompt: { type: "string", maxLength: 500 },
+      role: { type: "string", minLength: 1, maxLength: 60 },
+      situation: { type: "string", minLength: 1, maxLength: 80 },
+      scopeStep: { type: "string", minLength: 1, maxLength: 80 },
+      field_0_name: { type: "string", minLength: 3, maxLength: 60, pattern: "^[a-z][a-z0-9_]{2,59}$" },
+      field_0_label: { type: "string", minLength: 1, maxLength: 80 },
+      field_0_type: { type: "string", enum: ["string", "number", "integer", "boolean"] },
+      field_0_required: { type: "boolean" },
+      field_0_description: { type: "string", maxLength: 180 },
+      field_0_example: { type: "string", maxLength: 180 },
+      body: { type: "string", minLength: 1, maxLength: 12000 },
+      voiceGuide: { type: "string", maxLength: 1200 },
+    },
+    required: ["kind", "name", "title", "description", "role", "situation", "scopeStep", "field_0_name", "field_0_label", "field_0_type", "field_0_required", "body"],
+    exampleRequest: {
+      kind: "tool", name: "make_visit_note", title: "Make a visit note", description: "Create a local review document from one fictional topic.",
+      examplePrompt: "Prepare a fictional visit note and leave it for review.", role: "patient", situation: "visit-preparation", scopeStep: "visit-note",
+      field_0_name: "topic", field_0_label: "Topic", field_0_type: "string", field_0_required: true, field_0_description: "Fictional topic for the review note.", field_0_example: "Cost questions for my next visit",
+      body: "# Visit note\n\n<%= input.topic %>\n\nGenerated locally for human review.", voiceGuide: "Describe the fictional topic, then review the draft before saving it.",
+    },
+  }),
 ]);
 
 const byToolName = new Map(capabilityCatalog.map((item) => [item.toolName, item]));

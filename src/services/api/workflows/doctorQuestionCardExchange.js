@@ -39,6 +39,6 @@ Discussion-only related records: ${relatedNames}
 Transient concern summary:
 ${patientContext}
 
-Return the draft by calling cleardose_submit_doctor_question_card_draft with exchangeId \"${exchangeId}\" and the declared response fields. Phrase every item as a question. Do not diagnose, recommend a switch, claim therapeutic equivalence, or add price facts; ClearDose will attach its own fictional indexed price facts. The visible card remains a draft until the patient reviews it.`;
+Return the draft by calling cleardose_submit_doctor_question_card_draft with exchangeId "${exchangeId}" and the declared response fields. Phrase every item as a question. Do not diagnose, recommend a switch, claim therapeutic equivalence, or add price facts; ClearDose will attach its own fictional indexed price facts. The visible card remains a draft until the patient reviews it.`;
   },
 });
