@@ -25,8 +25,10 @@ test("facade coordinates catalog, cart, customer, and checkout adapters", async 
 
   const auth = facade.authenticate("demo@patient.test", "demo1234");
   assert.equal(auth.ok, true);
-  const order = facade.placeOrder({ address: auth.customer.address, prescriptionMethod: "on-file", paymentMethod: "demo-card" });
+  const reactiveLikeAddress = new Proxy({ ...auth.customer.address }, {});
+  const order = facade.placeOrder({ address: reactiveLikeAddress, prescriptionMethod: "on-file", paymentMethod: "demo-card" });
   assert.match(order.id, /^CLR-/);
+  assert.deepEqual(order.address, auth.customer.address);
   assert.equal(facade.getSnapshot().state.cart.length, 0);
 });
 

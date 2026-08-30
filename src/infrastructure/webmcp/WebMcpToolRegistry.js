@@ -82,6 +82,18 @@ export class WebMcpToolRegistry {
     };
   }
 
+  unregister(name) {
+    const qualifiedName = this.qualify(name);
+    const registration = this.registrations.get(qualifiedName);
+    if (!registration) return false;
+    registration.unregister?.();
+    this.registrations.delete(qualifiedName);
+    this.notify();
+    return true;
+  }
+
+  has(name) { return this.registrations.has(this.qualify(name)); }
+
   unregisterAll() {
     this.registrations.forEach((registration) => registration.unregister());
     this.registrations.clear();

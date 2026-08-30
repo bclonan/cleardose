@@ -26,3 +26,8 @@ export { LocalDrugIndexApi } from "./services/api/local/LocalDrugIndexApi";
 export { getRecoveryGuidance, buildPrescriptionFollowUp } from "./services/api/recovery/recoveryGuidance";
 export { createAgentMemoryPacket } from "./services/api/documents/agentMemoryPacket";
 export { AgentMemoryFileService } from "./services/files/AgentMemoryFileService";
+export { ClipboardService } from "./services/ui/ClipboardService";
+export { SafeEjsTemplateEngine } from "./services/templates/SafeEjsTemplateEngine";
+export { CapabilityTemplateService } from "./services/templates/CapabilityTemplateService";
+export { BrowserCapabilityTemplateDao } from "./infrastructure/persistence/BrowserCapabilityTemplateDao";
+export { normalizeCapabilityTemplate, buildTemplateInputSchema, validateTemplateInput } from "./services/api/templates/capabilityTemplateSchema";

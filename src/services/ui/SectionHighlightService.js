@@ -22,6 +22,8 @@ const DEFAULT_TARGETS = Object.freeze([
   "machine-inspector",
   "agent-memory",
   "prescription-recovery",
+  "capability-studio",
+  "studio-runtime",
 ]);
 
 export class SectionHighlightService {

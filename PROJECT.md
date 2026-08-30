@@ -18,6 +18,7 @@ Deliver a complete, branded Vue 3 reference storefront that demonstrates a trans
 7. **Observable agency:** tool calls and UI actions expose state, event ids, and bounded context locally so people can understand what an agent completed.
 8. **Deterministic demonstrations:** every imperative tool, declarative form, and prompt chain has a finite-state-machine analog with explicit scope.
 9. **User-owned memory:** ClearDose may prepare context, but only the user may copy, save, or hand it to an external agent.
+10. **Safe end-user composition:** locally authored capabilities use a non-executable template language, closed inputs, explicit registration, and a visible review gate.
 
 ## Included experience
 
@@ -31,7 +32,8 @@ Deliver a complete, branded Vue 3 reference storefront that demonstrates a trans
 - Optional route-aware voice guidance, visible transcripts, tool inspector, shared page highlighting, autofill-ready forms, and a WCAG 2.2 AAA engineering target
 - A DuckDB-Wasm/OPFS workflow event store, cross-tab event mirroring, concurrent-flow viewer, structured site→agent→site exchange, printable doctor-question card, and negative failure fixtures
 - A dedicated prompt-shortcut workbench with seven judge-ready chains, static and dynamic machine panes, editable prescription recovery, and a user-controlled memory packet
-- Pinia store, DTOs, isolated mock API/fixtures, browser DAOs, facade, component registry, fourteen imperative WebMCP tools, seven declarative form capabilities, deterministic tests, and Chrome-compatible eval fixtures
+- A four-step Capability Studio with persistent local templates, optional voice dictation, safe EJS-shaped rendering, dynamic tool/workflow registration, preview, import/export, and live machine evidence
+- Pinia store, DTOs, isolated mock API/fixtures, browser DAOs, facade, component registry, fourteen built-in imperative WebMCP tools, eight declarative form capabilities, deterministic tests, and Chrome-compatible eval fixtures
 
 ## Non-goals
 

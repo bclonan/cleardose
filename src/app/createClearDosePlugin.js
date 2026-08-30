@@ -7,9 +7,11 @@ import { createDefaultTools } from "../infrastructure/webmcp/tools/createDefault
 import { DuckDbWasmDao } from "../infrastructure/persistence/DuckDbWasmDao";
 import { SectionHighlightService } from "../services/ui/SectionHighlightService";
 import { WorkflowRuntime } from "../services/workflows/WorkflowRuntime";
+import { BrowserCapabilityTemplateDao } from "../infrastructure/persistence/BrowserCapabilityTemplateDao";
+import { CapabilityTemplateService } from "../services/templates/CapabilityTemplateService";
 import { usePharmacyStore } from "../stores/pharmacyStore";
 import { clearDoseComponents, registerClearDoseComponents } from "./componentRegistry";
-import { clearDoseComponentRegistryKey, clearDoseFacadeKey, clearDoseHighlightServiceKey, clearDoseToolRegistryKey, clearDoseWorkflowRuntimeKey } from "./injectionKeys";
+import { clearDoseCapabilityTemplateServiceKey, clearDoseComponentRegistryKey, clearDoseFacadeKey, clearDoseHighlightServiceKey, clearDoseToolRegistryKey, clearDoseWorkflowRuntimeKey } from "./injectionKeys";
 
 export function createClearDosePlugin(options = {}) {
   const pinia = options.pinia ?? createPinia();
@@ -26,6 +28,8 @@ export function createClearDosePlugin(options = {}) {
     dao: workflowDao,
     channelName: options.workflowDatabase?.channelName,
   });
+  const capabilityTemplateDao = options.capabilityTemplateDao ?? new BrowserCapabilityTemplateDao(options.capabilityTemplates);
+  const capabilityTemplateService = options.capabilityTemplateService ?? new CapabilityTemplateService({ dao: capabilityTemplateDao, toolRegistry, workflowRuntime });
   const components = clearDoseComponents;
 
   return {
@@ -34,6 +38,7 @@ export function createClearDosePlugin(options = {}) {
     toolRegistry,
     highlightService,
     workflowRuntime,
+    capabilityTemplateService,
     install(app) {
       if (!options.pinia) app.use(pinia);
       app.provide(clearDoseFacadeKey, facade);
@@ -41,12 +46,13 @@ export function createClearDosePlugin(options = {}) {
       app.provide(clearDoseComponentRegistryKey, components);
       app.provide(clearDoseHighlightServiceKey, highlightService);
       app.provide(clearDoseWorkflowRuntimeKey, workflowRuntime);
+      app.provide(clearDoseCapabilityTemplateServiceKey, capabilityTemplateService);
       registerClearDoseComponents(app, { prefix: options.componentPrefix ?? "Cd" });
 
       const store = usePharmacyStore(pinia);
-      store.configure({ facade, toolRegistry, workflowRuntime });
+      store.configure({ facade, toolRegistry, workflowRuntime, capabilityTemplateService });
       store.refresh();
-      void workflowRuntime.initialize({ drugs: facade.getSnapshot().state.medications })
+      const runtimeReady = workflowRuntime.initialize({ drugs: facade.getSnapshot().state.medications })
         .then(() => workflowRuntime.seedDemoFlows());
 
       globalThis.document?.addEventListener("submit", (event) => {
@@ -60,7 +66,10 @@ export function createClearDosePlugin(options = {}) {
       }, true);
 
       if (options.webMcp?.enabled !== false) {
-        void toolRegistry.registerDefinitions(createDefaultTools({ store, highlightService, workflowRuntime }));
+        const toolsReady = toolRegistry.registerDefinitions(createDefaultTools({ store, highlightService, workflowRuntime }));
+        void Promise.all([runtimeReady, toolsReady]).then(() => capabilityTemplateService.initialize());
+      } else {
+        void runtimeReady.then(() => capabilityTemplateService.initialize());
       }
     },
   };

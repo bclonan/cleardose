@@ -1,6 +1,8 @@
 # Prompt and voice guide
 
-The floating **Prompt guide** button is present on every route. It opens an accessible modal containing all 21 cataloged capabilities, grouped by domain. Each entry shows its imperative/declarative tag, purpose, mutation label, machine id, and one copyable example prompt.
+The floating **Prompt guide** button is present on every route. It opens an accessible modal containing all 22 built-in capabilities plus any explicitly registered local tools, grouped by domain. Each entry shows its imperative/declarative tag, purpose, mutation label, machine id, and one full conversational example prompt.
+
+Every prompt stays visible so a person can read it in voice mode or type it manually. **Copy this exact prompt** uses the Clipboard API and falls back to a temporary selected textarea when permission is denied. **Read aloud** is optional speech synthesis. A failed copy is announced with manual-selection guidance rather than silently failing.
 
 The search field filters names, descriptions, and examples. Where the browser exposes `SpeechRecognition` or `webkitSpeechRecognition`, **Voice search** fills that same field from one spoken phrase. Speech is progressive enhancement: unsupported or denied recognition leaves the searchable text experience intact, and no spoken query is persisted by ClearDose.
 

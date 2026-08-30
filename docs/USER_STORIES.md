@@ -12,7 +12,7 @@
 - As a visitor, I can build a local procurement plan that compares fictional offers without reserving inventory or placing an order.
 - As a visitor, I can compare two exact medication variants side by side without being told they are clinical substitutes.
 - As a visitor, I can enable optional voice guidance and retain an equivalent visible transcript.
-- As a visitor, I can open a floating prompt guide, search every registered tool, copy examples, and optionally filter them with voice input.
+- As a visitor, I can open a floating prompt guide, search every registered tool, read the full human example, copy it with a safe fallback, hear it aloud, and optionally filter with voice input.
 - As a visitor, I can run a patient workflow beside a live state viewer or open the patient surface in another tab.
 - As a visitor, I can inspect multiple concurrent flows, exact event ids, state history, and context at the selected step.
 - As a visitor, I can prepare a bounded agent handoff and receive a printable doctor-question card that remains a human-review draft.
@@ -60,6 +60,10 @@
 - As a developer, I can replace the mock API without moving fixture, persistence, or request logic into pages.
 - As a developer, I can add a tool definition without importing it into pages.
 - As a developer, I can add one catalog record and get a validated name, category, prompt-guide entry, and static machine analog.
+- As a demo author, I can create a document tool or workflow from a safe EJS-shaped template, preview it, save it locally, and explicitly load it without writing JavaScript.
+- As a voice user, I can hear every Studio step, dictate an idea into a visible transcript, and choose where that text is applied.
+- As a reviewer, I can import an untrusted template only as an unregistered draft and inspect its closed schema, scope, machine, and sample output before loading.
+- As a browser agent, I can discover an explicitly registered `cleardose_user_*` tool and receive a local human-review artifact rather than an external side effect.
 - As a developer, I can start a dynamic machine scoped to role, situation, and step without modifying the DuckDB schema.
 - As a developer, I can verify facade and WebMCP contracts with automated tests.
 - As a developer, I can regenerate a static schema and run direct, chained, mutation, and refusal eval journeys with Chrome Labs' experimental eval CLI.

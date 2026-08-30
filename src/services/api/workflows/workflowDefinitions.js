@@ -50,6 +50,13 @@ export const workflowDefinitions = Object.freeze([
     description: "Prepare local context, pause for human review, then allow explicit copy or file save.",
     states: Object.freeze(["drafting", "human_review", "exported", "complete"]),
   }),
+  Object.freeze({
+    id: "dynamic-capability",
+    machineId: "machine.dynamic.capability.v1",
+    title: "User-created capability",
+    description: "A validated local machine whose concrete definition is embedded with each flow.",
+    states: Object.freeze(["ready", "complete"]),
+  }),
 ]);
 
 const byId = new Map(workflowDefinitions.map((definition) => [definition.id, definition]));

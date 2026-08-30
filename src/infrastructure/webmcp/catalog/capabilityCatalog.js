@@ -5,6 +5,7 @@ const categoryDefinitions = Object.freeze([
   { id: "dynamic-documents-and-memory", label: "Documents & memory", description: "Editable, user-controlled artifacts that never leave the browser without a user action." },
   { id: "interface-and-observability", label: "Interface & observability", description: "Shared focus, live state, events, and bounded context inspection." },
   { id: "declarative-forms", label: "Declarative forms", description: "Visible HTML forms exposed through declarative WebMCP attributes." },
+  { id: "user-generated", label: "User-created", description: "Locally authored workflow and document-tool templates that require review before loading." },
 ]);
 
 function tool(id, category, prompt, { kind = "static", role = "patient" } = {}) {
@@ -54,6 +55,7 @@ export const capabilityCatalog = Object.freeze([
   form("filter_visible_medication_catalog", "declarative-forms", "Filter the visible medication catalog to blood pressure.", "/medications"),
   form("prepare_provider_note", "declarative-forms", "Fill a fictional provider-routing note for my review; do not send it.", "/contact-doctor"),
   form("populate_question_card_demo", "declarative-forms", "Populate the visible question-card demo with lisinopril.", "/flow-lab"),
+  form("compose_dynamic_capability_template", "declarative-forms", "Fill the Capability Studio with a reviewable workflow or document-tool template. Do not register it automatically.", "/studio"),
 ]);
 
 const byToolName = new Map(capabilityCatalog.map((item) => [item.toolName, item]));
@@ -77,4 +79,3 @@ export function decorateToolDefinitions(definitions) {
     return { ...definition, capabilityId: capability.id, category: capability.category, interactionModel: capability.interactionModel, machine: capability.machine, examplePrompt: capability.examplePrompt };
   });
 }
-

@@ -1,13 +1,17 @@
 <script setup>
 import { computed, nextTick, ref } from "vue";
-import { Bot, Check, Clipboard, Download, FileText, Pause, Play, RotateCcw, Search, ShieldCheck, Sparkles } from "@lucide/vue";
+import { Bot, Check, Clipboard, Download, FileText, Pause, Play, RotateCcw, Search, ShieldCheck, Sparkles, Volume2 } from "@lucide/vue";
 import { hackathonShortcuts } from "../services/api/shortcuts/hackathonShortcuts";
 import { capabilityCatalog, getCapability } from "../infrastructure/webmcp/catalog/capabilityCatalog";
 import { AgentMemoryFileService } from "../services/files/AgentMemoryFileService";
 import { usePharmacyStore } from "../composables/usePharmacyStore";
+import { ClipboardService } from "../services/ui/ClipboardService";
+import { VoiceGuidanceService } from "../services/accessibility/VoiceGuidanceService";
 
 const store = usePharmacyStore();
 const files = new AgentMemoryFileService();
+const clipboard = new ClipboardService();
+const voice = new VoiceGuidanceService();
 const query = ref("");
 const selectedId = ref(hackathonShortcuts[0].id);
 const activeStep = ref(0);
@@ -36,9 +40,10 @@ function selectShortcut(id) {
 }
 
 async function copy(text, label = "Prompt") {
-  await globalThis.navigator?.clipboard?.writeText(text);
-  announcement.value = `${label} copied. Paste it into a WebMCP-capable agent while ClearDose is open.`;
+  try { await clipboard.copy(text); announcement.value = `${label} copied. Paste it into a WebMCP-capable agent while ClearDose is open.`; }
+  catch (error) { announcement.value = error.message; }
 }
+function readPrompt(text) { const started = voice.speak(text); announcement.value = started ? "Reading the visible prompt." : "Voice playback is unavailable. The full prompt remains visible."; }
 
 async function runVisual() {
   if (running.value) return;
@@ -95,17 +100,17 @@ async function saveMemory() {
       <aside class="shortcut-library">
         <label class="shortcut-search"><Search :size="17" /><span class="sr-only">Search shortcuts</span><input v-model="query" type="search" placeholder="Search prompt chains" /></label>
         <div class="shortcut-list">
-          <button v-for="shortcut in filtered" :key="shortcut.id" type="button" :class="{ selected: shortcut.id === selected.id }" :aria-pressed="shortcut.id === selected.id" @click="selectShortcut(shortcut.id)"><span><em>{{ shortcut.mode }}</em><small>{{ shortcut.duration }}</small></span><strong>{{ shortcut.title }}</strong><p>{{ shortcut.summary }}</p></button>
+          <button v-for="shortcut in filtered" :key="shortcut.id" type="button" :class="{ selected: shortcut.id === selected.id }" :aria-pressed="shortcut.id === selected.id" @click="selectShortcut(shortcut.id)"><span><em>{{ shortcut.mode }}</em><small>{{ shortcut.duration }}</small></span><strong>{{ shortcut.title }}</strong><p>{{ shortcut.summary }}</p><q>{{ shortcut.prompt }}</q></button>
         </div>
       </aside>
 
       <div class="shortcut-stage">
         <article class="prompt-chain-card" data-agent-section="prompt-chain">
-          <header><div><span class="eyebrow"><Bot :size="15" /> {{ selected.category }}</span><h2>{{ selected.title }}</h2><p>{{ selected.summary }}</p></div><button class="button button-dark" type="button" @click="copy(selected.prompt, 'Full chain prompt')"><Clipboard :size="16" /> Copy full prompt</button></header>
-          <blockquote>{{ selected.prompt }}</blockquote>
+          <header><div><span class="eyebrow"><Bot :size="15" /> {{ selected.category }}</span><h2>{{ selected.title }}</h2><p>{{ selected.summary }}</p></div></header>
+          <div class="shortcut-human-prompt"><strong>Say or paste this into your agent</strong><blockquote>{{ selected.prompt }}</blockquote><div><button class="button button-dark" type="button" @click="copy(selected.prompt, 'Full chain prompt')"><Clipboard :size="16" /> Copy this exact prompt</button><button class="button button-ghost" type="button" @click="readPrompt(selected.prompt)"><Volume2 :size="16" /> Read aloud</button></div></div>
           <div class="shortcut-scope"><span v-for="(value, key) in selected.scope" :key="key"><small>{{ key }}</small>{{ value }}</span></div>
           <ol class="shortcut-steps">
-            <li v-for="(item, index) in selected.steps" :key="item.id" :class="{ active: activeStep === index + 1, complete: activeStep > index + 1 }"><span>{{ activeStep > index + 1 ? '✓' : index + 1 }}</span><div><strong>{{ item.title }}</strong><code>{{ item.capabilityId }}</code><p>{{ item.prompt }}</p></div><button type="button" :aria-label="`Copy step ${index + 1} prompt`" @click="copy(item.prompt, `Step ${index + 1}`)"><Clipboard :size="15" /></button></li>
+            <li v-for="(item, index) in selected.steps" :key="item.id" :class="{ active: activeStep === index + 1, complete: activeStep > index + 1 }"><span>{{ activeStep > index + 1 ? '✓' : index + 1 }}</span><div><strong>{{ item.title }}</strong><code>{{ item.capabilityId }}</code><p><b>Say:</b> {{ item.prompt }}</p></div><button type="button" :aria-label="`Copy step ${index + 1} prompt`" @click="copy(item.prompt, `Step ${index + 1}`)"><Clipboard :size="15" /><span>Copy</span></button></li>
           </ol>
           <div class="shortcut-actions"><button class="button button-primary" type="button" :disabled="running" @click="runVisual"><Pause v-if="running" :size="17" /><Play v-else :size="17" />{{ running ? 'Running visual analog…' : 'Run visual analog' }}</button><button class="button button-outline" type="button" :disabled="!runFlowId || running" @click="completeVisual"><Check :size="17" /> Record human review</button><button type="button" class="text-action" @click="activeStep = 0; runFlowId = ''"><RotateCcw :size="15" /> Reset view</button></div>
         </article>

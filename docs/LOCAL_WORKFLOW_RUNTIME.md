@@ -53,6 +53,8 @@ Every imperative call is also represented by a four-state machine from the capab
 
 Prescription recovery moves `blocked → preparing → human_review`. Its context records the error code, recommended follow-up tool, editable prompt, and `externalActionTaken: false`. A person must initiate any later copy, provider contact, or tool call.
 
+Capability Studio workflows register validated dynamic definitions under `user-workflow-<name>`. Each run embeds its definition, input, rendered guide, template id, and declared scope in bounded context. Studio document tools use the normal tool execution machine and create a separate `dynamic-document` artifact whose visible state is `human_review`.
+
 Memory preparation moves `drafting → human_review`. An explicit clipboard or file action records `USER_EXPORTED_MEMORY` and moves to `exported`. The browser file picker is invoked before asynchronous work so it retains the required user activation; unsupported browsers receive an ordinary Markdown download.
 
 ## Privacy boundary

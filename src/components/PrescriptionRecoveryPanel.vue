@@ -4,6 +4,7 @@ import { Clipboard, FileWarning, Sparkles } from "@lucide/vue";
 import { agentReadyProps } from "../presentation/agentReadyProps";
 import { useAgentReadyComponent } from "../composables/useAgentReadyComponent";
 import { usePharmacyStore } from "../composables/usePharmacyStore";
+import { ClipboardService } from "../services/ui/ClipboardService";
 
 const props = defineProps({ ...agentReadyProps, drugId: { type: String, default: "med_lisinopril" } });
 useAgentReadyComponent(props, { name: "prescription_recovery_panel", defaultAdapter: Object.freeze({}) });
@@ -13,13 +14,14 @@ const questions = ref("What information does my prescriber need?\nHow will I kno
 const result = ref(null);
 const editablePrompt = ref("");
 const announcement = ref("Prescription recovery form ready.");
+const clipboard = new ClipboardService();
 
 async function prepare() {
   result.value = await store.preparePrescriptionFollowUp({ drugId: props.drugId, preferredPath: preferredPath.value, questions: questions.value.split("\n").map((item) => item.trim()).filter(Boolean) });
   editablePrompt.value = result.value.editablePrompt;
   announcement.value = "Editable follow-up prepared. No prescriber was contacted.";
 }
-async function copy() { await globalThis.navigator?.clipboard?.writeText(editablePrompt.value); announcement.value = "Reviewed follow-up copied."; }
+async function copy() { try { await clipboard.copy(editablePrompt.value); announcement.value = "Reviewed follow-up copied."; } catch (error) { announcement.value = error.message; } }
 </script>
 <template>
   <section class="recovery-panel" data-agent-section="prescription-recovery" aria-labelledby="recovery-panel-title">
@@ -30,4 +32,3 @@ async function copy() { await globalThis.navigator?.clipboard?.writeText(editabl
     </div><p class="sr-only" aria-live="polite">{{ announcement }}</p>
   </section>
 </template>
-

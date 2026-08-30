@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.3.0 — 2026-08-30
+
+### Added
+
+- `/#/studio` four-step Capability Studio for local document tools and deterministic workflows.
+- Safe EJS-shaped renderer with escaped paths, bounded conditionals, closed inputs, prototype blocking, and no JavaScript evaluation.
+- Persistent local template DAO, starter templates, explicit dynamic registration, import/export, preview, voice guidance, and generated human-review artifacts.
+- Eighth declarative form capability plus `user-generated` tool category and dynamic workflow definitions in the live viewer.
+- Regression tests for template safety, explicit registration, closed schemas, generated artifacts, and clipboard fallback.
+
+### Changed
+
+- Reworked prompt guide and shortcut cards around full human-language examples that can be read, spoken, copied, or played aloud.
+- Standardized prompt, question-card, recovery, provider-note, and memory copy behavior on one resilient clipboard service.
+- Polished shortcut actions and added a responsive three-pane Studio workbench.
+- Expanded the canonical catalog from 21 to 22 built-in capabilities.
+- Kept header actions inside common 1366-pixel desktop viewports and labeled the Studio import control.
+- Normalized checkout input through a plain DTO so Vue proxies cannot break final mock-order creation.
+- Added a bounded clipboard timeout and kept Studio starter identity through the first save to prevent duplicate-looking drafts.
+
+### Safety
+
+- Saving or previewing a user template never registers it; imports always return to draft and registration requires a separate visible action.
+- User templates cannot run raw EJS or JavaScript and generated documents stop in human review.
+
 ## 0.2.0 — 2026-08-30
 
 ### Added

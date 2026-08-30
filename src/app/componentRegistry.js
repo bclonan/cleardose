@@ -12,6 +12,7 @@ import PromptGuide from "../components/PromptGuide.vue";
 import CapabilityMachinePane from "../components/CapabilityMachinePane.vue";
 import HackathonLauncher from "../components/HackathonLauncher.vue";
 import PrescriptionRecoveryPanel from "../components/PrescriptionRecoveryPanel.vue";
+import CapabilityStudioVoiceGuide from "../components/CapabilityStudioVoiceGuide.vue";
 
 export const clearDoseComponents = Object.freeze({
   AccountNav,
@@ -28,6 +29,7 @@ export const clearDoseComponents = Object.freeze({
   CapabilityMachinePane,
   HackathonLauncher,
   PrescriptionRecoveryPanel,
+  CapabilityStudioVoiceGuide,
 });
 
 export function registerClearDoseComponents(app, { prefix = "Cd" } = {}) {

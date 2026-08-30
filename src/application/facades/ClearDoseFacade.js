@@ -1,4 +1,5 @@
 import { assertClearDoseDataAdapter } from "../../domain/ports/ClearDoseDataAdapter";
+import { toCheckoutOrderInput } from "../../domain/dto/CheckoutOrderInputDto";
 
 export class ClearDoseFacade {
   constructor(adapter) {
@@ -77,6 +78,6 @@ export class ClearDoseFacade {
     if (!customer || !cart.length) return null;
     const subtotal = cart.reduce((sum, item) => sum + item.price * item.units, 0);
     const shipping = cart.length ? 5 : 0;
-    return this.adapter.orders.place({ ...input, customer, cart, subtotal, shipping, total: subtotal + shipping });
+    return this.adapter.orders.place({ ...toCheckoutOrderInput(input), customer, cart, subtotal, shipping, total: subtotal + shipping });
   }
 }

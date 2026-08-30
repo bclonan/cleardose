@@ -65,6 +65,15 @@ const journeys = {
       "Inspect event ids and context, then explicitly review, copy, or save an optional memory packet.",
     ],
   },
+  studio: {
+    title: "Capability Studio",
+    intro: "Create a local workflow or safe EJS-style document tool with a visible transcript and an explicit registration step.",
+    steps: [
+      "Name the capability and explain the human outcome in plain language.",
+      "Declare only the required inputs and scope the machine to a role, situation, and step.",
+      "Write and preview the non-executable template, then save and explicitly load it when it is ready.",
+    ],
+  },
   default: {
     title: "ClearDose page guidance",
     intro: "Use headings, landmarks, and the visible next action to continue through this fictional patient journey.",

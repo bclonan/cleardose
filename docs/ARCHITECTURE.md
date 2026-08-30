@@ -6,6 +6,9 @@ flowchart TD
   Tools[WebMCP tools] --> Store
   Store --> Facade[ClearDose facade]
   Store --> Runtime[Workflow runtime]
+  Studio[Capability Studio] --> Templates[Template service]
+  Templates --> Runtime
+  Templates --> Tools
   Facade --> Repos[Repository adapters]
   Repos --> API[Mock pharmacy API]
   API --> UDI[Universal Drug Index]
@@ -36,6 +39,7 @@ flowchart TD
 | Workflow persistence | `src/infrastructure/persistence/DuckDbWasmDao.js` | Seed drugs and store flows, events, exchanges, and cards in DuckDB-Wasm/OPFS with explicit memory fallback |
 | Accessibility services | `src/services/accessibility` | Route guidance and replaceable speech-synthesis adapter |
 | UI services | `src/services/ui` | Shared focus, scroll, and section highlighting for people and agents |
+| Template service | `src/services/templates` | Validate, render, persist, and explicitly register non-executable user-authored tools/workflows |
 | Agent transport | `src/infrastructure/webmcp` | Register, namespace, execute, diagnose, and unregister tools |
 | Capability catalog | `src/infrastructure/webmcp/catalog` | Canonical names, categories, interaction tags, prompts, and deterministic machine analogs |
 | User-controlled files | `src/services/files` | Explicit clipboard/File System Access/download adapters for reviewed artifacts |
@@ -49,7 +53,7 @@ Imperative UDI search/detail tools take a second local-first path: `tool → Pin
 
 The observability path is parallel and intentionally non-clinical. UI actions, WebMCP execution wrappers, and deterministic failure fixtures call `WorkflowRuntime`. Every transition is validated against a centralized state definition, assigned an event id, persisted with a bounded context snapshot, and published to same-origin tabs. The live viewer only consumes the reactive Pinia snapshot; pages never query DuckDB directly.
 
-Every capability has a static machine descriptor. Shortcut runs embed a validated dynamic definition in flow context so it survives persistence without schema migration. Dynamic definitions require unique snake_case states and an explicit `{ role, situation, step }` scope.
+Every built-in capability has a static machine descriptor. Shortcut and user-authored workflow runs embed a validated dynamic definition in flow context so they survive persistence without schema migration. Dynamic definitions require unique snake_case states and an explicit `{ role, situation, step }` scope. User document tools enter the same queued/running/complete/error wrapper and create a separate artifact in human review.
 
 ## Swapping implementations
 
@@ -57,3 +61,4 @@ Every capability has a static machine descriptor. Shortcut runs embed a validate
 - Pass a custom `dataAdapter`, `facade`, `webMcpAdapter`, or `toolRegistry` into `createClearDosePlugin()`.
 - Pass a custom `workflowDao` or `workflowRuntime` to run the observability layer against another local adapter.
 - Pass `adapter`, `mcpTools`, `mcpContext`, and `registerMcp` to any reusable component.
+- Pass a custom `capabilityTemplateDao` or `capabilityTemplateService` to replace local persistence or authoring policy.

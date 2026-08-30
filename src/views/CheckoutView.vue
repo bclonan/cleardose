@@ -69,13 +69,19 @@ function previousStep() {
 
 function placeOrder() {
   placing.value = true;
-  const order = store.placeOrder({ address, prescriptionMethod: prescriptionMethod.value, paymentMethod: paymentMethod.value });
-  if (!order) {
+  error.value = "";
+  try {
+    const order = store.placeOrder({ address, prescriptionMethod: prescriptionMethod.value, paymentMethod: paymentMethod.value });
+    if (!order) {
+      placing.value = false;
+      error.value = "The mock order could not be created.";
+      return;
+    }
+    window.setTimeout(() => router.push(`/checkout/confirmation/${order.id}`), 550);
+  } catch (caught) {
     placing.value = false;
-    error.value = "The mock order could not be created.";
-    return;
+    error.value = caught instanceof Error ? caught.message : "The mock order could not be created.";
   }
-  window.setTimeout(() => router.push(`/checkout/confirmation/${order.id}`), 550);
 }
 </script>
 

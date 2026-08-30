@@ -1,11 +1,13 @@
 <script setup>
 import { computed, nextTick, ref } from "vue";
-import { BookOpen, Clipboard, Mic, Search, X } from "@lucide/vue";
+import { BookOpen, Clipboard, Mic, Search, Volume2, X } from "@lucide/vue";
 import { usePharmacyStore } from "../composables/usePharmacyStore";
 import { useAgentReadyComponent } from "../composables/useAgentReadyComponent";
 import { agentReadyProps } from "../presentation/agentReadyProps";
 import { promptGuideAdapter } from "../presentation/adapters/componentAdapters";
 import { capabilityCatalog, capabilityCategories } from "../infrastructure/webmcp/catalog/capabilityCatalog";
+import { ClipboardService } from "../services/ui/ClipboardService";
+import { VoiceGuidanceService } from "../services/accessibility/VoiceGuidanceService";
 
 const props = defineProps({ ...agentReadyProps });
 const store = usePharmacyStore();
@@ -15,13 +17,18 @@ const searchInput = ref(null);
 const query = ref("");
 const listening = ref(false);
 const announcement = ref("Prompt guide ready.");
+const clipboard = new ClipboardService();
+const voice = new VoiceGuidanceService();
 
 const tools = computed(() => {
   const registered = new Map(store.webMcp.tools.map((tool) => [tool.name.replace(/^cleardose_/, ""), tool]));
-  return capabilityCatalog.map((capability) => {
+  const staticTools = capabilityCatalog.map((capability) => {
     const runtime = registered.get(capability.toolName) ?? {};
     return { ...runtime, ...capability, name: capability.qualifiedName, title: runtime.title ?? capability.toolName.replaceAll("_", " "), description: runtime.description ?? `Visible declarative ClearDose form contract for ${capability.route}.`, prompt: capability.examplePrompt, annotations: runtime.annotations ?? { readOnlyHint: true } };
   });
+  const staticNames = new Set(staticTools.map((tool) => tool.name));
+  const userTools = store.webMcp.tools.filter((tool) => !staticNames.has(tool.name)).map((tool) => ({ ...tool, id: tool.capabilityId || tool.name, toolName: tool.name, qualifiedName: tool.name, prompt: tool.examplePrompt || `I’d like help with ${tool.title.toLowerCase()}. Run it locally and show me the result before I share anything.`, category: tool.category || "user-generated", interactionModel: tool.interactionModel || "imperative", machine: tool.machine || { id: "machine.dynamic.user-generated.v1" } }));
+  return [...staticTools, ...userTools];
 });
 const filteredTools = computed(() => {
   const term = query.value.trim().toLowerCase();
@@ -53,9 +60,10 @@ function startVoiceSearch() {
 }
 
 async function copyPrompt(prompt) {
-  await adapter.value.copy(prompt);
-  announcement.value = "Example prompt copied.";
+  try { await clipboard.copy(prompt); announcement.value = "The visible example prompt was copied."; }
+  catch (error) { announcement.value = error.message; }
 }
+function readPrompt(prompt) { const started = voice.speak(prompt); announcement.value = started ? "Reading the visible example prompt." : "Voice playback is unavailable. The full prompt remains visible."; }
 </script>
 
 <template>
@@ -67,10 +75,10 @@ async function copyPrompt(prompt) {
         <div class="prompt-guide-search"><Search :size="18" /><label class="sr-only" for="prompt-guide-query">Search tools and example prompts</label><input id="prompt-guide-query" ref="searchInput" v-model="query" type="search" placeholder="Try “question card”, “price”, or “workflow”" /><button type="button" :disabled="!voiceSupported || listening" :aria-pressed="listening" @click="startVoiceSearch"><Mic :size="18" />{{ listening ? 'Listening…' : 'Voice search' }}</button></div>
         <p v-if="!voiceSupported" class="prompt-voice-note">Voice search is not supported in this browser. All examples remain keyboard searchable.</p>
         <div class="prompt-tool-list" aria-live="polite">
-          <section v-for="group in groupedTools" :key="group.id" class="prompt-group"><header><h3>{{ group.label }}</h3><p>{{ group.description }}</p></header><article v-for="tool in group.tools" :key="tool.name"><div><code>{{ tool.name }}</code><span>{{ tool.interactionModel }} · {{ tool.annotations?.readOnlyHint ? 'read only' : 'local change' }}</span></div><h3>{{ tool.title }}</h3><p>{{ tool.description }}</p><small class="prompt-machine-id">{{ tool.machine.id }}</small><blockquote>{{ tool.prompt }}</blockquote><button type="button" @click="copyPrompt(tool.prompt)"><Clipboard :size="15" /> Copy example</button></article></section>
+          <section v-for="group in groupedTools" :key="group.id" class="prompt-group"><header><h3>{{ group.label }}</h3><p>{{ group.description }}</p></header><article v-for="tool in group.tools" :key="tool.name"><div><code>{{ tool.name }}</code><span>{{ tool.interactionModel }} · {{ tool.annotations?.readOnlyHint ? 'read only' : 'local change' }}</span></div><h3>{{ tool.title }}</h3><p>{{ tool.description }}</p><small class="prompt-machine-id">{{ tool.machine.id }}</small><div class="prompt-human-example"><strong>Try saying or pasting</strong><blockquote>{{ tool.prompt }}</blockquote></div><div class="prompt-card-actions"><button type="button" @click="copyPrompt(tool.prompt)"><Clipboard :size="15" /> Copy this exact prompt</button><button type="button" @click="readPrompt(tool.prompt)"><Volume2 :size="15" /> Read aloud</button></div></article></section>
           <p v-if="!filteredTools.length">No tools match that search.</p>
         </div>
-        <footer><strong>Demo safety boundary</strong><span>Use fictional data only. ClearDose does not provide clinical advice, process payment, place real orders, or silently write an external agent memory.</span><RouterLink to="/shortcuts" @click="dialog.close()">Open prompt chains →</RouterLink></footer>
+        <footer><strong>Demo safety boundary</strong><span>Use fictional data only. ClearDose does not provide clinical advice, process payment, place real orders, or silently write an external agent memory.</span><RouterLink to="/shortcuts" @click="dialog.close()">Open prompt chains →</RouterLink><RouterLink to="/studio" @click="dialog.close()">Create a capability →</RouterLink></footer>
       </div>
     </dialog>
     <p class="sr-only" aria-live="polite">{{ announcement }}</p>

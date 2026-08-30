@@ -1,12 +1,15 @@
+import { ClipboardService } from "../ui/ClipboardService";
+
 export class AgentMemoryFileService {
   constructor({ windowRef = globalThis.window, documentRef = globalThis.document } = {}) {
     this.windowRef = windowRef;
     this.documentRef = documentRef;
+    this.clipboard = new ClipboardService({ navigatorRef: windowRef?.navigator, documentRef });
   }
 
   async copy(markdown) {
-    await this.windowRef?.navigator?.clipboard?.writeText(String(markdown || ""));
-    return { method: "clipboard" };
+    const result = await this.clipboard.copy(markdown);
+    return { method: result.method };
   }
 
   async save(packet) {
@@ -25,4 +28,3 @@ export class AgentMemoryFileService {
     return { method: "download", filename };
   }
 }
-

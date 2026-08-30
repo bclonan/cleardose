@@ -27,6 +27,16 @@ const checks = [
   ["/src/infrastructure/webmcp/tools/createDefaultTools.js", /createStructuredExchangeToolPair/],
   ["/src/views/HackathonShortcutsView.vue", /Copy the prompt\. Watch the machine/],
   ["/src/infrastructure/webmcp/catalog/capabilityCatalog.js", /prepare_agent_memory_packet/],
+  ["/src/router.js", /path:\s*"\/studio"/],
+  ["/src/views/HomeView.vue", /Know the medication/],
+  ["/src/views/MedicationsView.vue", /Find your medication/],
+  ["/src/views/CartView.vue", /Your cart/],
+  ["/src/views/CheckoutView.vue", /Complete your order/],
+  ["/src/views/CompareView.vue", /Two medications/],
+  ["/src/views/DrugIndexView.vue", /Universal Drug Index/],
+  ["/src/views/CapabilityStudioView.vue", /Create a workflow or WebMCP tool/],
+  ["/src/services/templates/SafeEjsTemplateEngine.js", /Nested template conditionals are disabled/],
+  ["/src/services/ui/ClipboardService.js", /selection-fallback/],
 ];
 
 try {

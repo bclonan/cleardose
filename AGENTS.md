@@ -44,6 +44,9 @@ Build and extend **ClearDose — Transparent prescriptions, agent-ready.** as a 
 - Static tool/form machines and dynamic shortcut machines must declare `role`, `situation`, and `step` scope. Dynamic state arrays are unique, deterministic, and validated before a flow starts.
 - Error tools return actionable structured recovery and a recommended next tool. They must not secretly chain external side effects; a user or agent explicitly chooses the next call.
 - Memory and document tools may prepare reviewable artifacts only. Clipboard writes, File System Access pickers, downloads, and any transfer to another agent require a visible user action.
+- User-authored capability templates are data, never executable code. Preserve `SafeEjsTemplateEngine` restrictions: escaped path interpolation, comments, and one-level `if` blocks only. Reject raw output, JavaScript, nesting, unmatched tags, and prototype paths.
+- Saving, previewing, importing, and registering are separate actions. Imported templates must be unregistered drafts; dynamically registered tools use `cleardose_user_<name>` and workflows use `machine.dynamic.user-workflow-<name>.v1`.
+- Use `ClipboardService` for every copy surface so permission denial falls back safely and failures remain visible. Example prompts must remain visible in full and readable aloud; never make clipboard access the only way to use a prompt.
 
 ## Accessibility rules
 
@@ -64,6 +67,7 @@ Build and extend **ClearDose — Transparent prescriptions, agent-ready.** as a 
 8. For workflow changes, add state/context tests, negative scenarios, and update `docs/LOCAL_WORKFLOW_RUNTIME.md`.
 9. Run `scripts/validate-capability-catalog.mjs` through `npm run evals:contracts`; every shortcut step must reference a real capability.
 10. Update `CHANGELOG.md` and the applicable ADR when a naming, safety, persistence, or orchestration contract changes.
+11. Run the internal browser regression checklist for route, copy, storefront, recovery, shortcut, and Studio flows before deployment.
 
 ## Commands
 

@@ -13,6 +13,7 @@ const props = defineProps({
 const emit = defineEmits(["review"]);
 const { adapter } = useAgentReadyComponent(props, { name: "doctor_question_card", defaultAdapter: doctorQuestionCardAdapter });
 const copied = ref(false);
+const copyError = ref("");
 const titleId = computed(() => `doctor-card-${String(props.card.id).replace(/[^a-z0-9_-]/gi, "-")}`);
 const plainText = computed(() => [
   props.card.title,
@@ -25,9 +26,14 @@ const plainText = computed(() => [
 ].join("\n"));
 
 async function copyCard() {
-  await adapter.value.copy(plainText.value);
-  copied.value = true;
-  globalThis.setTimeout?.(() => { copied.value = false; }, 1800);
+  copyError.value = "";
+  try {
+    await adapter.value.copy(plainText.value);
+    copied.value = true;
+    globalThis.setTimeout?.(() => { copied.value = false; }, 1800);
+  } catch (error) {
+    copyError.value = error instanceof Error ? error.message : "Copy failed. Select the card text and copy it manually.";
+  }
 }
 </script>
 
@@ -43,5 +49,6 @@ async function copyCard() {
       <button class="button button-ghost" type="button" @click="copyCard"><Clipboard :size="17" /> {{ copied ? 'Copied' : 'Copy text' }}</button>
       <button v-if="allowReview && card.status !== 'reviewed'" class="button button-orange" type="button" @click="emit('review', card.id)"><Check :size="17" /> Mark reviewed</button>
     </footer>
+    <p v-if="copyError" class="inline-error" role="alert">{{ copyError }}</p>
   </article>
 </template>

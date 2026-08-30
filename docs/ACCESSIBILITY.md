@@ -16,6 +16,8 @@ ClearDose is engineered toward **WCAG 2.2 Level AAA** for the complete fictional
 - A keyboard-operable shortcut library, prompt step list, dynamic machine pane, event timeline, editable recovery log, and memory preview
 - Route-aware voice guidance for the shortcut workbench; every spoken step is duplicated in a persistent transcript
 - Explicit status announcements for copied prompts, visual analog completion, recovery preparation, and memory export
+- Full visible prompt text with optional read-aloud and manual-copy guidance; clipboard access is never the only path
+- A persistent four-step Studio voice transcript, keyboard step navigation, labeled template fields, and review-before-registration controls
 - A semantic concurrent-flow list, ordered state nodes, button-based event timeline, focusable context JSON, and a text equivalent in the live region
 - A print stylesheet that isolates the patient-owned question card while preserving its disclaimer and list structure
 

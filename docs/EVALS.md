@@ -54,6 +54,8 @@ npm run smoke:app
 
 That gate fetches the Vue shell and Vite-compiled flow lab, prompt guide, DuckDB adapter, and WebMCP catalog. It does not replace the Canary WebMCP execution smoke; it provides an explicit non-browser fallback for constrained CI workers.
 
+`tests/templates.test.mjs` separately verifies the user-authored extension boundary: escaping, disabled raw/JavaScript tags, conditional balance, prototype blocking, closed inputs, explicit registration, human-review artifacts, and clipboard permission fallback.
+
 The deterministic unit suite separately executes four negative workflow fixtures and confirms rejected form payloads are not persisted, unavailable stock does not place an order, stale prices require reconfirmation, and prescription recovery ends in human review. It also validates capability naming, dynamic scope, seeded database queries, and memory packet state.
 
 The `webmcp-evals` package is experimental. Keep deterministic service and schema tests as the required CI gate even when model evals are available.

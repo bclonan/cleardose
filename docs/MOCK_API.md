@@ -34,3 +34,5 @@ To replace the mock server, implement the same API methods with HTTP calls and p
 `LocalDrugIndexApi` adapts the configured DAO's `queryDrugs()` and `getDrug()` methods, so WebMCP search/detail calls exercise the seeded DuckDB table or the explicit memory fallback. It has no dependency on Vue, DuckDB, or page state.
 
 `negativeScenarios.js` contains deterministic invalid-form, unavailable-stock, stale-price, and prescription-required events. `recovery/` maps these codes to actionable, human-reviewed next steps. `documents/` builds bounded memory artifacts. `shortcuts/` contains prompt-chain fixtures and their situation scope. `workflows/` owns state definitions and the structured question-card contract. The runtime consumes these fixtures through Pinia; route pages do not invent event payloads.
+
+`templates/capabilityTemplateSchema.js` is the server-like validation boundary for locally authored capability records and their inputs. Rendering and registration live in `src/services/templates`; persistence lives in `src/infrastructure/persistence`. The Studio page never reads storage or evaluates a submitted template.

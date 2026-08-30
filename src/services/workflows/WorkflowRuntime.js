@@ -33,6 +33,7 @@ export class WorkflowRuntime {
     this.events = new Map();
     this.exchanges = new Map();
     this.cards = new Map();
+    this.dynamicDefinitions = new Map();
     this.listeners = new Set();
     this.database = { engine: "duckdb-wasm", persistence: "initializing", state: "idle", drugCount: 0 };
     this.channel = null;
@@ -73,7 +74,7 @@ export class WorkflowRuntime {
     const events = [...this.events.values()].sort((left, right) => left.createdAt.localeCompare(right.createdAt));
     return Object.freeze({
       database: copy(this.database),
-      definitions: copy(workflowDefinitions),
+      definitions: copy([...workflowDefinitions, ...this.dynamicDefinitions.values()]),
       scenarios: copy(negativeScenarios),
       flows: copy(flows),
       events: copy(events),
@@ -145,18 +146,18 @@ export class WorkflowRuntime {
     return copy(event);
   }
 
-  async runTool(name, input, execute) {
+  async runTool(name, input, execute, metadata = {}) {
     const correlationId = id("call");
     const capability = getCapability(name);
     const flow = await this.startFlow({
       definitionId: "webmcp-tool-call",
       title: `Tool · ${name}`,
-      context: { tool: name, input: copy(input), correlationId, capabilityId: capability?.id ?? "", category: capability?.category ?? "uncategorized", interactionModel: capability?.interactionModel ?? "imperative", capabilityMachine: capability?.machine ?? null },
+      context: { tool: name, input: copy(input), correlationId, capabilityId: metadata.capabilityId ?? capability?.id ?? "", category: metadata.category ?? capability?.category ?? "uncategorized", interactionModel: metadata.interactionModel ?? capability?.interactionModel ?? "imperative", capabilityMachine: metadata.machine ?? capability?.machine ?? null },
       source: "webmcp",
     });
     await this.transition(flow.id, { type: "TOOL_EXECUTION_STARTED", toState: "running", source: "webmcp", correlationId });
     try {
-      const result = await execute();
+      const result = await execute({ flowId: flow.id, correlationId });
       const isError = Boolean(result?.isError);
       await this.transition(flow.id, {
         type: isError ? "TOOL_EXECUTION_REJECTED" : "TOOL_EXECUTION_COMPLETED",
@@ -206,14 +207,47 @@ export class WorkflowRuntime {
     if (!normalizedId) throw new TypeError("A dynamic machine id is required.");
     if (!Array.isArray(states) || states.length < 2 || new Set(states).size !== states.length || states.some((state) => !/^[a-z][a-z0-9_]*$/.test(state))) throw new TypeError("Dynamic machines need two or more unique snake_case states.");
     if (!scope?.role || !scope?.situation || !scope?.step) throw new TypeError("Dynamic machine scope requires role, situation, and step.");
-    const machineId = `machine.dynamic.${normalizedId}.v1`;
-    const machineDefinition = { id: machineId, machineId, title: String(title || normalizedId), description: String(description), states: [...states] };
+    const machineDefinition = this.registerDynamicDefinition({ id: normalizedId, title, description, states, scope }, { notify: false });
     return this.startFlow({
-      definitionId: "shortcut-runner",
+      definitionId: "dynamic-capability",
       title: String(title || normalizedId),
       context: { ...context, scope: copy(scope), machineKind: "dynamic", machineDefinition },
       source,
     });
+  }
+
+  registerDynamicDefinition({ id: dynamicId, title, description = "", states, scope }, { notify = true } = {}) {
+    const normalizedId = String(dynamicId || "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "");
+    if (!normalizedId) throw new TypeError("A dynamic machine id is required.");
+    if (!Array.isArray(states) || states.length < 2 || states.length > 20 || new Set(states).size !== states.length || states.some((state) => !/^[a-z][a-z0-9_]*$/.test(state))) throw new TypeError("Dynamic machines need two or more unique snake_case states.");
+    if (!scope?.role || !scope?.situation || !scope?.step) throw new TypeError("Dynamic machine scope requires role, situation, and step.");
+    const machineId = `machine.dynamic.${normalizedId}.v1`;
+    const definition = { id: machineId, machineId, title: String(title || normalizedId), description: String(description), states: [...states], scope: copy(scope), kind: "dynamic" };
+    this.dynamicDefinitions.set(machineId, definition);
+    if (notify) this.notify();
+    return copy(definition);
+  }
+
+  unregisterDynamicDefinition(idValue) {
+    const normalizedId = String(idValue || "").replace(/^machine\.dynamic\./, "").replace(/\.v1$/, "").replace(/[^a-z0-9-]+/g, "-");
+    const removed = this.dynamicDefinitions.delete(`machine.dynamic.${normalizedId}.v1`);
+    if (removed) this.notify();
+    return removed;
+  }
+
+  async createTemplateArtifact({ flowId, template, input, content }) {
+    await this.readyPromise;
+    const timestamp = now();
+    const artifact = {
+      id: id("artifact"), artifactType: "dynamic-document", templateId: template.id, templateName: template.name,
+      flowId: String(flowId), exchangeId: null, status: "human_review", title: template.title,
+      content: String(content).slice(0, 20000), input: copy(input), scope: copy(template.scope),
+      disclaimer: "User-created local template output. Review before copying, saving, or sharing. Not medical advice.",
+      createdAt: timestamp, updatedAt: timestamp,
+    };
+    this.cards.set(artifact.id, artifact); await this.dao.saveCard(artifact);
+    this.channel?.postMessage({ kind: "card", card: artifact }); this.notify();
+    return copy(artifact);
   }
 
   async advanceShortcut(flowId, shortcut, index) {

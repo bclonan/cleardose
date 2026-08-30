@@ -2,10 +2,13 @@
 import { reactive, ref } from "vue";
 import { Building2, Check, ClipboardCopy, FileText, Mail, Stethoscope } from "@lucide/vue";
 import { usePharmacyStore } from "../composables/usePharmacyStore";
+import { ClipboardService } from "../services/ui/ClipboardService";
 
 const store = usePharmacyStore();
+const clipboard = new ClipboardService();
 const created = ref(false);
 const copied = ref(false);
+const copyError = ref("");
 const form = reactive({
   patientName: store.currentCustomer ? `${store.currentCustomer.firstName} ${store.currentCustomer.lastName}` : "",
   patientEmail: store.currentCustomer?.email ?? "",
@@ -20,12 +23,14 @@ function createNote() {
 }
 
 async function copyDetails() {
+  copyError.value = "";
   try {
-    await navigator.clipboard.writeText("CLEARDOSE PHARMACY SANDBOX — NCPDP 0000000 — Fax 000-000-0000 — Do not send a real prescription");
+    await clipboard.copy("CLEARDOSE PHARMACY SANDBOX — NCPDP 0000000 — Fax 000-000-0000 — Do not send a real prescription");
     copied.value = true;
     window.setTimeout(() => { copied.value = false; }, 1800);
-  } catch {
+  } catch (error) {
     copied.value = false;
+    copyError.value = error instanceof Error ? error.message : "Copy failed. Select the visible details and copy them manually.";
   }
 }
 </script>
@@ -39,6 +44,7 @@ async function copyDetails() {
           <span class="generic-badge">Sample details only</span><h2>ClearDose Pharmacy Sandbox</h2>
           <dl><div><dt>Pharmacy name</dt><dd>ClearDose Pharmacy Sandbox</dd></div><div><dt>NCPDP ID</dt><dd>0000000</dd></div><div><dt>Fax</dt><dd>000-000-0000</dd></div><div><dt>Patient match</dt><dd>Email + date of birth</dd></div></dl>
           <button class="button button-dark button-wide" type="button" @click="copyDetails"><Check v-if="copied" :size="18" /><ClipboardCopy v-else :size="18" />{{ copied ? 'Copied demo details' : 'Copy sample pharmacy details' }}</button>
+          <p v-if="copyError" class="inline-error" role="alert">{{ copyError }}</p>
           <small>Never send a real prescription to these fictional identifiers.</small>
         </div>
       </div>

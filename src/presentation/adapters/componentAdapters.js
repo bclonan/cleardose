@@ -59,10 +59,12 @@ export const workflowLiveViewerAdapter = Object.freeze({
 
 export const doctorQuestionCardAdapter = Object.freeze({
   print() { globalThis.print?.(); },
-  async copy(text) { await globalThis.navigator?.clipboard?.writeText?.(text); },
+  async copy(text) { return clipboardService.copy(text); },
 });
 
 export const promptGuideAdapter = Object.freeze({
   recognitionConstructor() { return globalThis.SpeechRecognition ?? globalThis.webkitSpeechRecognition ?? null; },
-  async copy(text) { await globalThis.navigator?.clipboard?.writeText?.(text); },
 });
+import { ClipboardService } from "../../services/ui/ClipboardService";
+
+const clipboardService = new ClipboardService();

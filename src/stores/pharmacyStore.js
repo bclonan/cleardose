@@ -19,6 +19,7 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
   const initialized = ref(false);
   const facade = shallowRef(null);
   const workflowRuntime = shallowRef(null);
+  const capabilityTemplateService = shallowRef(null);
   const webMcp = reactive({ supported: false, status: "idle", available: 0, registered: 0, tools: [] });
   const workflow = reactive({
     database: { engine: "duckdb-wasm", persistence: "initializing", state: "idle", drugCount: 0 },
@@ -32,6 +33,7 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
     memoryPackets: [],
   });
   const selectedFlowId = ref("");
+  const capabilityTemplates = reactive({ initialized: false, templates: [], statuses: {} });
 
   const currentCustomer = computed(() => state.currentCustomer);
   const medications = computed(() => state.medications);
@@ -41,7 +43,7 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
   const shipping = computed(() => (state.cart.length ? 5 : 0));
   const cartTotal = computed(() => cartSubtotal.value + shipping.value);
 
-  function configure({ facade: nextFacade, toolRegistry, workflowRuntime: nextWorkflowRuntime }) {
+  function configure({ facade: nextFacade, toolRegistry, workflowRuntime: nextWorkflowRuntime, capabilityTemplateService: nextTemplateService }) {
     facade.value = markRaw(nextFacade);
     toolRegistry?.subscribe((snapshot) => Object.assign(webMcp, snapshot));
     if (nextWorkflowRuntime) {
@@ -50,6 +52,10 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
         Object.assign(workflow, snapshot);
         if (!selectedFlowId.value && snapshot.flows[0]) selectedFlowId.value = snapshot.flows[0].id;
       });
+    }
+    if (nextTemplateService) {
+      capabilityTemplateService.value = markRaw(nextTemplateService);
+      nextTemplateService.subscribe((snapshot) => Object.assign(capabilityTemplates, snapshot));
     }
   }
 
@@ -183,11 +189,32 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
 
   async function markMemoryExported(packetId, method) { return workflowRuntime.value?.markMemoryExported(packetId, method); }
 
+  function saveCapabilityTemplate(input) {
+    if (!capabilityTemplateService.value) throw new Error("Capability template service is not configured.");
+    return capabilityTemplateService.value.save(input);
+  }
+  function importCapabilityTemplate(input) { return capabilityTemplateService.value?.import(input); }
+  function previewCapabilityTemplate(idOrTemplate, input) { return capabilityTemplateService.value?.render(idOrTemplate, input); }
+  async function registerCapabilityTemplate(id) { return capabilityTemplateService.value?.register(id); }
+  async function unregisterCapabilityTemplate(id) { return capabilityTemplateService.value?.unregister(id); }
+  async function removeCapabilityTemplate(id) { return capabilityTemplateService.value?.remove(id); }
+  async function runCapabilityTemplate(id, input) {
+    const result = await capabilityTemplateService.value?.run(id, input);
+    const flowId = result?.id?.startsWith?.("flow_") ? result.id : result?.structuredContent?.artifact?.flowId;
+    if (flowId) selectedFlowId.value = flowId;
+    return result;
+  }
+  async function advanceCapabilityWorkflow(flowId, template, stateIndex) {
+    const index = Math.max(1, Math.min(template.states.length - 1, Number(stateIndex) || 1));
+    return transitionWorkflow(flowId, { type: `USER_TEMPLATE_STATE_${index + 1}_ENTERED`, toState: template.states[index], context: { templateId: template.id, templateStateIndex: index }, source: "capability-studio" });
+  }
+
   return {
     state,
     initialized,
     webMcp,
     workflow,
+    capabilityTemplates,
     selectedFlowId,
     currentCustomer,
     medications,
@@ -237,6 +264,14 @@ export const usePharmacyStore = defineStore("pharmacy", () => {
     preparePrescriptionFollowUp,
     prepareAgentMemoryPacket,
     markMemoryExported,
+    saveCapabilityTemplate,
+    importCapabilityTemplate,
+    previewCapabilityTemplate,
+    registerCapabilityTemplate,
+    unregisterCapabilityTemplate,
+    removeCapabilityTemplate,
+    runCapabilityTemplate,
+    advanceCapabilityWorkflow,
   };
 });
 

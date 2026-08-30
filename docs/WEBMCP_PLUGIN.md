@@ -23,7 +23,7 @@ createApp(App).use(pinia).use(clearDose).mount("#app");
 
 ## Registered components
 
-`CdAccountNav`, `CdAgentControlCenter`, `CdAgentReadyForm`, `CdAgentReadyHost`, `CdComparisonPanel`, `CdMedicationCard`, `CdStatusBadge`, `CdWebMcpStatus`, `CdWorkflowLiveViewer`, `CdDoctorQuestionCard`, `CdPromptGuide`, `CdCapabilityMachinePane`, `CdPrescriptionRecoveryPanel`, and `CdHackathonLauncher` are registered globally. Every reusable component accepts:
+`CdAccountNav`, `CdAgentControlCenter`, `CdAgentReadyForm`, `CdAgentReadyHost`, `CdComparisonPanel`, `CdMedicationCard`, `CdStatusBadge`, `CdWebMcpStatus`, `CdWorkflowLiveViewer`, `CdDoctorQuestionCard`, `CdPromptGuide`, `CdCapabilityMachinePane`, `CdPrescriptionRecoveryPanel`, `CdHackathonLauncher`, and `CdCapabilityStudioVoiceGuide` are registered globally. Every reusable component accepts:
 
 | Prop | Type | Purpose |
 |---|---|---|
@@ -83,7 +83,7 @@ Declarative form names describe visible UI effects such as `populate_visible_pri
 
 ## Canonical capability catalog and naming
 
-`src/infrastructure/webmcp/catalog/capabilityCatalog.js` is the source of truth for fourteen imperative and seven declarative capabilities. Use these formats:
+`src/infrastructure/webmcp/catalog/capabilityCatalog.js` is the source of truth for fourteen built-in imperative and eight declarative capabilities. Explicitly loaded local templates are appended to the runtime registry rather than mutating this static manifest. Use these formats:
 
 | Artifact | Format | Example |
 |---|---|---|
@@ -91,9 +91,17 @@ Declarative form names describe visible UI effects such as `populate_visible_pri
 | Capability id | `cleardose.<category>.<verb_noun>` | `cleardose.discovery-and-pricing.compare_drug_prices` |
 | Static machine | `machine.tool.<kebab-name>.v1` | `machine.tool.compare-drug-prices.v1` |
 | Dynamic machine | `machine.dynamic.<scope-name>.v1` | `machine.dynamic.shortcut-price-comparison.v1` |
+| User tool | `cleardose_user_<verb_noun>` | `cleardose_user_visit_question_sheet` |
+| User workflow | `machine.dynamic.user-workflow-<name>.v1` | `machine.dynamic.user-workflow-prescription-review-loop.v1` |
 | Events | `UPPER_SNAKE_CASE` | `HUMAN_REVIEW_REQUIRED` |
 
-The catalog groups discovery/pricing, patient/clinician, shopping/procurement, documents/memory, interface/observability, and declarative forms. `decorateToolDefinitions()` rejects an imperative definition with no catalog entry. `npm run evals:contracts` validates uniqueness, formats, categories, scope, and shortcut references.
+The catalog groups discovery/pricing, patient/clinician, shopping/procurement, documents/memory, interface/observability, declarative forms, and user-generated capabilities. `decorateToolDefinitions()` rejects a built-in imperative definition with no catalog entry. `npm run evals:contracts` validates uniqueness, formats, categories, scope, and shortcut references.
+
+## Add a safe local capability
+
+Use `/#/studio` or call `CapabilityTemplateService` through Pinia. Templates declare a kind, stable snake_case name, closed input fields, scope, visible example prompt, voice transcript, body, and workflow states. The body may use `<%= input.field %>`, `<%= context.role %>`, comments, and non-nested `<% if input.field %>…<% endif %>` blocks. Raw output, arbitrary EJS/JavaScript, prototype paths, nested or unmatched blocks, extra input properties, and templates over 12,000 characters are rejected.
+
+`save()` and `render()` never register. `register()` is explicit and persists that local choice. `import()` always clears registration. A generated tool artifact remains in human review. See `docs/CAPABILITY_STUDIO.md` and ADR 0003.
 
 ## Recovery and memory contracts
 
