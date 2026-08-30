@@ -27,7 +27,7 @@ Host apps can import the supported extension API from `src/cleardose.js`.
 
 ## Local flow lab
 
-Open `/#/flow-lab` to run multiple workflows next to a Stately-style live inspector. It exposes exact event ids, current states, transition history, and the bounded context at each step. DuckDB-Wasm is bundled with Vite and seeds all 52 fictional drug records into a browser-local OPFS database alongside workflow instances, events, structured exchanges, and generated cards. If OPFS is unavailable or another tab owns the writable file, the affected tab reports a visible in-memory fallback while `BroadcastChannel` continues mirroring live events.
+Open `/#/flow-lab` to run multiple workflows next to a Stately-style live inspector. It exposes exact event ids, current states, transition history, and the bounded context at each step. DuckDB-Wasm boots from its official jsDelivr distribution and seeds all 52 fictional drug records into a browser-local OPFS database alongside workflow instances, events, structured exchanges, and generated cards. After the engine assets load, queries and stored data remain on the device. If the engine, OPFS, or a writable file is unavailable, the affected tab reports a visible in-memory fallback while `BroadcastChannel` continues mirroring live events.
 
 The question-card demo implements a two-call exchange: `prepare_doctor_question_card_request` returns bounded UDI facts, a template-literal instruction, and an exact expected response schema; `submit_doctor_question_card_draft` accepts only structured neutral questions and produces a printable patient-reviewable card. ClearDose derives displayed price facts from its UDI rather than accepting agent-authored prices.
 

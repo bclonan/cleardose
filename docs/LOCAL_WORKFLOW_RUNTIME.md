@@ -25,11 +25,11 @@ flowchart TD
 | `agent_exchanges` | Bounded site instruction, request context, exact response schema, and exchange status |
 | `generated_cards` | Patient-reviewable question card drafts and review state |
 
-The database opens at `opfs://cleardose-flow-lab.duckdb` and checkpoints writes. DuckDB-Wasm, its worker, and WASM modules are emitted by Vite and served from the same deployment—there is no runtime CDN dependency.
+The database opens at `opfs://cleardose-flow-lab.duckdb` and checkpoints writes. ClearDose uses DuckDB's official `getJsDelivrBundles()` and `selectBundle()` bootstrap so the browser receives the compatible engine and worker without putting 34–39 MB binaries into the Site artifact. Engine assets require an initial jsDelivr fetch; SQL execution and all OPFS data remain local to the browser after loading.
 
 ## Cross-tab behavior and fallback
 
-Each transition, exchange, and card is published over a same-origin `BroadcastChannel`. The receiving tab applies the same id and payload to its local runtime and viewer. Browser OPFS may allow only one writable owner; if initialization or file access fails, that tab visibly reports `memory-fallback` and continues to receive live channel events. The patient experience and WebMCP tools remain usable.
+Each transition, exchange, and card is published over a same-origin `BroadcastChannel`. The receiving tab applies the same id and payload to its local runtime and viewer. Browser OPFS may allow only one writable owner; if engine loading, initialization, or file access fails, that tab visibly reports `memory-fallback` and continues to receive live channel events. The patient experience and WebMCP tools remain usable.
 
 The fallback is intentionally explicit: it does not claim persistence, and its status includes the failure reason. No remote database is contacted.
 
@@ -48,4 +48,3 @@ Add one state definition under `src/services/api/workflows`, expose a Pinia acti
 ## Privacy boundary
 
 Use fictional data only. Do not put passwords, real patient data, unrestricted DOM text, or model conversation history into event context. The runtime is an explanatory development surface, not an audit log, clinical record, or regulated system.
-

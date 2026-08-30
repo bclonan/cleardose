@@ -1,14 +1,5 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
-import duckdbMvpWasm from "@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url";
-import duckdbMvpWorker from "@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url";
-import duckdbEhWasm from "@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url";
-import duckdbEhWorker from "@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url";
 import { MemoryWorkflowDao } from "./MemoryWorkflowDao";
-
-const MANUAL_BUNDLES = {
-  mvp: { mainModule: duckdbMvpWasm, mainWorker: duckdbMvpWorker },
-  eh: { mainModule: duckdbEhWasm, mainWorker: duckdbEhWorker },
-};
 
 function sql(value) {
   if (value == null) return "NULL";
@@ -37,10 +28,15 @@ export class DuckDbWasmDao {
 
   async initialize({ drugs = [] } = {}) {
     try {
-      const bundle = await duckdb.selectBundle(MANUAL_BUNDLES);
-      this.worker = new Worker(bundle.mainWorker);
+      const bundle = await duckdb.selectBundle(duckdb.getJsDelivrBundles());
+      const workerUrl = URL.createObjectURL(new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" }));
+      this.worker = new Worker(workerUrl);
       this.db = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), this.worker);
-      await this.db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+      try {
+        await this.db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+      } finally {
+        URL.revokeObjectURL(workerUrl);
+      }
       await this.db.open({
         path: this.databasePath,
         accessMode: duckdb.DuckDBAccessMode.READ_WRITE,
@@ -190,4 +186,3 @@ export class DuckDbWasmDao {
     this.worker = null;
   }
 }
-

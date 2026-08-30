@@ -38,7 +38,7 @@ The generic `createStructuredExchangeToolPair()` factory and domain template lit
 
 - Vue 3, Vite, Vue Router, and Pinia
 - Facade/repository/DTO/DAO boundaries for commerce state
-- DuckDB-Wasm with Vite-hosted WASM/worker assets and browser OPFS
+- DuckDB-Wasm with official compatible bundle selection and browser OPFS
 - Memory fallback plus same-origin `BroadcastChannel` replication
 - Centralized workflow definitions, negative fixtures, and structured exchange contract
 - Reusable adapter-ready components registered by one ClearDose plugin
